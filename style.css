@@ -1,0 +1,19 @@
+#dw__editform div.toolbar button.selected {
+    background: __background__ url(images/buttonshadow_toggled.png) repeat-x bottom;
+}
+
+#dw__editform div.toolbar button.disabled {
+    background: __background__ url(images/buttonshadow_toggled2.png) repeat-x bottom;
+}
+
+table.edit input {
+    border: none;
+    background-color: inherit;
+    font: inherit;
+    text-align: inherit;
+    width: 100%;
+}
+
+#tool__bar span {
+    margin-right: 0.4em;
+}
