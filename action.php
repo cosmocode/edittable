@@ -28,7 +28,93 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
      */
     function register(&$controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
-        $controller->register_hook('TPL_EDITFORM_OUTPUT', 'BEFORE', $this, 'html_table_editform');
+        $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'html_table_editform');
+        $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
+    }
+
+    function toolbar($event) {
+        $menu = array(
+                    array('title' => $this->getLang('toggle_header'),
+                          'key' => 'H',
+                          'icon' => 'text_heading.png',
+                          'type' => 'toggletag'),
+
+                    array('title' => $this->getLang('val_align_left'),
+                          'key' => 'L',
+                          'icon' => 'a_left.png',
+                          'type' => 'val',
+                          'prop' => 'align',
+                          'val' => 'left'),
+
+                    array('title' => $this->getLang('val_align_center'),
+                          'key' => 'C',
+                          'icon' => 'a_center.png',
+                          'type' => 'val',
+                          'prop' => 'align',
+                          'val' => 'center'),
+
+                    array('title' => $this->getLang('val_align_right'),
+                          'key' => 'R',
+                          'icon' => 'a_right.png',
+                          'type' => 'val',
+                          'prop' => 'align',
+                          'val' => 'right'),
+
+                    array('title' => $this->getLang('span_col_plus'),
+                          'icon' => 'more.png',
+                          'type' => 'span',
+                          'target' => 'col',
+                          'ops' => '+'),
+
+                    array('title' => $this->getLang('span_col_minus'),
+                          'icon' => 'less.png',
+                          'type' => 'span',
+                          'target' => 'col',
+                          'ops' => '-'),
+
+                    array('title' => $this->getLang('span_row_plus'),
+                          'icon' => 'more.png',
+                          'type' => 'span',
+                          'target' => 'row',
+                          'ops' => '+'),
+
+                    array('title' => $this->getLang('span_row_minus'),
+                          'icon' => 'less.png',
+                          'type' => 'span',
+                          'target' => 'row',
+                          'ops' => '-'),
+
+                    array('title' => $this->getLang('struct_row_plus'),
+                          'icon' => 'row_insert.png',
+                          'type' => 'structure',
+                          'target' => 'row',
+                          'ops' => '+'),
+
+                    array('title' => $this->getLang('struct_row_minus'),
+                          'icon' => 'row_delete.png',
+                          'type' => 'structure',
+                          'target' => 'row',
+                          'ops' => '-'),
+
+                    array('title' => $this->getLang('struct_col_plus'),
+                          'icon' => 'column_add.png',
+                          'type' => 'structure',
+                          'target' => 'col',
+                          'ops' => '+'),
+
+                    array('title' => $this->getLang('struct_col_minus'),
+                          'icon' => 'column_delete.png',
+                          'type' => 'structure',
+                          'target' => 'col',
+                          'ops' => '-'),
+        );
+        foreach ($menu as &$entry) {
+            $entry['icon'] = '../../plugins/edittable/images/' . $entry['icon'];
+        }
+
+        // use JSON to build the JavaScript array
+        $json = new JSON();
+        echo 'var table_toolbar = '.$json->encode($menu).';'.DOKU_LF;
     }
 
     /**
@@ -131,6 +217,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         global $DATE;
         global $PRE;
         global $SUF;
+        global $INFO;
 
         extract($event->data); // $text, $check
 
@@ -153,6 +240,16 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
 
         $table = $Renderer->doc;
+        ?>
+        <div style="width:99%;">
+
+        <div class="toolbar">
+        <div id="draft__status"><?php if(!empty($INFO['draft'])) echo $lang['draftdate'].' '.dformat();?></div>
+        <div id="tool__bar"><?php if($wr){?><a href="<?php echo DOKU_BASE?>lib/exe/mediamanager.php?ns=<?php echo $INFO['namespace']?>"
+            target="_blank"><?php echo $lang['mediaselect'] ?></a><?php }?></div>
+
+        </div>
+        <?php
 
         $form = new Doku_Form(array('id' => 'dw__editform'));
         $form->addHidden('id', $ID);
@@ -186,6 +283,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             $form->addElement(form_makeCloseTag('div'));
         }
         html_form('edit', $form);
+        print '</div>'.NL;
     }
 
 }

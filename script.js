@@ -21,23 +21,24 @@ addInitEvent(function () {
     var tbody = table.getElementsByTagName('tbody')[0];
     table.insertBefore(document.createElement('thead'), table.firstChild);
 
-    // The currently selected cell element
-    var currentelem = null;
+    // The currently selected table field
+    var cur_field = null;
 
-    function setCurrentElem(newcur) {
-        if (!newcur.getPos) {
+    function setCurrentField(newcur) {
+        var t = getType.call(newcur);
+        if (t < TYPE__CELL) {
             return false;
         }
         if (newcur._parent) {
             newcur = newcur._parent;
         }
-        currentelem = newcur;
-        lastChildElement.call(currentelem).focus();
+        cur_field = newcur;
+        lastChildElement.call(cur_field).focus();
     }
 
     // An array containing functions which are to be called on a focus change;
-    // The first handler updates the var “currentelem”.
-    var focushandlers = [function () {currentelem = this.parentNode; }];
+    // The first handler updates the var “cur_field”.
+    var focushandlers = [function () {cur_field = this.parentNode; }];
 
     /**
      * General helper functions
@@ -46,7 +47,7 @@ addInitEvent(function () {
      */
     function previousElement() {
         var node = this.previousSibling;
-        while (node && !node.tagName) {
+        while (node && !assertType.call(node, TYPE__ELEMENT)) {
             node = node.previousSibling;
         }
         return node;
@@ -54,7 +55,7 @@ addInitEvent(function () {
 
     function nextElement() {
         var node = this.nextSibling;
-        while (node && !node.tagName) {
+        while (node && !assertType.call(node, TYPE__ELEMENT)) {
             node = node.nextSibling;
         }
         return node;
@@ -62,12 +63,14 @@ addInitEvent(function () {
 
     function firstChildElement() {
         var node = this.firstChild;
-        return (node && !node.tagName) ? nextElement.call(node) : node;
+        return (node && !assertType.call(node, TYPE__ELEMENT)) ?
+               nextElement.call(node) : node;
     }
 
     function lastChildElement() {
         var node = this.lastChild;
-        return (node && !node.tagName) ? previousElement.call(node) : node;
+        return (node && !assertType.call(node, TYPE__ELEMENT)) ?
+               previousElement.call(node) : node;
     }
 
     /**
@@ -157,6 +160,29 @@ addInitEvent(function () {
     function getCellAbove() {
         var row = previousElement.call(this.parentNode);
         return row ? getCell.call(row, this.getPos()[1]) : null;
+    }
+
+    var TYPE__NODE    = 0;
+    var TYPE__ELEMENT = 1;
+    var TYPE__CELL    = 2;
+    var TYPE__FIELD   = 3;
+
+    function getType() {
+        if (!this.tagName) {
+            return TYPE__NODE;
+        }
+        if (this._parent) {
+            return TYPE__CELL;
+        }
+        if (this.getInpObj || (this.tagName.match(/t[dh]/i) &&
+                               !this.className.match(/(row|col)handle/))) {
+            return TYPE__FIELD;
+        }
+        return TYPE__ELEMENT;
+    }
+
+    function assertType(type) {
+        return getType.call(this) >= type;
     }
 
     /**
@@ -258,7 +284,7 @@ addInitEvent(function () {
         this.forEveryCell = function (func) {
             for (var c = 0 ; c < this.childNodes.length ; ++c) {
                 var elem = this.childNodes[c];
-                if (elem.tagName && elem.className !== 'rowhandle') {
+                if (assertType.call(elem, TYPE__CELL)) {
                     func.call(elem);
                 }
             }
@@ -301,7 +327,7 @@ addInitEvent(function () {
             var nextcell = this;
             do {
                 nextcell = nextElement.call(nextcell);
-            } while (nextcell && nextcell.tagName === 'DIV' &&
+            } while (nextcell && !assertType.call(nextcell, TYPE__FIELD) &&
                      nextcell._parent === this);
             return nextcell;
         };
@@ -340,7 +366,7 @@ addInitEvent(function () {
                 this._placeholders[p]._parent = nuparent;
             }
             this.parentNode.replaceChild(nuparent, this);
-            setCurrentElem(nuparent);
+            setCurrentField(nuparent);
         };
 
         this.setAlign = function (nualign) {
@@ -431,13 +457,15 @@ addInitEvent(function () {
             if (this.getPos()[ops.index] === pos[ops.index]) {
                 // The main node is to be deleted, so move it to a safe place.
                 var oldplaceholder = ops.getnext.call(this);
-                var insertpoint = this.nextSibling;
+                var pholder_insertpoint = this.nextSibling;
+                var pholder_pnode = this.parentNode;
                 var c_pos = this.getPos();
                 this.setPos(oldplaceholder.getPos());
                 oldplaceholder.setPos(c_pos);
-                oldplaceholder.parentNode.replaceChild(this, oldplaceholder);
-                insertpoint.parentNode.insertBefore(oldplaceholder,
-                                                    insertpoint);
+                if (pholder_insertpoint !== oldplaceholder) {
+                    oldplaceholder.parentNode.replaceChild(this, oldplaceholder);
+                    pholder_pnode.insertBefore(oldplaceholder, pholder_insertpoint);
+                }
             }
 
             var newp = [];
@@ -500,7 +528,7 @@ addInitEvent(function () {
 
     // Insert rowspan and colspan placeholder.
     table.forEveryCell(function () {
-        if (this.tagName === 'DIV') return;
+        if (!assertType.call(this, TYPE__FIELD)) return;
         this._placeholders = [];
         var colspan = this.getVal('colspan');
         var pos = this.getPos();
@@ -531,31 +559,24 @@ addInitEvent(function () {
         }
     });
 
-    // Build toolbar.
-    var toolbar = document.createElement('div');
-    toolbar.className = 'toolbar';
-    table.parentNode.insertBefore(toolbar, table);
-    var toolbar2 = document.createElement('div');
-    toolbar2.id = 'tool__bar';
-    toolbar.appendChild(toolbar2);
-
-    function addButton(title, accesskey, img, click_handler, update_handler) {
-        var button = createToolButton(DOKU_BASE+'lib/plugins/edittable/images/'+img, title, accesskey);
-
+    /**
+     * Toolbar
+     */
+    function prepareButton(button, click_handler, update_handler) {
         // Click handler
         addEvent(button, 'click', function () {
-            var nextcur = currentelem ? click_handler() :
+            var nextcur = cur_field ? click_handler() :
                           tbody.rows[0].cells[1];
             if (!nextcur) {
-                nextcur = currentelem;
+                nextcur = cur_field;
             }
-            setCurrentElem(nextcur);
+            setCurrentField(nextcur);
             return false;
         });
 
         // Update the button’s state
         button.update = function () {
-            if (!currentelem) return;
+            if (!cur_field) return;
             var state = update_handler.call(this);
             this.className = 'toolbutton';
             if (state[0]) this.className += ' selected';
@@ -563,204 +584,205 @@ addInitEvent(function () {
             this.disabled = state[1];
         };
         focushandlers.push(function () {button.update.call(button); });
-
-        this.appendChild(button);
+        return button;
     }
 
-    var buttons = [[['Toggle header state', 'H', 'text_heading.png',
+    // window scope needed for these
+    window.addBtnActionToggletag = function (button) {
+        return prepareButton(button,
         function () {
-            currentelem.setTag(currentelem.getVal('tag') === 'th' ? 'td' :
-                                                                    'th');
+            cur_field.setTag(cur_field.getVal('tag') === 'th' ? 'td' : 'th');
         }, function () {
-            return [currentelem.getVal('tag') === 'th', false];
-        }]],
-        [['Left-align cell', 'L', 'a_left.png', function () {
-            currentelem.setAlign('left');
-        }, function () {
-            return [currentelem.getVal('align') === 'left', false];
-        }],
-        ['Center cell', 'C', 'a_center.png', function () {
-            currentelem.setAlign('center');
-        }, function () {
-            return [currentelem.getVal('align') === 'center', false];
-        }],
-        ['Right-align cell', 'R', 'a_right.png', function () {
-            currentelem.setAlign('right');
-        }, function () {
-            return [currentelem.getVal('align') === 'right', false];
-        }]],
-        [['Increase colspan', '', 'more.png', function () {
-            currentelem.addToSpan(['*', nextElement.call(currentelem.getRight())]);
-        }, function () {
-            return [false, !currentelem.addToSpan(['*', nextElement.call(currentelem.getRight())], true)];
-        }],
-        ['Reduce colspan', '', 'less.png', function () {
-            currentelem.removeFromSpan(['*', currentelem.getRight()], function (placeholder) {
-                    return getNewCell(placeholder._parent, {'text': '', 'colspan': 1, 'rowspan': 1, 'pos': placeholder.getPos()});});
-        }, function () {
-            return [false, currentelem.getVal('colspan') === 1];
-        }]],
-        [['Increase rowspan', '', 'more.png', function () {
-            currentelem.addToSpan([getCellBelow.call(currentelem.getBottom()), '*']);
-        }, function () {
-            return [false, !currentelem.addToSpan([getCellBelow.call(currentelem.getBottom()), '*'], true)];
-        }],
-        ['Reduce rowspan', '', 'less.png', function () {
-            currentelem.removeFromSpan([currentelem.getBottom(), '*'], function (placeholder) {
-                    return getNewCell(placeholder._parent, {'text': '', 'colspan': 1, 'rowspan': 1, 'pos': placeholder.getPos()});});
-        }, function () {
-            return [false, currentelem.getVal('rowspan') === 1];
-        }]],
-        [['Add row', '', 'row_insert.png', function () {
-            var row = currentelem.parentNode;
-            var newrow = document.createElement('tr');
-            pimpRow.call(newrow);
-            newrow.setPos(row.getPos() + 1);
-
-            // Insert new cells.
-            row.forEveryCell(function () {
-                var root = this._parent ? this._parent : this;
-                var newnode = null;
-                var below = getCellBelow.call(this);
-                if  (below && root === below._parent) {
-                    // TODO: Abstraction fail
-                    root.setVal('rowspan', root.getVal('rowspan') + 1);
-                    var pos = root.getPos();
-                    newnode = getNewPlaceholder([pos[0] + 1, pos[1]], root);
-                } else {
-                    var pos = this.getPos();
-                    ++pos[0];
-                    newnode = getNewCell(root, {'pos': pos, 'text': '',
-                                                'colspan': 1, 'rowspan': 1});
-                }
-                newrow.appendChild(newnode);
-            });
-
-            // Insert row.
-            var nextrow = nextElement.call(row);
-            row.parentNode.insertBefore(newrow, nextrow);
-
-            // Update pos information in rows after the new one.
-            while (nextrow) {
-                nextrow.move(nextrow.getPos() + 1);
-                nextrow = nextElement.call(nextrow);
-            }
-
-            addHandle.call(newrow, 'row', newrow.firstChild);
-            return firstChildElement.call(newrow);
-        }, function () {
-            return [false, false];
-        }],
-        ['Remove row', '', 'row_delete.png', function () {
-            var row = currentelem.parentNode;
-
-            var nextcur = getCellAbove.call(currentelem);
-            if (!nextcur) {
-                nextcur = getCellBelow.call(currentelem);
-            }
-            if (!nextcur) return;
-            if (nextcur._parent) nextcur = nextcur._parent;
-
-            while (row.hasChildNodes()) {
-                var c = row.childNodes[0];
-                if (c.removeFromSpan) {
-                    c.removeFromSpan([c, '*']);
-                } else {
-                    row.removeChild(c);
-                }
-            }
-
-            // Remove row.
-            row.parentNode.removeChild(row);
-
-            // Update pos information in rows after the new one.
-            var nextrow = nextElement.call(row);
-            while (nextrow) {
-                nextrow.move(nextrow.getPos() - 1);
-                nextrow = nextElement.call(nextrow);
-            }
-            return nextcur;
-        }, function () {
-            var row = currentelem.parentNode;
-            var nextcurrow = previousElement.call(row);
-            if (!nextcurrow) {
-                nextcurrow = nextElement.call(row);
-            }
-            return [false, !nextcurrow];
-        }]],
-        [['Add column', '', 'column_add.png', function () {
-            var col = currentelem.getPos()[1] + currentelem.getVal('colspan');
-            for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                var ins = null;
-                tbody.rows[i].forEveryCell(function () {
-                    var pos = this.getPos();
-                    if (ins === null && pos[1] === col) {
-                        ins = this;
-                    }
-                    if (ins !== null) {
-                        pos[1]++;
-                        this.setPos(pos);
-                    }
-                });
-                var newnode = null;
-                if  (ins && ins._parent) {
-                    // TODO: Abstraction fail
-                    var root = ins._parent ? ins._parent : ins;
-                    root.setVal('colspan', root.getVal('colspan') + 1);
-                    var pos = previousElement.call(ins).getPos();
-                    newnode = getNewPlaceholder([i + 1, pos[1] + 1], root);
-                } else {
-                    newnode = getNewCell(null, {'pos': [i + 1, col], 'text': '',
-                                                'colspan': 1, 'rowspan': 1});
-                }
-                tbody.rows[i].insertBefore(newnode, ins);
-            }
-            addHandle.call(table.tHead.rows[0], 'col', null);
-            return currentelem.nextCell();
-        }, function () {
-            return [false, false];
-        }],
-        ['Remove column', '', 'column_delete.png', function () {
-            var col = currentelem.getPos()[1] +
-                      currentelem.getVal('colspan') - 1;
-            var nextcur = previousElement.call(currentelem);
-            if (!nextcur) {
-                nextcur = nextElement.call(currentelem);
-            }
-            if (!nextcur) return;
-            if (nextcur._parent) nextcur = nextcur._parent;
-
-            for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                var ins = null;
-                tbody.rows[i].forEveryCell(function () {
-                    var pos = this.getPos();
-                    if (ins === null && pos[1] === col) {
-                        ins = this;
-                    } else if (ins !== null) {
-                        pos[1]--;
-                        this.setPos(pos);
-                    }
-                });
-                ins.removeFromSpan([ins, ins]);
-            }
-            table.tHead.rows[0].removeChild(lastChildElement.call(table.tHead.rows[0]));
-
-            return nextcur;
-        }, function () {
-            var nextcur = previousElement.call(currentelem);
-            if (!nextcur) {
-                nextcur = nextElement.call(currentelem);
-            }
-            return [false, !nextcur];
-        }]]];
-
-    for (var span = 0 ; span < buttons.length ; ++span) {
-        var spanelem = document.createElement('span');
-        for (var button = 0 ; button < buttons[span].length ; ++button) {
-            addButton.apply(spanelem, buttons[span][button]);
-        }
-        toolbar2.appendChild(spanelem);
+            return [cur_field.getVal('tag') === 'th', false];
+        });
     }
+
+    window.addBtnActionVal = function (button, arr) {
+        var ucase = arr.prop.charAt(0).toUpperCase() + arr.prop.substring(1);
+        return prepareButton(button,
+        function () {
+            cur_field['set' + ucase](arr.val);
+        }, function () {
+            return [cur_field.getVal(arr.prop) === arr.val, false];
+        });
+    }
+
+    window.addBtnActionSpan = function (button, arr) {
+        var target = ['*', '*'];
+        var ops = arr.target === 'col' ?
+                  {index: 1, next: [nextElement, 'getRight']} :
+                  {index: 0, next: [getCellBelow, 'getBottom']};
+
+        if (arr.ops === '+') {
+            return prepareButton(button,
+            function () {
+                target[ops.index] = ops.next[0].call(cur_field[ops.next[1]]());
+                cur_field.addToSpan(target);
+            }, function () {
+                target[ops.index] = ops.next[0].call(cur_field[ops.next[1]]());
+                return [false, !cur_field.addToSpan(target, true)];
+            });
+        } else {
+            return prepareButton(button,
+            function () {
+                target[ops.index] = cur_field[ops.next[1]]();
+                cur_field.removeFromSpan(target, function (placeholder) {
+                        return getNewCell(placeholder._parent, {'text': '', 'colspan': 1, 'rowspan': 1, 'pos': placeholder.getPos()});});
+            }, function () {
+                return [false, cur_field.getVal(arr.target +  'span') === 1];
+            });
+        }
+    }
+
+    window.addBtnActionStructure = function (button, arr) {
+        var click_handler = null, update = null;
+        var ops = arr.target === 'row' ?
+                {next: getCellBelow, prev: getCellAbove} :
+                {next: nextElement, prev: previousElement};
+
+        if (arr.ops === '+') {
+            update = function () {return [false, false];};
+        } else {
+            getNextcur = function () {
+                var nextcur = ops.next.call(cur_field);
+                if (!assertType.call(nextcur, TYPE__CELL)) {
+                    nextcur = ops.prev.call(cur_field);
+                }
+                return nextcur;
+            }
+            update = function () {
+                return [false, !assertType.call(getNextcur(), TYPE__CELL)];
+            };
+        }
+
+        if (arr.ops === '+' && arr.target === 'row') {
+            click_handler = function () {
+                var row = cur_field.parentNode;
+                var newrow = document.createElement('tr');
+                pimpRow.call(newrow);
+                newrow.setPos(row.getPos() + 1);
+
+                // Insert new cells.
+                row.forEveryCell(function () {
+                    var root = this._parent ? this._parent : this;
+                    var newnode = null;
+                    var below = getCellBelow.call(this);
+                    if  (below && root === below._parent) {
+                        // TODO: Abstraction fail
+                        root.setVal('rowspan', root.getVal('rowspan') + 1);
+                        var pos = root.getPos();
+                        newnode = getNewPlaceholder([pos[0] + 1, pos[1]], root);
+                    } else {
+                        var pos = this.getPos();
+                        ++pos[0];
+                        newnode = getNewCell(root, {'pos': pos, 'text': '',
+                                                    'colspan': 1, 'rowspan': 1});
+                    }
+                    newrow.appendChild(newnode);
+                });
+
+                // Insert row.
+                var nextrow = nextElement.call(row);
+                row.parentNode.insertBefore(newrow, nextrow);
+
+                // Update pos information in rows after the new one.
+                while (nextrow) {
+                    nextrow.move(nextrow.getPos() + 1);
+                    nextrow = nextElement.call(nextrow);
+                }
+
+                addHandle.call(newrow, 'row', newrow.firstChild);
+                return firstChildElement.call(newrow);
+            };
+        } else if (arr.ops === '-' && arr.target === 'row') {
+            click_handler = function () {
+                var row = cur_field.parentNode;
+
+                var nextcur = getNextcur();
+                if (!nextcur) return;
+                if (nextcur._parent) nextcur = nextcur._parent;
+
+                while (row.hasChildNodes()) {
+                    var c = row.childNodes[0];
+                    if (c.removeFromSpan) {
+                        c.removeFromSpan([c, '*']);
+                    } else {
+                        row.removeChild(c);
+                    }
+                }
+
+                // Remove row.
+                row.parentNode.removeChild(row);
+
+                // Update pos information in rows after the new one.
+                var nextrow = nextElement.call(row);
+                while (nextrow) {
+                    nextrow.move(nextrow.getPos() - 1);
+                    nextrow = nextElement.call(nextrow);
+                }
+                return nextcur;
+            };
+        } else if (arr.ops === '+' && arr.target === 'col') {
+            click_handler = function () {
+                var col = cur_field.getPos()[1] + cur_field.getVal('colspan');
+                for (var i = 0 ; i < tbody.rows.length ; ++i) {
+                    var ins = null;
+                    tbody.rows[i].forEveryCell(function () {
+                        var pos = this.getPos();
+                        if (ins === null && pos[1] === col) {
+                            ins = this;
+                        }
+                        if (ins !== null) {
+                            pos[1]++;
+                            this.setPos(pos);
+                        }
+                    });
+                    var newnode = null;
+                    if  (ins && ins._parent) {
+                        // TODO: Abstraction fail
+                        var root = ins._parent ? ins._parent : ins;
+                        root.setVal('colspan', root.getVal('colspan') + 1);
+                        var pos = previousElement.call(ins).getPos();
+                        newnode = getNewPlaceholder([i + 1, pos[1] + 1], root);
+                    } else {
+                        newnode = getNewCell(null, {'pos': [i + 1, col], 'text': '',
+                                                    'colspan': 1, 'rowspan': 1});
+                    }
+                    tbody.rows[i].insertBefore(newnode, ins);
+                }
+                addHandle.call(table.tHead.rows[0], 'col', null);
+                return cur_field.nextCell();
+            };
+        } else {
+            click_handler = function () {
+                var col = cur_field.getPos()[1] +
+                          cur_field.getVal('colspan') - 1;
+                var nextcur = getNextcur();
+                if (!nextcur) return;
+                if (nextcur._parent) nextcur = nextcur._parent;
+
+                for (var i = 0 ; i < tbody.rows.length ; ++i) {
+                    var ins = null;
+                    tbody.rows[i].forEveryCell(function () {
+                        var pos = this.getPos();
+                        if (ins === null && pos[1] === col) {
+                            ins = this;
+                        } else if (ins !== null) {
+                            pos[1]--;
+                            this.setPos(pos);
+                        }
+                    });
+                    ins.removeFromSpan([ins, ins]);
+                }
+                table.tHead.rows[0].removeChild(lastChildElement.call(table.tHead.rows[0]));
+
+                return nextcur;
+            };
+        }
+        return prepareButton(button, click_handler, update);
+    };
+
+    initToolbar('tool__bar', 'dw__editform', window.table_toolbar);
 
     /**
      * Drag ’n’ drop
@@ -873,7 +895,7 @@ addInitEvent(function () {
                 rows[r].move(r);
             }
 
-            setCurrentElem(src.parentNode.cells[1]);
+            setCurrentField(src.parentNode.cells[1]);
         } else {
             var from = countCols.call(src.parentNode, src) - 1;
             var to = countCols.call(target.parentNode, target);
@@ -902,7 +924,7 @@ addInitEvent(function () {
                 obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
                 tbody.rows[i].insertBefore(obj, ins);
             }
-            setCurrentElem(obj);
+            setCurrentField(obj);
         }
 
         drag.marker.parentNode.removeChild(drag.marker);
