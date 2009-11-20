@@ -794,19 +794,11 @@ addInitEvent(function () {
     drag.marker.style.marginTop = '-1.5em';
 
     // Massively ugly copy and paste from drag.js
-    drag.start = function (e){
-        drag.handle = e.target;
-        if(drag.handle.dragobject){
-            drag.obj = drag.handle.dragobject;
-        }else{
-            drag.obj = drag.handle;
-        }
-
-        // <Own code>
+    drag.handlers.start.pre.push(function (e) {
         // If there is (row|col)span on (row|col) move, die.
         var _break = false;
-        if (drag.obj.className.match(/rowhandle/)) {
-            drag.obj.parentNode.forEveryCell(function () {
+        if (e.target.className.match(/rowhandle/)) {
+            e.target.parentNode.forEveryCell(function () {
                 var node = this;
                 if (node._parent) node = node._parent;
                 if (node.rowSpan > 1) {
@@ -814,7 +806,7 @@ addInitEvent(function () {
                 }
             });
         } else {
-            var pos = countCols.call(drag.obj.parentNode, drag.obj) - 1;
+            var pos = countCols.call(e.target.parentNode, e.target) - 1;
             for (var i = 0 ; i < tbody.rows.length ; ++i) {
                 var elem = tbody.rows[i].childNodes[pos];
                 while (elem && (!elem.getPos || elem.getPos()[1] !== pos)) {
@@ -826,32 +818,10 @@ addInitEvent(function () {
                 }
             }
         }
-        if (_break) return false;
-        // </Own code>
+        return !_break;
+    });
 
-        drag.handle.className += ' ondrag';
-        drag.obj.className    += ' ondrag';
-
-        drag.oX = parseInt(drag.obj.style.left);
-        drag.oY = parseInt(drag.obj.style.top);
-        drag.eX = drag.evX(e);
-        drag.eY = drag.evY(e);
-
-        addEvent(document,'mousemove',drag.drag);
-        addEvent(document,'mouseup',drag.stop);
-
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    };
-
-    drag.drag = function(e) {
-        if (drag.obj) {
-            drag.obj.style.top  = (drag.evY(e)+drag.oY-drag.eY+'px');
-            drag.obj.style.left = (drag.evX(e)+drag.oX-drag.eX+'px');
-        }
-
-        // <Own code>
+    drag.handlers.drag.post.push(function(e) {
         // Move marker
         if (drag.handle.className.match(/rowhandle/)) {
             var row = findRow(drag.evY(e));
@@ -864,25 +834,14 @@ addInitEvent(function () {
                 table.tHead.rows[0].cells[col].appendChild(drag.marker);
             }
         }
-        // </Own code>
-    };
+    });
 
-    drag.stop = function(){
-        drag.handle.className = drag.handle.className.replace(/ ?ondrag/,'');
-        drag.obj.className    = drag.obj.className.replace(/ ?ondrag/,'');
-        removeEvent(document,'mousemove',drag.drag);
-        removeEvent(document,'mouseup',drag.stop);
-        // <Own code>
-        // Save src
+    drag.handlers.stop.pre.push(function(){
         var src = drag.obj;
-        // </Own code>
-        drag.obj = null;
-        drag.handle = null;
 
-        // <Own code>
         // Do the move
         var target = drag.marker.parentNode;
-        if (!target) return;
+        if (!target) return true;
 
         // Are we moving a row or a column?
         if (src.className.match(/rowhandle/)) {
@@ -928,8 +887,8 @@ addInitEvent(function () {
         }
 
         drag.marker.parentNode.removeChild(drag.marker);
-        // </Own code>
-    };
+        return true;
+    });
 
     // Add handles to rows and columns.
     function addHandle(text, before) {
