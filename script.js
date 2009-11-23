@@ -741,10 +741,14 @@ addInitEvent(function () {
                     if  (ins && ins._parent) {
                         // TODO: Abstraction fail
                         var root = ins._parent ? ins._parent : ins;
-                        root.setVal('colspan', root.getVal('colspan') + 1);
-                        var pos = previousElement.call(ins).getPos();
-                        newnode = getNewPlaceholder([i + 1, pos[1] + 1], root);
-                    } else {
+                        var before = previousElement.call(ins);
+                        if (before && before._parent === root) {
+                            root.setVal('colspan', root.getVal('colspan') + 1);
+                            var pos = previousElement.call(ins).getPos();
+                            newnode = getNewPlaceholder([i + 1, pos[1] + 1], root);
+                        }
+                    }
+                    if (newnode === null) {
                         newnode = getNewCell(null, {'pos': [i + 1, col], 'text': '',
                                                     'colspan': 1, 'rowspan': 1});
                     }
