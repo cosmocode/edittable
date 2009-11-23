@@ -923,4 +923,31 @@ addInitEvent(function () {
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
     }
+
+    // Fix lock timer
+
+    locktimer.init = function(timeout,msg,draft){
+        // init values
+        locktimer.timeout  = timeout*1000;
+        locktimer.msg      = msg;
+        locktimer.draft    = draft;
+        locktimer.lasttime = new Date();
+
+        if(!$('dw__editform')) return;
+        locktimer.pageid = $('dw__editform').elements.id.value;
+        if(!locktimer.pageid) return;
+
+        // init ajax component
+        locktimer.sack = new sack(DOKU_BASE + 'lib/exe/ajax.php');
+        locktimer.sack.AjaxFailedAlert = '';
+        locktimer.sack.encodeURIString = false;
+        locktimer.sack.onCompletion = locktimer.refreshed;
+
+        // register refresh event
+        addEvent($('dw__editform'),'keypress',function(){locktimer.refresh();});
+        addEvent($('tool__bar'),'keypress',function(){locktimer.refresh();});
+
+        // start timer
+        locktimer.reset();
+    };
 });
