@@ -649,7 +649,7 @@ addInitEvent(function () {
                     nextcur = ops.prev.call(cur_field);
                 }
                 return nextcur;
-            }
+            };
             update = function () {
                 return [false, !assertType.call(getNextcur(), TYPE__CELL)];
             };
