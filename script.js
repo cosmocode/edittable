@@ -200,7 +200,7 @@ addInitEvent(function () {
                       'pos': template.getPos(),
                       'text': template.getVal('text')};
         } else {
-            params = {'tag': 'td', 'align': 'right', 'colspan': 1,
+            params = {'tag': 'td', 'align': 'left', 'colspan': 1,
                       'rowspan': 1, 'pos': [0, 0], 'text': ''};
         }
 
@@ -797,14 +797,12 @@ addInitEvent(function () {
     drag.marker.style.cssFloat = 'right';
     drag.marker.style.marginTop = '-1.5em';
 
-    function checkSpans(obj) {
+    function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
         var _break = false;
         if (obj.className.match(/rowhandle/)) {
             obj.parentNode.forEveryCell(function () {
-                var node = this;
-                if (node._parent) node = node._parent;
-                if (node.rowSpan > 1) {
+                if (func(this, 'row')) {
                     _break = true;
                 }
             });
@@ -815,15 +813,19 @@ addInitEvent(function () {
                 while (elem && (!elem.getPos || elem.getPos()[1] !== pos)) {
                     elem = nextElement.call(elem);
                 }
-                if (elem._parent) elem = elem._parent;
-                if (elem.colSpan > 1) {
+                if (func(elem, 'col')) {
                     _break = true;
                 }
             }
         }
         return !_break;
     }
-    drag.handlers.start.pre.push(function (e) { return checkSpans(e.target);});
+
+    drag.handlers.start.pre.push(function (e) {
+        return checkSpans(e.target, function (node, tgt) {
+             return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
+        });
+    });
 
     drag.handlers.drag.post.push(function(e) {
         // Move marker
@@ -841,15 +843,20 @@ addInitEvent(function () {
     });
 
     drag.handlers.stop.pre.push(function(){
+        var target = drag.marker.parentNode;
         drag.marker.parentNode.removeChild(drag.marker);
 
         var src = drag.obj;
 
-        // Do the move
-        var target = drag.marker.parentNode;
         if (!target) return true;
 
-        if (!checkSpans(target)) return true;
+        if (!checkSpans(target, function (node, tgt) {
+                var root = node._parent ? node._parent : node;
+                var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
+                return (other && root === other._parent);
+            })) {
+            return true;
+        }
 
         // Are we moving a row or a column?
         if (src.className.match(/rowhandle/)) {
