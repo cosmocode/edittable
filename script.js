@@ -595,7 +595,7 @@ addInitEvent(function () {
         }, function () {
             return [cur_field.getVal('tag') === 'th', false];
         });
-    }
+    };
 
     window.addBtnActionVal = function (button, arr) {
         var ucase = arr.prop.charAt(0).toUpperCase() + arr.prop.substring(1);
@@ -605,7 +605,7 @@ addInitEvent(function () {
         }, function () {
             return [cur_field.getVal(arr.prop) === arr.val, false];
         });
-    }
+    };
 
     window.addBtnActionSpan = function (button, arr) {
         var target = ['*', '*'];
@@ -632,7 +632,7 @@ addInitEvent(function () {
                 return [false, cur_field.getVal(arr.target +  'span') === 1];
             });
         }
-    }
+    };
 
     window.addBtnActionStructure = function (button, arr) {
         var click_handler = null, update = null;
@@ -793,20 +793,19 @@ addInitEvent(function () {
     drag.marker.style.cssFloat = 'right';
     drag.marker.style.marginTop = '-1.5em';
 
-    // Massively ugly copy and paste from drag.js
-    drag.handlers.start.pre.push(function (e) {
+    function checkSpans(obj) {
         // If there is (row|col)span on (row|col) move, die.
         var _break = false;
-        if (e.target.className.match(/rowhandle/)) {
-            e.target.parentNode.forEveryCell(function () {
+        if (obj.className.match(/rowhandle/)) {
+            obj.parentNode.forEveryCell(function () {
                 var node = this;
                 if (node._parent) node = node._parent;
                 if (node.rowSpan > 1) {
                     _break = true;
                 }
             });
-        } else {
-            var pos = countCols.call(e.target.parentNode, e.target) - 1;
+        } else if (obj.className.match(/colhandle/)) {
+            var pos = countCols.call(obj.parentNode, obj) - 1;
             for (var i = 0 ; i < tbody.rows.length ; ++i) {
                 var elem = tbody.rows[i].childNodes[pos];
                 while (elem && (!elem.getPos || elem.getPos()[1] !== pos)) {
@@ -819,7 +818,8 @@ addInitEvent(function () {
             }
         }
         return !_break;
-    });
+    }
+    drag.handlers.start.pre.push(function (e) { return checkSpans(e.target);});
 
     drag.handlers.drag.post.push(function(e) {
         // Move marker
@@ -837,11 +837,15 @@ addInitEvent(function () {
     });
 
     drag.handlers.stop.pre.push(function(){
+        drag.marker.parentNode.removeChild(drag.marker);
+
         var src = drag.obj;
 
         // Do the move
         var target = drag.marker.parentNode;
         if (!target) return true;
+
+        if (!checkSpans(target)) return true;
 
         // Are we moving a row or a column?
         if (src.className.match(/rowhandle/)) {
@@ -885,8 +889,6 @@ addInitEvent(function () {
             }
             setCurrentField(obj);
         }
-
-        drag.marker.parentNode.removeChild(drag.marker);
         return true;
     });
 
