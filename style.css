@@ -4,8 +4,12 @@ div.toolbar #tool__bar button.selected {
 
 #tool__bar button.disabled {
     background: __background__ url(images/buttonshadow_toggled2.png) repeat-x bottom;
+    opacity: 0.4;
 }
 
+div.dokuwiki table.edit {
+    margin-top: 1.5em;
+}
 
 div.dokuwiki table.edit input {
     border: none;
@@ -37,3 +41,8 @@ html>body div.dokuwiki table.edit td.handle {
     background-position: bottom;
 }
 
+#table__dragmarker {
+    width: 16px;
+    height: 16px;
+    background: transparent url(images/arrow.png) no-repeat center center;
+}

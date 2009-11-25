@@ -803,10 +803,10 @@ addInitEvent(function () {
      * Drag ’n’ drop
      */
     drag.marker = document.createElement('span');
-    drag.marker.innerHTML = '|';
-    drag.marker.style.marginRight = '-0.4em';
+    drag.marker.id = 'table__dragmarker';
+    drag.marker.style.marginRight = '-8px';
     drag.marker.style.cssFloat = 'right';
-    drag.marker.style.marginTop = '-1.5em';
+    drag.marker.style.marginTop = '-16px';
 
     function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
