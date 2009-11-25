@@ -38,7 +38,7 @@ addInitEvent(function () {
 
     // An array containing functions which are to be called on a focus change;
     // The first handler updates the var “cur_field”.
-    var focushandlers = [function () {cur_field = this.parentNode; }];
+    var focushandlers = [function () {cur_field = this; }];
 
     /**
      * General helper functions
@@ -138,11 +138,22 @@ addInitEvent(function () {
      */
     function getCell(column) {
         var _ret = null;
-        this.forEveryCell(function () {
-            if (this.getPos()[1] === column) {
-                _ret = this;
+        if (this.forEveryCell) {
+            this.forEveryCell(function () {
+                if (this.getPos()[1] === column) {
+                    _ret = this;
+                }
+            });
+        }
+        if (_ret === null) {
+            for (var i = 0, cnt = -1 ; i < this.childNodes.length ; ++i) {
+                if (assertType.call(this.childNodes[i], TYPE__ELEMENT) &&
+                    ++cnt === column) {
+                    _ret = this.childNodes[i];
+                    break;
+                }
             }
-        });
+        }
         return _ret;
     }
 
@@ -319,7 +330,7 @@ addInitEvent(function () {
     function pimp() {
         addEvent(lastChildElement.call(this), 'focus', function () {
             for (var i = 0 ; i < focushandlers.length ; ++i) {
-                focushandlers[i].call(this);
+                focushandlers[i].call(this.parentNode);
             }
         });
 
@@ -917,7 +928,7 @@ addInitEvent(function () {
     }
 
     var newrow = document.createElement('TR');
-    newrow.className = 'handle';
+    newrow.className = 'handles';
     table.tHead.appendChild(newrow);
     for (var i = countCols.call(tbody.rows[0], null) ; i > 0 ; --i) {
         addHandle.call(newrow, 'col', newrow.firstChild);
@@ -929,6 +940,21 @@ addInitEvent(function () {
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
     }
+
+    focushandlers.push(function () {
+        var handles = getElementsByClass('handle', table, 'td');
+        for (var handle = 0 ; handle < handles.length ; ++handle) {
+            handles[handle].className = handles[handle].className.replace(/\bcurhandle\b/, '');
+        }
+        var rowhandle = firstChildElement.call(this.parentNode);
+        if (assertType.call(rowhandle, TYPE__ELEMENT)) {
+            rowhandle.className += ' curhandle';
+        }
+        var colhandle = getCell.call(table.tHead.rows[0], countCols.call(this.parentNode, this));
+        if (assertType.call(colhandle, TYPE__ELEMENT)) {
+            colhandle.className += ' curhandle';
+        }
+    });
 
     // Fix lock timer
 
