@@ -589,7 +589,7 @@ addInitEvent(function () {
         button.update = function () {
             if (!cur_field) return;
             var state = update_handler.call(this);
-            this.className = 'toolbutton';
+            this.className = this.className.replace(/(selected|disabled)/,'');
             if (state[0]) this.className += ' selected';
             if (state[1]) this.className += ' disabled';
             this.disabled = state[1];
