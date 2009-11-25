@@ -38,6 +38,10 @@ div.dokuwiki table.edit td.handle {
     background-color: __background_neu__;
 }
 
+div.dokuwiki table.edit td.curhandle {
+    background-color: __background_alt__;
+}
+
 /* nice alphatransparency background except for IE <7 */
 html>body div.dokuwiki table.edit td.handle {
     background-image: url(images/buttonshadow.png);
