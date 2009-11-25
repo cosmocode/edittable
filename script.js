@@ -643,7 +643,7 @@ addInitEvent(function () {
         if (arr.ops === '+') {
             update = function () {return [false, false];};
         } else {
-            getNextcur = function () {
+            var getNextcur = function () {
                 var nextcur = ops.next.call(cur_field);
                 if (!assertType.call(nextcur, TYPE__CELL)) {
                     nextcur = ops.prev.call(cur_field);
