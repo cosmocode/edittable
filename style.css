@@ -7,6 +7,10 @@ div.toolbar #tool__bar button.selected {
     opacity: 0.4;
 }
 
+#tool__bar button.separator {
+    margin-left: 0.5em;
+}
+
 div.dokuwiki table.edit {
     margin-top: 1.5em;
 }
