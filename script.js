@@ -175,7 +175,7 @@ addInitEvent(function () {
             return TYPE__CELL;
         }
         if (this.getInpObj || (this.tagName.match(/t[dh]/i) &&
-                               !this.className.match(/(row|col)handle/))) {
+                               !this.className.match(/\bhandle\b/))) {
             return TYPE__FIELD;
         }
         return TYPE__ELEMENT;
@@ -828,18 +828,30 @@ addInitEvent(function () {
     });
 
     drag.handlers.drag.post.push(function(e) {
+
+        var target = null;
+
         // Move marker
         if (drag.handle.className.match(/rowhandle/)) {
             var row = findRow(drag.evY(e));
             if (row !== -1) {
-                table.rows[row].cells[0].appendChild(drag.marker);
+                target = table.rows[row].cells[0];
             }
         } else {
             var col = findColumn(drag.evX(e));
             if (col !== -1) {
-                table.tHead.rows[0].cells[col].appendChild(drag.marker);
+                target = table.tHead.rows[0].cells[col];
             }
         }
+
+        if (target && checkSpans(target, function (node, tgt) {
+                var root = node._parent ? node._parent : node;
+                var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
+                return (other && root === other._parent);
+            })) {
+            target.appendChild(drag.marker);
+        }
+
     });
 
     drag.handlers.stop.pre.push(function(){
@@ -849,14 +861,6 @@ addInitEvent(function () {
         var src = drag.obj;
 
         if (!target) return true;
-
-        if (!checkSpans(target, function (node, tgt) {
-                var root = node._parent ? node._parent : node;
-                var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
-                return (other && root === other._parent);
-            })) {
-            return true;
-        }
 
         // Are we moving a row or a column?
         if (src.className.match(/rowhandle/)) {
@@ -907,7 +911,7 @@ addInitEvent(function () {
     function addHandle(text, before) {
         var handle = document.createElement('TD');
         handle.innerHTML = text + 'handle';
-        handle.className = text + 'handle';
+        handle.className = 'handle ' + text + 'handle';
         drag.attach(handle);
         this.insertBefore(handle, before);
     }
@@ -918,7 +922,9 @@ addInitEvent(function () {
     for (var i = countCols.call(tbody.rows[0], null) ; i > 0 ; --i) {
         addHandle.call(newrow, 'col', newrow.firstChild);
     }
-    newrow.insertBefore(document.createElement('TD'), newrow.firstChild);
+    var nullhandle = document.createElement('TD');
+    nullhandle.className = 'handle nullhandle';
+    newrow.insertBefore(nullhandle, newrow.firstChild);
 
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
