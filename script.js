@@ -835,8 +835,12 @@ addInitEvent(function () {
              return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
         });
     });
+    drag.handlers.start.pre.push(function (e) {
+        document.body.style.cursor = 'move';
+        return true;
+    });
 
-    drag.handlers.drag.post.push(function(e) {
+    drag.handlers.drag.pre.push(function(e) {
 
         var target = null;
 
@@ -860,7 +864,7 @@ addInitEvent(function () {
             })) {
             target.insertBefore(drag.marker,target.firstChild);
         }
-
+        return false;
     });
 
     drag.handlers.stop.pre.push(function(){
@@ -914,6 +918,10 @@ addInitEvent(function () {
             setCurrentField(obj);
         }
         return true;
+    });
+
+    drag.handlers.stop.post.push(function () {
+        document.body.style.cursor = '';
     });
 
     // Add handles to rows and columns.
