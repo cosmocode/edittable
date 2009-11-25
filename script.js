@@ -804,9 +804,7 @@ addInitEvent(function () {
      */
     drag.marker = document.createElement('span');
     drag.marker.id = 'table__dragmarker';
-    drag.marker.style.marginRight = '-8px';
     drag.marker.style.cssFloat = 'right';
-    drag.marker.style.marginTop = '-16px';
 
     function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
@@ -860,7 +858,7 @@ addInitEvent(function () {
                 var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
                 return (other && root === other._parent);
             })) {
-            target.appendChild(drag.marker);
+            target.insertBefore(drag.marker,target.firstChild);
         }
 
     });

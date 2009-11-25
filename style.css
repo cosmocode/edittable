@@ -36,6 +36,8 @@ html>body div.dokuwiki table.edit td {
 div.dokuwiki table.edit td.handle {
     color: __text_neu__;
     background-color: __background_neu__;
+    padding: 0;
+    vertical-align: bottom;
 }
 
 div.dokuwiki table.edit td.curhandle {
@@ -53,4 +55,6 @@ html>body div.dokuwiki table.edit td.handle {
     width: 16px;
     height: 16px;
     background: transparent url(images/arrow.png) no-repeat center center;
+    margin: 0;
+    padding: 0;
 }
