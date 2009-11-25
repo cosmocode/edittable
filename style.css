@@ -40,6 +40,10 @@ div.dokuwiki table.edit td.handle {
     vertical-align: bottom;
 }
 
+div.dokuwiki table.edit td.rowhandle {
+    width: 3em;
+}
+
 div.dokuwiki table.edit td.curhandle {
     background-color: __background_alt__;
 }

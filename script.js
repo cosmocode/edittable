@@ -919,7 +919,7 @@ addInitEvent(function () {
     // Add handles to rows and columns.
     function addHandle(text, before) {
         var handle = document.createElement('TD');
-        handle.innerHTML = new Array(8 + 1).join('&nbsp;');
+        handle.innerHTML = '&nbsp;';
         handle.className = 'handle ' + text + 'handle';
         drag.attach(handle);
         this.insertBefore(handle, before);
