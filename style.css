@@ -6,10 +6,34 @@ div.toolbar #tool__bar button.selected {
     background: __background__ url(images/buttonshadow_toggled2.png) repeat-x bottom;
 }
 
-table.edit input {
+
+div.dokuwiki table.edit input {
     border: none;
     background-color: inherit;
     font: inherit;
     text-align: inherit;
     width: 100%;
 }
+
+/* nice alphatransparency background except for IE <7 */
+html>body div.dokuwiki table.edit th,
+html>body div.dokuwiki table.edit td {
+    background-image: url(images/inputshadow.png);
+    background-repeat: repeat-x;
+    background-position: top;
+}
+
+/* ----------- Row and col handles ------------- */
+
+div.dokuwiki table.edit td.handle {
+    color: __text_neu__;
+    background-color: __background_neu__;
+}
+
+/* nice alphatransparency background except for IE <7 */
+html>body div.dokuwiki table.edit td.handle {
+    background-image: url(images/buttonshadow.png);
+    background-repeat: repeat-x;
+    background-position: bottom;
+}
+
