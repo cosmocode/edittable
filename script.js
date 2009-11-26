@@ -821,7 +821,7 @@ addInitEvent(function () {
                 while (elem && (!elem.getPos || elem.getPos()[1] !== pos)) {
                     elem = nextElement.call(elem);
                 }
-                if (func(elem, 'col')) {
+                if (elem && func(elem, 'col')) {
                     _break = true;
                 }
             }
@@ -951,12 +951,11 @@ addInitEvent(function () {
     function updateHandlesState () {
         var handles = getElementsByClass('handle', table, 'td');
         for (var handle = 0 ; handle < handles.length ; ++handle) {
+            handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/g, '');
             if(!checkSpans(handles[handle], function (node, tgt) {
                  return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
             })) {
                 handles[handle].className += ' disabledhandle';
-            } else {
-                handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/g, '');
             }
         }
     }
