@@ -781,7 +781,7 @@ addInitEvent(function () {
                         var pos = this.getPos();
                         if (ins === null && pos[1] === col) {
                             ins = this;
-                        } else if (ins !== null) {
+                        } else if (ins !== null && assertType.call(ins, TYPE__FIELD)) {
                             pos[1]--;
                             this.setPos(pos);
                         }
