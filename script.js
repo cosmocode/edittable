@@ -582,7 +582,6 @@ addInitEvent(function () {
                 nextcur = cur_field;
             }
             setCurrentField(nextcur);
-            return false;
         });
 
         // Update the button’s state
@@ -957,7 +956,7 @@ addInitEvent(function () {
             })) {
                 handles[handle].className += ' disabledhandle';
             } else {
-                handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/, '');
+                handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/g, '');
             }
         }
     }
