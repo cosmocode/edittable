@@ -837,6 +837,7 @@ addInitEvent(function () {
     });
     drag.handlers.start.pre.push(function (e) {
         document.body.style.cursor = 'move';
+        e.target.insertBefore(drag.marker, e.target.firstChild);
         return true;
     });
 
@@ -869,11 +870,11 @@ addInitEvent(function () {
 
     drag.handlers.stop.pre.push(function(){
         var target = drag.marker.parentNode;
-        drag.marker.parentNode.removeChild(drag.marker);
-
         var src = drag.obj;
 
         if (!target) return true;
+
+        target.removeChild(drag.marker);
 
         // Are we moving a row or a column?
         if (src.className.match(/rowhandle/)) {
@@ -916,6 +917,7 @@ addInitEvent(function () {
                 tbody.rows[i].insertBefore(obj, ins);
             }
             setCurrentField(obj);
+            target.parentNode.insertBefore(src, target.nextSibling);
         }
         return true;
     });
@@ -946,6 +948,26 @@ addInitEvent(function () {
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
     }
+
+    function updateHandlesState () {
+        var handles = getElementsByClass('handle', table, 'td');
+        for (var handle = 0 ; handle < handles.length ; ++handle) {
+            if(!checkSpans(handles[handle], function (node, tgt) {
+                 return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
+            })) {
+                handles[handle].className += ' disabledhandle';
+            } else {
+                handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/, '');
+            }
+        }
+    }
+
+    var buttons = $('tool__bar').getElementsByTagName('button');
+    for (var i = 0 ; i < buttons.length ; ++i) {
+        addEvent(buttons[i], 'click', updateHandlesState);
+    }
+
+    updateHandlesState();
 
     focushandlers.push(function () {
         var handles = getElementsByClass('handle', table, 'td');
