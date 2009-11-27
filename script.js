@@ -282,9 +282,8 @@ addInitEvent(function () {
      * Table
      */
     table.forEveryCell = function (func) {
-        var rows = tbody.getElementsByTagName('tr');
-        for (var r = 0 ; r < rows.length ; ++r) {
-            rows[r].forEveryCell(func);
+        for (var r = 0 ; r < tbody.rows.length ; ++r) {
+            tbody.rows[r].forEveryCell(func);
         }
     };
 
@@ -658,7 +657,7 @@ addInitEvent(function () {
                 if (!assertType.call(nextcur, TYPE__CELL)) {
                     nextcur = ops.prev.call(cur_field);
                 }
-                return nextcur;
+                return (nextcur && nextcur._parent) ? nextcur._parent : nextcur;
             };
             update = function () {
                 return [false, !assertType.call(getNextcur(), TYPE__CELL)];
@@ -706,15 +705,13 @@ addInitEvent(function () {
             };
         } else if (arr.ops === '-' && arr.target === 'row') {
             click_handler = function () {
-                var row = cur_field.parentNode;
-
                 var nextcur = getNextcur();
-                if (!nextcur) return;
-                if (nextcur._parent) nextcur = nextcur._parent;
+                assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
 
+                var row = cur_field.parentNode;
                 while (row.hasChildNodes()) {
-                    var c = row.childNodes[0];
-                    if (c.removeFromSpan) {
+                    var c = row.firstChildNode;
+                    if (assertType.call(c, TYPE__CELL)) {
                         c.removeFromSpan([c, '*']);
                     } else {
                         row.removeChild(c);
@@ -769,24 +766,29 @@ addInitEvent(function () {
             };
         } else {
             click_handler = function () {
+                var nextcur = getNextcur();
+                assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
+
                 var col = cur_field.getPos()[1] +
                           cur_field.getVal('colspan') - 1;
-                var nextcur = getNextcur();
-                if (!nextcur) return;
-                if (nextcur._parent) nextcur = nextcur._parent;
+                var rm = [];
+                var mv = [];
+                table.forEveryCell(function () {
+                    var pos = this.getPos();
+                    if (pos[1] === col) {
+                        rm.push(this);
+                    } else if (pos[1] > col) {
+                        mv.push(this);
+                    }
+                });
 
-                for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                    var ins = null;
-                    tbody.rows[i].forEveryCell(function () {
-                        var pos = this.getPos();
-                        if (ins === null && pos[1] === col) {
-                            ins = this;
-                        } else if (ins !== null && assertType.call(ins, TYPE__FIELD)) {
-                            pos[1]--;
-                            this.setPos(pos);
-                        }
-                    });
-                    ins.removeFromSpan([ins, ins]);
+                for (var i = 0 ; i < rm.length ; ++i) {
+                    rm[i].removeFromSpan([rm[i], rm[i]]);
+                }
+                for (var i = 0 ; i < mv.length ; ++i) {
+                    var pos = mv[i].getPos();
+                    pos[1]--;
+                    mv[i].setPos(pos);
                 }
                 table.tHead.rows[0].removeChild(lastChildElement.call(table.tHead.rows[0]));
 
@@ -1009,3 +1011,9 @@ addInitEvent(function () {
         locktimer.reset();
     };
 });
+
+function assert(cond, desc) {
+    if (!cond) {
+        throw (desc ? desc : 'Assertion failed ') + 'in ' + arguments.callee.caller;
+    }
+}
