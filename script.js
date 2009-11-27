@@ -19,7 +19,7 @@ addInitEvent(function () {
         return;
     }
     var tbody = table.getElementsByTagName('tbody')[0];
-    table.insertBefore(document.createElement('thead'), table.firstChild);
+    prependChild(table, document.createElement('thead'));
 
     // The currently selected table field
     var cur_field = null;
@@ -811,9 +811,9 @@ addInitEvent(function () {
     /**
      * Drag ’n’ drop
      */
-    drag.marker = document.createElement('span');
-    drag.marker.id = 'table__dragmarker';
-    drag.marker.style.cssFloat = 'right';
+    drag_marker = document.createElement('span');
+    drag_marker.id = 'table__dragmarker';
+    drag_marker.style.cssFloat = 'right';
 
     function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
@@ -839,108 +839,111 @@ addInitEvent(function () {
         return !_break;
     }
 
-    drag.handlers.start.pre.push(function (e) {
-        return checkSpans(e.target, function (node, tgt) {
-             return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
-        });
-    });
-    drag.handlers.start.pre.push(function (e) {
-        document.body.style.cursor = 'move';
-        e.target.insertBefore(drag.marker, e.target.firstChild);
-        return true;
-    });
-
-    drag.handlers.drag.pre.push(function(e) {
-
-        var target = null;
-
-        // Move marker
-        if (hasClass(drag.handle, 'rowhandle')) {
-            var row = findRow(drag.evY(e));
-            if (row !== -1) {
-                target = table.rows[row].cells[0];
-            }
-        } else {
-            var col = findColumn(drag.evX(e));
-            if (col !== -1) {
-                target = table.tHead.rows[0].cells[col];
-            }
-        }
-
-        if (target && checkSpans(target, function (node, tgt) {
-                var root = node._parent ? node._parent : node;
-                var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
-                return (other && root === other._parent);
+    function TableEditorDrag () {
+        this.start = function (e) {
+            if (!checkSpans(e.target, function (node, tgt) {
+                 return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
             })) {
-            target.insertBefore(drag.marker,target.firstChild);
-        }
-        return false;
-    });
-
-    drag.handlers.stop.pre.push(function(){
-        var target = drag.marker.parentNode;
-        var src = drag.obj;
-
-        if (!target) return true;
-
-        target.removeChild(drag.marker);
-
-        // Are we moving a row or a column?
-        if (hasClass(src, 'rowhandle')) {
-            // Move row HTML element.
-            var ins = target.parentNode.getPos ? target.parentNode.nextSibling : tbody.rows[0];
-            ins.parentNode.insertBefore(src.parentNode, ins);
-
-            // Rebuild pos information after move.
-            for (var r = 0 ; r < tbody.rows.length ; ++r) {
-                rows[r].move(r);
+                return;
             }
+            document.body.style.cursor = 'move';
+            prependChild(e.target, drag_marker);
 
-            setCurrentField(src.parentNode.cells[1]);
-        } else {
-            var from = countCols.call(src.parentNode, src) - 1;
-            var to = countCols.call(target.parentNode, target);
+            drag.start.call(this, e);
+        };
 
-            for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                var obj = null;
-                var ins = null;
-                var diffs = [];
-                tbody.rows[i].forEveryCell(function () {
-                    var pos = this.getPos();
-                    if (ins === null && pos[1] === to) {
-                        ins = this;
-                    }
-                    if (obj === null && pos[1] === from) {
-                        obj = this;
-                    } else if (ins === null ^ obj === null) {
-                        diffs.push([this, (ins === null)]);
-                    }
-                });
-                if (obj === ins) continue;
-                for (var n in diffs) {
-                    var pos = diffs[n][0].getPos();
-                    pos[1] = pos[1] + (diffs[n][1] ? -1 : 1);
-                    diffs[n][0].setPos(pos);
+        this.drag = function (e) {
+            var target = null;
+
+            // Move marker
+            if (hasClass(this.handle, 'rowhandle')) {
+                var row = findRow(this.evY(e));
+                if (row !== -1) {
+                    target = table.rows[row].cells[0];
                 }
-                obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
-                tbody.rows[i].insertBefore(obj, ins);
+            } else {
+                var col = findColumn(this.evX(e));
+                if (col !== -1) {
+                    target = table.tHead.rows[0].cells[col];
+                }
             }
-            setCurrentField(obj);
-            target.parentNode.insertBefore(src, target.nextSibling);
-        }
-        return true;
-    });
 
-    drag.handlers.stop.post.push(function () {
-        document.body.style.cursor = '';
-    });
+            if (target && checkSpans(target, function (node, tgt) {
+                    var root = node._parent ? node._parent : node;
+                    var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
+                    return (other && root === other._parent);
+                })) {
+                prependChild(target, drag_marker);
+            }
+        };
+
+        this.stop = function(){
+            var target = drag_marker.parentNode;
+            var src = this.obj;
+
+            if (!target) return;
+
+            target.removeChild(drag_marker);
+
+            // Are we moving a row or a column?
+            if (hasClass(src, 'rowhandle')) {
+                // Move row HTML element.
+                var ins = target.parentNode.getPos ? target.parentNode.nextSibling : tbody.rows[0];
+                ins.parentNode.insertBefore(src.parentNode, ins);
+
+                // Rebuild pos information after move.
+                for (var r = 0 ; r < tbody.rows.length ; ++r) {
+                    rows[r].move(r);
+                }
+
+                setCurrentField(src.parentNode.cells[1]);
+            } else {
+                var from = countCols.call(src.parentNode, src) - 1;
+                var to = countCols.call(target.parentNode, target);
+
+                for (var i = 0 ; i < tbody.rows.length ; ++i) {
+                    var obj = null;
+                    var ins = null;
+                    var diffs = [];
+                    tbody.rows[i].forEveryCell(function () {
+                        var pos = this.getPos();
+                        if (ins === null && pos[1] === to) {
+                            ins = this;
+                        }
+                        if (obj === null && pos[1] === from) {
+                            obj = this;
+                        } else if (ins === null ^ obj === null) {
+                            diffs.push([this, (ins === null)]);
+                        }
+                    });
+                    if (obj === ins) continue;
+                    for (var n in diffs) {
+                        var pos = diffs[n][0].getPos();
+                        pos[1] = pos[1] + (diffs[n][1] ? -1 : 1);
+                        diffs[n][0].setPos(pos);
+                    }
+                    obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
+                    tbody.rows[i].insertBefore(obj, ins);
+                }
+                setCurrentField(obj);
+                target.parentNode.insertBefore(src, target.nextSibling);
+            }
+
+            drag.stop.call(this);
+            document.body.style.cursor = '';
+        };
+    }
+
+    TableEditorDrag.prototype = drag;
 
     // Add handles to rows and columns.
     function addHandle(text, before) {
         var handle = document.createElement('TD');
         handle.innerHTML = '&nbsp;';
         handle.className = 'handle ' + text + 'handle';
-        drag.attach(handle);
+
+        (new TableEditorDrag()).attach(handle);
+
         this.insertBefore(handle, before);
     }
 
@@ -952,7 +955,7 @@ addInitEvent(function () {
     }
     var nullhandle = document.createElement('TD');
     nullhandle.className = 'handle nullhandle';
-    newrow.insertBefore(nullhandle, newrow.firstChild);
+    prependChild(newrow, nullhandle);
 
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
