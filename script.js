@@ -186,7 +186,7 @@ addInitEvent(function () {
             return TYPE__CELL;
         }
         if (this.getInpObj || (this.tagName.match(/t[dh]/i) &&
-                               !this.className.match(/\bhandle\b/))) {
+                               !hasClass(this, 'handle'))) {
             return TYPE__FIELD;
         }
         return TYPE__ELEMENT;
@@ -432,6 +432,15 @@ addInitEvent(function () {
             return (pos[0] !== '*' && pos[1] !== '*') ? false : pos;
         };
 
+        /**
+         * Remove cells from a (span) field
+         *
+         * @param array pos [x, y] where x, y <- ['*', element]
+         * @param function template_func Function to create replacements
+         *
+         * @return mixed false on error, true on success, string if cell
+         *               is completely removed and contained text
+         */
         this.removeFromSpan = function (pos, template_func) {
             pos = this.checkRemoveSpan(pos);
             if (pos === false) return false;
@@ -449,7 +458,7 @@ addInitEvent(function () {
                     handle(this._placeholders[pholder]);
                 }
                 handle(this);
-                return;
+                return this.getVal('text');
             }
 
             var ops = (pos[0] === '*') ?
@@ -490,6 +499,7 @@ addInitEvent(function () {
                 }
             }
             this._placeholders = newp;
+            return true;
         };
 
         this.addToSpan = function (pos, check) {
@@ -522,12 +532,10 @@ addInitEvent(function () {
             for (var n = 0 ; n < span ; ++n) {
                 var nnode = ops.getnext.call(node);
 
-                if (node.getVal('text') !== '') {
-                    this.setVal('text', this.getVal('text') + ' ' +
-                                        node.getVal('text'));
+                var ret = node.removeFromSpan([node, node], spawnPlaceholder);
+                if (ret !== false && ret !== true && ret !== '') {
+                    this.setVal('text', this.getVal('text') + ' ' + ret);
                 }
-
-                node.removeFromSpan([node, node], spawnPlaceholder);
                 node = nnode;
             }
         };
@@ -587,9 +595,8 @@ addInitEvent(function () {
         button.update = function () {
             if (!cur_field) return;
             var state = update_handler.call(this);
-            this.className = this.className.replace(/(selected|disabled)/,'');
-            if (state[0]) this.className += ' selected';
-            if (state[1]) this.className += ' disabled';
+            updateClass(this, 'selected', state[0]);
+            updateClass(this, 'disabled', state[1]);
             this.disabled = state[1];
         };
         focushandlers.push(function () {button.update.call(button); });
@@ -635,8 +642,9 @@ addInitEvent(function () {
             return prepareButton(button,
             function () {
                 target[ops.index] = cur_field[ops.next[1]]();
-                cur_field.removeFromSpan(target, function (placeholder) {
-                        return getNewCell(placeholder._parent, {'text': '', 'colspan': 1, 'rowspan': 1, 'pos': placeholder.getPos()});});
+                assert(cur_field.removeFromSpan(target, function (placeholder) {
+                        return getNewCell(placeholder._parent, {'text': '', 'colspan': 1, 'rowspan': 1, 'pos': placeholder.getPos()});
+                       }) === true);
             }, function () {
                 return [false, cur_field.getVal(arr.target +  'span') === 1];
             });
@@ -712,7 +720,7 @@ addInitEvent(function () {
                 while (row.hasChildNodes()) {
                     var c = row.firstChildNode;
                     if (assertType.call(c, TYPE__CELL)) {
-                        c.removeFromSpan([c, '*']);
+                        assert(c.removeFromSpan([c, '*']) !== false);
                     } else {
                         row.removeChild(c);
                     }
@@ -783,7 +791,7 @@ addInitEvent(function () {
                 });
 
                 for (var i = 0 ; i < rm.length ; ++i) {
-                    rm[i].removeFromSpan([rm[i], rm[i]]);
+                    assert(rm[i].removeFromSpan([rm[i], rm[i]]) !== false);
                 }
                 for (var i = 0 ; i < mv.length ; ++i) {
                     var pos = mv[i].getPos();
@@ -810,13 +818,13 @@ addInitEvent(function () {
     function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
         var _break = false;
-        if (obj.className.match(/rowhandle/)) {
+        if (hasClass(obj, 'rowhandle')) {
             obj.parentNode.forEveryCell(function () {
                 if (func(this, 'row')) {
                     _break = true;
                 }
             });
-        } else if (obj.className.match(/colhandle/)) {
+        } else if (hasClass(obj, 'colhandle')) {
             var pos = countCols.call(obj.parentNode, obj) - 1;
             for (var i = 0 ; i < tbody.rows.length ; ++i) {
                 var elem = tbody.rows[i].childNodes[pos];
@@ -847,7 +855,7 @@ addInitEvent(function () {
         var target = null;
 
         // Move marker
-        if (drag.handle.className.match(/rowhandle/)) {
+        if (hasClass(drag.handle, 'rowhandle')) {
             var row = findRow(drag.evY(e));
             if (row !== -1) {
                 target = table.rows[row].cells[0];
@@ -878,7 +886,7 @@ addInitEvent(function () {
         target.removeChild(drag.marker);
 
         // Are we moving a row or a column?
-        if (src.className.match(/rowhandle/)) {
+        if (hasClass(src, 'rowhandle')) {
             // Move row HTML element.
             var ins = target.parentNode.getPos ? target.parentNode.nextSibling : tbody.rows[0];
             ins.parentNode.insertBefore(src.parentNode, ins);
@@ -953,12 +961,10 @@ addInitEvent(function () {
     function updateHandlesState () {
         var handles = getElementsByClass('handle', table, 'td');
         for (var handle = 0 ; handle < handles.length ; ++handle) {
-            handles[handle].className = handles[handle].className.replace(/\bdisabledhandle\b/g, '');
-            if(!checkSpans(handles[handle], function (node, tgt) {
+            updateClass(handles[handle], 'disabledhandle',
+                        !checkSpans(handles[handle], function (node, tgt) {
                  return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
-            })) {
-                handles[handle].className += ' disabledhandle';
-            }
+            }));
         }
     }
 
@@ -972,15 +978,15 @@ addInitEvent(function () {
     focushandlers.push(function () {
         var handles = getElementsByClass('handle', table, 'td');
         for (var handle = 0 ; handle < handles.length ; ++handle) {
-            handles[handle].className = handles[handle].className.replace(/\bcurhandle\b/, '');
+            removeClass(handles[handle], 'curhandle');
         }
         var rowhandle = firstChildElement.call(this.parentNode);
         if (assertType.call(rowhandle, TYPE__ELEMENT)) {
-            rowhandle.className += ' curhandle';
+            addClass(rowhandle, 'curhandle');
         }
         var colhandle = getCell.call(table.tHead.rows[0], countCols.call(this.parentNode, this));
         if (assertType.call(colhandle, TYPE__ELEMENT)) {
-            colhandle.className += ' curhandle';
+            addClass(colhandle, 'curhandle');
         }
     });
 
@@ -1016,4 +1022,55 @@ function assert(cond, desc) {
     if (!cond) {
         throw (desc ? desc : 'Assertion failed ') + 'in ' + arguments.callee.caller;
     }
+}
+
+/**
+ * Functions for handling classes
+ *
+ * @author Benutzer:D <http://de.wikipedia.org/wiki/Benutzer:D/monobook/api.js>
+ */
+
+function classNameRE(className) {
+    return new RegExp("(^|\\s+)" + className + "(\\s+|$)");
+}
+
+/** returns an Array of the classes of an element */
+function getClasses(element) {
+    return element.className.split(/\s+/);
+}
+
+/** returns whether an element has a class */
+function hasClass(element, className) {
+    if (!element.className) return false;
+    var re  = classNameRE(className);
+    return re.test(element.className);
+    // return (" " + element.className + " ").indexOf(" " + className + " ") !== -1;
+}
+
+/** adds a class to an element */
+function addClass(element, className) {
+    if (hasClass(element, className))  return;
+    var old = element.className ? element.className : "";
+    element.className = (old + " " + className).match(/^\s*(.+)\s*$/)[1];
+}
+
+/** removes a class to an element */
+function removeClass(element, className) {
+    var re  = classNameRE(className);
+    var old = element.className ? element.className : "";
+    element.className = old.replace(re, "");
+}
+
+/** replaces a class in an element with another */
+function replaceClass(element, oldClassName, newClassName) {
+    this.removeClass(element, oldClassName);
+    this.addClass(element, newClassName);
+}
+
+/** sets or unsets a class on an element */
+function updateClass(element, className, active) {
+    var has = hasClass(element, className);
+    if (has === active) return;
+    if (active) addClass(element, className);
+    else        removeClass(element, className);
 }
