@@ -12,6 +12,16 @@
  *
  * @author Adrian Lang <lang@cosmocode.de>
  */
+
+function map(arr, func) {
+    for (var index in arr) {
+        if (arr.hasOwnProperty(index)) {
+            arr[index] = func(arr[index]);
+        }
+    }
+    return arr;
+}
+
 addInitEvent(function () {
     var table = getElementsByClass('edit', document, 'table')[0];
     if (!table) {
@@ -403,9 +413,9 @@ addInitEvent(function () {
          * Get position information
          */
         this.getPos = function () {
-            return lastChildElement.call(this).name
-                   .match(/table\[(\d+)\]\[(\d+)\]/).slice(1)
-                   .map(function (v) { return parseInt(v, 10); });
+            return map(lastChildElement.call(this).name
+                   .match(/table\[(\d+)\]\[(\d+)\]/).slice(1),
+                   function (v) { return parseInt(v, 10); });
         };
 
         this.getBottom = function () {
@@ -718,7 +728,7 @@ addInitEvent(function () {
 
                 var row = cur_field.parentNode;
                 while (row.hasChildNodes()) {
-                    var c = row.firstChildNode;
+                    var c = row.firstChild;
                     if (assertType.call(c, TYPE__CELL)) {
                         assert(c.removeFromSpan([c, '*']) !== false);
                     } else {
@@ -1061,7 +1071,7 @@ function addClass(element, className) {
 function removeClass(element, className) {
     var re  = classNameRE(className);
     var old = element.className ? element.className : "";
-    element.className = old.replace(re, "");
+    element.className = old.replace(re, " ");
 }
 
 /** replaces a class in an element with another */
