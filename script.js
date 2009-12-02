@@ -230,7 +230,7 @@ addInitEvent(function () {
         }
 
         var cell = document.createElement(params.tag);
-        cell.className = 'col' + params.pos[1] + ' ' + params.align + 'align';
+        cell.className = 'col' + params.pos[1];
         cell.colSpan = params.colspan;
         cell.rowSpan = params.rowspan;
         var basename = 'table[' + params.pos[0] + '][' + params.pos[1] + ']';
@@ -240,7 +240,8 @@ addInitEvent(function () {
                               '" name="' + basename + '[' + val + ']" />';
         }
         cell.innerHTML += '<input name="' + basename + '[text]" value="' +
-                          params.text + '" />';
+                          params.text + '" ' + 'class="' + params.align +
+                          'align" />';
         pimp.call(cell);
         cell._placeholders = [];
         return cell;
@@ -391,8 +392,11 @@ addInitEvent(function () {
 
         this.setAlign = function (nualign) {
             this.setVal('align', nualign);
-            this.className = this.className.replace(/\w+align/, nualign +
-                                                                'align');
+            var aligns = ['left', 'right', 'center'];
+            var obj = lastChildElement.call(this);
+            for (var align in aligns) {
+                updateClass(obj, aligns[align] + 'align', nualign === aligns[align]);
+            }
         };
 
         /**
@@ -854,12 +858,12 @@ addInitEvent(function () {
             if (!checkSpans(e.target, function (node, tgt) {
                  return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
             })) {
-                return;
+                return false;
             }
             document.body.style.cursor = 'move';
             prependChild(e.target, drag_marker);
 
-            drag.start.call(this, e);
+            return drag.start.call(this, e);
         };
 
         this.drag = function (e) {
@@ -885,6 +889,7 @@ addInitEvent(function () {
                 })) {
                 prependChild(target, drag_marker);
             }
+            return false;
         };
 
         this.stop = function(){
@@ -899,7 +904,7 @@ addInitEvent(function () {
             if (hasClass(src, 'rowhandle')) {
                 // Move row HTML element.
                 var ins = target.parentNode.getPos ? target.parentNode.nextSibling : tbody.rows[0];
-                ins.parentNode.insertBefore(src.parentNode, ins);
+                src.parentNode.parentNode.insertBefore(src.parentNode, ins);
 
                 // Rebuild pos information after move.
                 for (var r = 0 ; r < tbody.rows.length ; ++r) {

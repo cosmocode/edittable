@@ -38,9 +38,6 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_xhtml {
     function _tablefield_open($tag, $colspan, $align, $rowspan) {
         $basename = 'table[' . $this->_counter['row_counter'] . '][' . $this->_counter['cell_counter'] . ']';
         $class = 'class="col' . $this->_counter['cell_counter']++;
-        if ( !is_null($align) ) {
-            $class .= " {$align}align";
-        }
         $class .= '"';
         $this->doc .= "<$tag $class";
         if ( $colspan > 1 ) {
@@ -56,12 +53,13 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_xhtml {
                                                           'name'  => "{$basename}[{$name}]",
                                                           'value' => $val)) . ' />';
         }
-        $this->doc .='<input name="' . $basename . '[text]" ';
+        $this->doc .='<input name="' . $basename . '[text]" class="' . $align .
+                     'align"';
         $this->doc .= 'value="';
     }
 
     function _tablefield_close($tag) {
-        $this->doc .= '"></' . $tag . '>';
+        $this->doc .= '" /></' . $tag . '>';
     }
 
     function cdata($text) {
