@@ -194,7 +194,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
                 }
                 $str .= $types[$cell['tag']] . str_repeat(' ', $lpad) .
                         $cell['text'] . str_repeat(' ', $pad - $lpad) .
-                        str_repeat('|', $cell['colspan'] - 1);
+                        str_repeat($types[$cell['tag']], $cell['colspan'] - 1);
             }
             $str .= $types[$cell['tag']] . "\n";
         }

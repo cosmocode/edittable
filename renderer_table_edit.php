@@ -6,8 +6,9 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-require_once DOKU_INC."inc/parser/xhtml.php";
-class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_xhtml {
+require_once DOKU_PLUGIN."/edittable/inverse.php";
+
+class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     function table_open($maxcols = NULL, $numrows = NULL){
         // initialize the row counter used for classes
         $this->_counter['row_counter'] = 0;
@@ -33,6 +34,17 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_xhtml {
 
     function tablecell_close(){
         $this->_tablefield_close('td');
+    }
+
+    function tablerow_open(){
+        // initialize the cell counter used for classes
+        $this->_counter['cell_counter'] = 0;
+        $class = 'row' . $this->_counter['row_counter']++;
+        $this->doc .= DOKU_TAB . '<tr class="'.$class.'">' . DOKU_LF . DOKU_TAB . DOKU_TAB;
+    }
+
+    function tablerow_close() {
+        $this->doc .= '</tr>';
     }
 
     function _tablefield_open($tag, $colspan, $align, $rowspan) {
@@ -65,4 +77,9 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_xhtml {
     function cdata($text) {
         $this->doc .= $this->_xmlEntities(trim($text));
     }
+
+    function _xmlEntities($string) {
+        return htmlspecialchars($string,ENT_QUOTES,'UTF-8');
+    }
+
 }
