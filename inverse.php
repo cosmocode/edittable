@@ -7,6 +7,7 @@
 
 require_once DOKU_INC . 'inc/parser/renderer.php';
 require_once DOKU_INC . 'inc/html.php';
+require_once DOKU_PLUGIN . 'edittable/common.php';
 
 /**
  * The Renderer
@@ -418,70 +419,8 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_rowspans = array();
     }
 
-    function table_close($begin, $end){
-        // Preprocess table for rowspan, make table 0-based.
-        $table = array();
-        foreach($this->_table as $i => $row) {
-            if (!isset($table[$i])) $table[$i] = array();
-            foreach ($row as $cell) {
-                $key = 0;
-                while (isset($table[$i][$key])) {$key++;}
-                $key += $cell['colspan'] - 1;
-                $table[$i][$key] = $cell;
-                $rowspan = $cell['rowspan'];
-                $i2 = $i + 1;
-                while ($rowspan-- > 1) {
-                    if (!isset($table[$i2])) $table[$i2] = array();
-                    $nu_cell = $cell;
-                    $nu_cell['text'] = ':::';
-                    $nu_cell['rowspan'] = 1;
-                    $table[$i2++][$key] = $nu_cell;
-                }
-            }
-            ksort(&$table[$i]);
-        }
-
-        // Get the length of a row including all previous rows for table
-        // prettyprinting.
-        $rightpos = array();
-        foreach($table as $row) {
-            foreach($row as $n => $cell) {
-                $pos = (strlen($cell['text']) + $cell['colspan'] +
-                        ($cell['align'] === 'center' ? 4 : 3)) +
-                       ($n - $cell['colspan'] >= 0 ? $rightpos[$n - $cell['colspan']] : 0);
-                if (!isset($rightpos[$n]) || $rightpos[$n] < $pos) {
-                    $rightpos[$n] = $pos;
-                }
-            }
-        }
-
-        // Write the table.
-        $types = array('th' => '^', 'td' => '|');
-        $str = '';
-        foreach ($table as $row) {
-            $pos = 0;
-            foreach ($row as $n => $cell) {
-                $pos += strlen($cell['text']) + 1;
-                $pad = $rightpos[$n] - $pos - ($cell['colspan'] - 1);
-                $pos += $pad + ($cell['colspan']- 1);
-                switch ($cell['align']) {
-                case 'right':
-                    $lpad = $pad - 1;
-                    break;
-                case 'left': case '':
-                    $lpad = 1;
-                    break;
-                case 'center':
-                    $lpad = floor($pad / 2);
-                    break;
-                }
-                $str .= $types[$cell['tag']] . str_repeat(' ', $lpad) .
-                        $cell['text'] . str_repeat(' ', $pad - $lpad) .
-                        str_repeat($types[$cell['tag']], $cell['colspan'] - 1);
-            }
-            $str .= $types[$cell['tag']] . DOKU_LF;
-        }
-        $this->doc .= $str;
+    function table_close($begin, $end) {
+        $this->doc .= table_to_wikitext($this->_table);
     }
 
     function tablerow_open() {
