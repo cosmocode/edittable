@@ -143,8 +143,8 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
     }
 
     function html_table_editform($event) {
-        if (!isset($_REQUEST['edittarget']) ||
-            $_REQUEST['edittarget'] !== 'table' ||
+        if (((!isset($_REQUEST['edittarget']) ||
+            $_REQUEST['edittarget'] !== 'table') && !isset($_POST['table'])) ||
             !$event->data['wr']) {
             return;
         }
@@ -209,6 +209,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $form->addElement(form_makeCloseTag('div'));
         $form->addElement(form_makeOpenTag('div', array('class'=>'editButtons')));
         $form->addElement(form_makeButton('submit', 'save', $lang['btn_save'], array('id'=>'edbtn__save', 'accesskey'=>'s', 'tabindex'=>'4')));
+        $form->addElement(form_makeButton('submit', 'preview', $lang['btn_preview'], array('id'=>'edbtn__preview', 'accesskey'=>'p', 'tabindex'=>'5')));
         $form->addElement(form_makeButton('submit', 'draftdel', $lang['btn_cancel'], array('tabindex'=>'6')));
         $form->addElement(form_makeCloseTag('div'));
         $form->addElement(form_makeOpenTag('div', array('class'=>'summary')));
