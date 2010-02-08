@@ -12,3 +12,4 @@ $lang['struct_col_plus']  = 'Add column to the left';
 $lang['struct_col_minus'] = 'Remove column';
 $lang['struct_row_plus']  = 'Add row below';
 $lang['struct_row_minus'] = 'Remove row';
+$lang['secedit_name']     = 'Table';

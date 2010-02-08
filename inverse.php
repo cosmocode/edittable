@@ -419,7 +419,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_rowspans = array();
     }
 
-    function table_close($begin, $end) {
+    function table_close($pos) {
         $this->doc .= table_to_wikitext($this->_table);
     }
 

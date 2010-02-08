@@ -28,6 +28,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
      * Register its handlers with the DokuWiki's event controller
      */
     function register(&$controller) {
+        $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'html_secedit_button');
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
         $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'html_table_editform');
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
@@ -142,9 +143,16 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $SUF = ltrim($SUF);
     }
 
+    function html_secedit_button(&$event) {
+        if ($event->data['target'] !== 'table') {
+            return;
+        }
+        $event->data['name'] = $this->getLang('secedit_name');
+    }
+
     function html_table_editform($event) {
-        if (((!isset($_REQUEST['edittarget']) ||
-            $_REQUEST['edittarget'] !== 'table') && !isset($_POST['table'])) ||
+        if (((!isset($_REQUEST['target']) ||
+            $_REQUEST['target'] !== 'table') && !isset($_POST['table'])) ||
             !$event->data['wr']) {
             return;
         }
