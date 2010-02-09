@@ -17,6 +17,8 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     // @access public
     var $doc = '';        // will contain the whole document
 
+    private $quotelvl = 0;
+
     function getFormat(){
         return 'wiki';
     }
@@ -50,11 +52,17 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function p_close() {
-        $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
+        if ($this->quotelvl === 0) {
+            $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
+        }
+    }
+
+    function p_open() {
+        $this->doc .= str_repeat('>', $this->quotelvl);
     }
 
     function linebreak() {
-        $this->doc .= ' \\\\'.DOKU_LF;
+        $this->doc .= '\\\\ ';
     }
 
     function hr() {
@@ -169,7 +177,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function unformatted($text) {
         if (strpos($text, '%%') !== false) {
-            $this->doc .= "<nowiki>$text</nowiki";
+            $this->doc .= "<nowiki>$text</nowiki>";
         } else {
             $this->doc .= "%%$text%%";
         }
@@ -192,16 +200,19 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function quote_open() {
-        $this->doc .= '>';
+        if (substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
+            $this->doc .= '>';
+        } else {
+            $this->doc .= DOKU_LF . str_repeat('>', $this->quotelvl);
+        }
     }
 
     function quote_close() {
-        $strpos = strrpos($this->doc, DOKU_LF);
-        if ($strpos === strlen($this->doc)) {
+        $this->quotelvl--;
+        if (strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
             return;
         }
-        $lastline = substr($this->doc, $strpos);
-        $this->doc = substr_replace($this->doc, preg_replace('/(>+)(.+)/', '\1 \2', $lastline), $strpos) . DOKU_LF;
+        $this->doc .= DOKU_LF . DOKU_LF;
     }
 
     function preformatted($text) {
@@ -379,7 +390,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
      * @author Andreas Gohr <andi@splitbrain.org>
      */
     function rss ($url,$params){
-        $this->doc .= '{{' . $url;
+        $this->doc .= '{{rss>' . $url;
         $vals = array();
         if ($params['max'] !== 8) {
             $vals[] = $params['max'];
