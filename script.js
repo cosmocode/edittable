@@ -311,12 +311,12 @@ addInitEvent(function () {
             }
         };
 
+        // map 0-based index classes to 1-based indizes
         this.getPos = function () {
-            return parseInt(this.className.match(/row(\d+)/)[1], 10);
+            return parseInt(this.className.match(/row(\d+)/)[1], 10) + 1;
         };
-
         this.setPos = function (nupos) {
-            this.className = 'row' + nupos;
+            this.className = 'row' + (nupos - 1);
         };
 
         this.move = function (nupos) {
@@ -740,11 +740,11 @@ addInitEvent(function () {
                     }
                 }
 
+                var nextrow = nextElement.call(row);
                 // Remove row.
                 row.parentNode.removeChild(row);
 
                 // Update pos information in rows after the new one.
-                var nextrow = nextElement.call(row);
                 while (nextrow) {
                     nextrow.move(nextrow.getPos() - 1);
                     nextrow = nextElement.call(nextrow);
