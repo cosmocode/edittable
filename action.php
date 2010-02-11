@@ -151,9 +151,13 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
     }
 
     function html_table_editform($event) {
-        if (((!isset($_REQUEST['target']) ||
-            $_REQUEST['target'] !== 'table') && !isset($_POST['table'])) ||
-            !$event->data['wr']) {
+        global $RANGE;
+        if (((!isset($_REQUEST['target']) || $_REQUEST['target'] !== 'table') &&
+              !isset($_POST['table'])) ||
+            !$event->data['wr'] ||
+            $RANGE === '') {
+            // Not a table edit or not writable or invalid section edit
+            // information
             return;
         }
 
