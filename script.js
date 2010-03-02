@@ -871,12 +871,12 @@ addInitEvent(function () {
 
             // Move marker
             if (hasClass(this.handle, 'rowhandle')) {
-                var row = findRow(this.evY(e));
+                var row = findRow(e.pageY);
                 if (row !== -1) {
                     target = table.rows[row].cells[0];
                 }
             } else {
-                var col = findColumn(this.evX(e));
+                var col = findColumn(e.pageX);
                 if (col !== -1) {
                     target = table.tHead.rows[0].cells[col];
                 }
