@@ -164,19 +164,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $event->stopPropagation();
         $event->preventDefault();
 
-        global $lang;
-        global $SUM;
-        global $conf;
-        global $license;
-        global $ID;
-        global $REV;
-        global $DATE;
-        global $PRE;
-        global $SUF;
-        global $INFO;
-
-        extract($event->data); // $text, $check
-
+        extract($event->data); // $text, $check, $form
 
         require_once 'renderer_table_edit.php';
         $Renderer = new Doku_Renderer_xhtml_table_edit();
@@ -196,51 +184,6 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
 
         $table = $Renderer->doc;
-        ?>
-        <div style="width:99%;">
-
-        <div class="toolbar">
-        <div id="draft__status"><?php if(!empty($INFO['draft'])) echo $lang['draftdate'].' '.dformat();?></div>
-        <div id="tool__bar"><?php if($wr){?><a href="<?php echo DOKU_BASE?>lib/exe/mediamanager.php?ns=<?php echo $INFO['namespace']?>"
-            target="_blank"><?php echo $lang['mediaselect'] ?></a><?php }?></div>
-
-        </div>
-        <?php
-
-        $form = new Doku_Form(array('id' => 'dw__editform'));
-        $form->addHidden('id', $ID);
-        $form->addHidden('rev', $REV);
-        $form->addHidden('date', $DATE);
-        $form->addHidden('prefix', $PRE);
-        $form->addHidden('suffix', $SUF);
-        $form->addHidden('changecheck', $check);
-
         $form->addElement($table);
-        $form->addElement(form_makeOpenTag('div', array('id'=>'wiki__editbar')));
-        $form->addElement(form_makeOpenTag('div', array('id'=>'size__ctl')));
-        $form->addElement(form_makeCloseTag('div'));
-        $form->addElement(form_makeOpenTag('div', array('class'=>'editButtons')));
-        $form->addElement(form_makeButton('submit', 'save', $lang['btn_save'], array('id'=>'edbtn__save', 'accesskey'=>'s', 'tabindex'=>'4')));
-        $form->addElement(form_makeButton('submit', 'preview', $lang['btn_preview'], array('id'=>'edbtn__preview', 'accesskey'=>'p', 'tabindex'=>'5')));
-        $form->addElement(form_makeButton('submit', 'draftdel', $lang['btn_cancel'], array('tabindex'=>'6')));
-        $form->addElement(form_makeCloseTag('div'));
-        $form->addElement(form_makeOpenTag('div', array('class'=>'summary')));
-        $form->addElement(form_makeTextField('summary', $SUM, $lang['summary'], 'edit__summary', 'nowrap', array('size'=>'50', 'tabindex'=>'2')));
-        $elem = html_minoredit();
-        if ($elem) $form->addElement($elem);
-        $form->addElement(form_makeCloseTag('div'));
-        $form->addElement(form_makeCloseTag('div'));
-        if($conf['license']){
-            $form->addElement(form_makeOpenTag('div', array('class'=>'license')));
-            $out  = $lang['licenseok'];
-            $out .= '<a href="'.$license[$conf['license']]['url'].'" rel="license" class="urlextern"';
-            if(isset($conf['target']['external'])) $out .= ' target="'.$conf['target']['external'].'"';
-            $out .= '> '.$license[$conf['license']]['name'].'</a>';
-            $form->addElement($out);
-            $form->addElement(form_makeCloseTag('div'));
-        }
-        html_form('edit', $form);
-        print '</div>'.NL;
     }
-
 }
