@@ -1,13 +1,13 @@
-div.toolbar #tool__bar button.selected {
+div.toolbar #tool__bar_table button.selected {
     background: __background__ url(images/buttonshadow_toggled.png) repeat-x bottom;
 }
 
-#tool__bar button.disabled {
+#tool__bar_table button.disabled {
     background: __background__ url(images/buttonshadow_toggled2.png) repeat-x bottom;
     opacity: 0.4;
 }
 
-#tool__bar button.separator {
+#tool__bar_table button.separator {
     margin-left: 0.5em;
 }
 

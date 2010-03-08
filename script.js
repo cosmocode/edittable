@@ -44,11 +44,16 @@ addInitEvent(function () {
         }
         cur_field = newcur;
         lastChildElement.call(cur_field).focus();
+        if ($('table__cur_field')) {
+            $('table__cur_field').id = '';
+        }
+        lastChildElement.call(cur_field).id = 'table__cur_field';
+        linkwiz.textArea = lastChildElement.call(cur_field);
+        for (var i = 0 ; i < setCurrentField._handlers.length ; ++i) {
+            setCurrentField._handlers[i].call(cur_field);
+        }
     }
-
-    // An array containing functions which are to be called on a focus change;
-    // The first handler updates the var “cur_field”.
-    var focushandlers = [function () {cur_field = this; }];
+    setCurrentField._handlers = [];
 
     /**
      * General helper functions
@@ -338,11 +343,7 @@ addInitEvent(function () {
      */
     // Attaches focus handlers and methods to a cell.
     function pimp() {
-        addEvent(lastChildElement.call(this), 'focus', function () {
-            for (var i = 0 ; i < focushandlers.length ; ++i) {
-                focushandlers[i].call(this.parentNode);
-            }
-        });
+        addEvent(lastChildElement.call(this), 'focus', function() { return setCurrentField(this.parentNode); });
 
         this.nextCell = function () {
             var nextcell = this;
@@ -613,7 +614,7 @@ addInitEvent(function () {
             updateClass(this, 'disabled', state[1]);
             this.disabled = state[1];
         };
-        focushandlers.push(function () {button.update.call(button); });
+        setCurrentField._handlers.push(function () {button.update.call(button); });
         return button;
     }
 
@@ -819,8 +820,13 @@ addInitEvent(function () {
         }
         return prepareButton(button, click_handler, update);
     };
+    var table_toolbar = document.createElement('div');
+    table_toolbar.id = 'tool__bar_table';
+    $('tool__bar').parentNode.insertBefore(table_toolbar, $('tool__bar'));
+    initToolbar('tool__bar_table', 'dw__editform', window.table_toolbar);
 
-    initToolbar('tool__bar', 'dw__editform', window.table_toolbar);
+    setCurrentField(tbody.rows[0].cells[0]);
+    initToolbar('tool__bar', 'table__cur_field', window.toolbar, false);
 
     /**
      * Drag ’n’ drop
@@ -993,7 +999,7 @@ addInitEvent(function () {
 
     updateHandlesState();
 
-    focushandlers.push(function () {
+    setCurrentField._handlers.push(function () {
         var handles = getElementsByClass('handle', table, 'td');
         for (var handle = 0 ; handle < handles.length ; ++handle) {
             removeClass(handles[handle], 'curhandle');
