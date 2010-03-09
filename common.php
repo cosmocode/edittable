@@ -27,7 +27,7 @@ function table_to_wikitext($_table){
                 $table[$i2++][$nextkey] = $nu_cell;
             }
         }
-        ksort(&$table[$inorm]);
+        ksort($table[$inorm]);
     }
 
     // Get the max width for every column to do table prettyprinting.
