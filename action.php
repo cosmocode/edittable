@@ -152,6 +152,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
 
     function html_table_editform($event) {
         global $RANGE;
+        global $TEXT;
         if (((!isset($_REQUEST['target']) || $_REQUEST['target'] !== 'table') &&
               !isset($_POST['table'])) ||
             !$event->data['wr'] ||
@@ -164,11 +165,9 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $event->stopPropagation();
         $event->preventDefault();
 
-        extract($event->data); // $text, $check, $form
-
         require_once 'renderer_table_edit.php';
         $Renderer = new Doku_Renderer_xhtml_table_edit();
-        $instructions = p_get_instructions($text);
+        $instructions = p_get_instructions($TEXT);
 
         $Renderer->reset();
 
@@ -183,7 +182,6 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
         }
 
-        $table = $Renderer->doc;
-        $form->addElement($table);
+        $event->data['form']->addElement($Renderer->doc);
     }
 }
