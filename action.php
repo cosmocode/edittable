@@ -137,10 +137,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             return;
         }
         global $TEXT;
-        global $SUF;
-
         $TEXT = table_to_wikitext($_POST['table']);
-        $SUF = ltrim($SUF);
     }
 
     function html_secedit_button(&$event) {
@@ -151,14 +148,10 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
     }
 
     function html_table_editform($event) {
-        global $RANGE;
         global $TEXT;
-        if (((!isset($_REQUEST['target']) || $_REQUEST['target'] !== 'table') &&
-              !isset($_POST['table'])) ||
-            !$event->data['wr'] ||
-            $RANGE === '') {
-            // Not a table edit or not writable or invalid section edit
-            // information
+        if ($event->data['target'] !== 'table' &&
+            !isset($_POST['table'])) {
+            // Not a table edit
             return;
         }
 
