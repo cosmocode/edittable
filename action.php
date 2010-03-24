@@ -1,8 +1,8 @@
 <?php
 /**
- * Example Action Plugin:   Example Component.
+ * Table editor
  *
- * @author     Samuele Tognini <samuele@cli.di.unipi.it>
+ * @author     Adrian Lang <lang@cosmocode.de>
  */
 
 if(!defined('DOKU_INC')) die();
@@ -11,18 +11,6 @@ require_once DOKU_PLUGIN.'action.php';
 require_once DOKU_PLUGIN.'edittable/common.php';
 
 class action_plugin_edittable extends DokuWiki_Action_Plugin {
-
-    /**
-     * return some info
-     */
-    function getInfo(){
-        return array('author' => 'Me name',
-                     'email'  => 'myname@example.org',
-                     'date'   => '2006-12-17',
-                     'name'   => 'Example (action plugin component)',
-                     'desc'   => 'Example action functions.',
-                     'url'    => 'http://www.example.org');
-    }
 
     /**
      * Register its handlers with the DokuWiki's event controller
