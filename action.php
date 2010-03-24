@@ -149,8 +149,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
 
     function html_table_editform($event) {
         global $TEXT;
-        if ($event->data['target'] !== 'table' &&
-            !isset($_POST['table'])) {
+        if ($event->data['target'] !== 'table') {
             // Not a table edit
             return;
         }
