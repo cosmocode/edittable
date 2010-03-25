@@ -724,7 +724,7 @@ addInitEvent(function () {
                 }
 
                 addHandle.call(newrow, 'row', newrow.firstChild);
-                return firstChildElement.call(newrow);
+                return getCell.call(newrow, 0);
             };
         } else if (arr.ops === '-' && arr.target === 'row') {
             click_handler = function () {
