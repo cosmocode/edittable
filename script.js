@@ -716,14 +716,13 @@ addInitEvent(function () {
                     var root = this._parent ? this._parent : this;
                     var newnode = null;
                     var below = getCellBelow.call(this);
+                    var pos = root.getPos();
+                    ++pos[0];
                     if  (below && root === below._parent) {
                         // TODO: Abstraction fail
                         root.setVal('rowspan', root.getVal('rowspan') + 1);
-                        var pos = root.getPos();
-                        newnode = getNewPlaceholder([pos[0] + 1, pos[1]], root);
+                        newnode = getNewPlaceholder(pos, root);
                     } else {
-                        var pos = this.getPos();
-                        ++pos[0];
                         newnode = getNewCell(root, {'pos': pos, 'text': '',
                                                     'colspan': 1, 'rowspan': 1});
                     }
@@ -741,7 +740,7 @@ addInitEvent(function () {
                 }
 
                 addHandle.call(newrow, 'row', newrow.firstChild);
-                return getCell.call(newrow, 0);
+                return getCell.call(newrow, cur_field.getPos()[1]);
             };
         } else if (arr.ops === '-' && arr.target === 'row') {
             click_handler = function () {
