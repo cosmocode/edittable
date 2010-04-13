@@ -444,7 +444,24 @@ addInitEvent(function () {
         this.checkRemoveSpan = function (pos) {
             if (this.getVal('rowspan') === 1) pos[0] = '*';
             if (this.getVal('colspan') === 1) pos[1] = '*';
-            return (pos[0] !== '*' && pos[1] !== '*') ? false : pos;
+            if (pos[0] !== '*' && pos[1] !== '*') {
+                return false;
+            }
+            if (pos[0] !== '*') {
+                var coord = pos[0].getPos()[0] - this.getPos()[0];
+                if (coord !== 0 && coord !== this.getVal('rowspan') - 1) {
+                    // Do not remove elements from the middle of a span
+                    return false;
+                }
+            }
+            if (pos[1] !== '*') {
+                var coord = pos[1].getPos()[1] - this.getPos()[1];
+                if (coord !== 0 && coord !== this.getVal('colspan') - 1) {
+                    // Do not remove elements from the middle of a span
+                    return false;
+                }
+            }
+            return pos;
         };
 
         /**
