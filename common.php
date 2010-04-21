@@ -12,8 +12,8 @@ function table_to_wikitext($_table){
     foreach($_table as $i => $row) {
         $inorm = $i - $start;
         if (!isset($table[$inorm])) $table[$inorm] = array();
+        $nextkey = 0;
         foreach ($row as $cell) {
-            $nextkey = 0;
             while (isset($table[$inorm][$nextkey])) {$nextkey++;}
             $nextkey += $cell['colspan'] - 1;
             $table[$inorm][$nextkey] = $cell;
