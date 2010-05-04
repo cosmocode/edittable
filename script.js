@@ -441,12 +441,19 @@ addInitEvent(function () {
             return node;
         };
 
-        this.checkRemoveSpan = function (pos) {
+        this.checkRemoveSpan = function (pos, killcheck) {
             if (this.getVal('rowspan') === 1) pos[0] = '*';
             if (this.getVal('colspan') === 1) pos[1] = '*';
             if (pos[0] !== '*' && pos[1] !== '*') {
                 return false;
             }
+            if (killcheck) {
+                // The removed potion is to be deleted, not to be inserted
+                // into another span, hence we can remove from the middle of a
+                // span as well.
+                return pos;
+            }
+
             if (pos[0] !== '*') {
                 var coord = pos[0].getPos()[0] - this.getPos()[0];
                 if (coord !== 0 && coord !== this.getVal('rowspan') - 1) {
@@ -474,7 +481,7 @@ addInitEvent(function () {
          *               is completely removed and contained text
          */
         this.removeFromSpan = function (pos, template_func) {
-            pos = this.checkRemoveSpan(pos);
+            pos = this.checkRemoveSpan(pos, true);
             if (pos === false) return false;
 
             function handle(elem) {
@@ -709,7 +716,8 @@ addInitEvent(function () {
                 var row = cur_field.parentNode;
                 var newrow = document.createElement('tr');
                 pimpRow.call(newrow);
-                newrow.setPos(row.getPos() + 1);
+                var rowspan = cur_field.getVal('rowspan');
+                newrow.setPos(row.getPos() + rowspan);
 
                 // Insert new cells.
                 row.forEveryCell(function () {
@@ -717,7 +725,7 @@ addInitEvent(function () {
                     var newnode = null;
                     var below = getCellBelow.call(this);
                     var pos = root.getPos();
-                    ++pos[0];
+                    pos[0] += rowspan;
                     if  (below && root === below._parent) {
                         // TODO: Abstraction fail
                         root.setVal('rowspan', root.getVal('rowspan') + 1);
@@ -730,7 +738,10 @@ addInitEvent(function () {
                 });
 
                 // Insert row.
-                var nextrow = nextElement.call(row);
+                var nextrow = row;
+                while (rowspan-- > 0) {
+                    nextrow = nextElement.call(nextrow);
+                }
                 row.parentNode.insertBefore(newrow, nextrow);
 
                 // Update pos information in rows after the new one.
@@ -751,7 +762,7 @@ addInitEvent(function () {
                 while (row.hasChildNodes()) {
                     var c = row.firstChild;
                     if (assertType.call(c, TYPE__CELL)) {
-                        assert(c.removeFromSpan([c, '*']) !== false);
+                        assert(c.removeFromSpan([c, '*']) !== false, 'failed removing');
                     } else {
                         row.removeChild(c);
                     }
@@ -973,6 +984,14 @@ addInitEvent(function () {
 
     TableEditorDrag.prototype = drag;
 
+    function updateHandleState(handle) {
+        updateClass(handle, 'disabledhandle',
+                    !checkSpans(handle, function (node, tgt) {
+             return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
+        }));
+    }
+
+    var handles_done = false;
     // Add handles to rows and columns.
     function addHandle(text, before) {
         var handle = document.createElement('TD');
@@ -982,6 +1001,7 @@ addInitEvent(function () {
         (new TableEditorDrag()).attach(handle);
 
         this.insertBefore(handle, before);
+        if (handles_done) updateHandleState(handle);
     }
 
     var newrow = document.createElement('TR');
@@ -997,14 +1017,12 @@ addInitEvent(function () {
     for (var r = 0 ; r < tbody.rows.length ; ++r) {
         addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
     }
+    handles_done = true;
 
     function updateHandlesState () {
         var handles = getElementsByClass('handle', table, 'td');
         for (var handle = 0 ; handle < handles.length ; ++handle) {
-            updateClass(handles[handle], 'disabledhandle',
-                        !checkSpans(handles[handle], function (node, tgt) {
-                 return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
-            }));
+            updateHandleState(handles[handle]);
         }
     }
 
