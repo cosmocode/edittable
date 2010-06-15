@@ -75,7 +75,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     }
 
     function cdata($text) {
-        $this->doc .= $this->_xmlEntities(trim($text));
+        $this->doc .= $this->_xmlEntities(parent::cdata($text));
     }
 
     function _xmlEntities($string) {

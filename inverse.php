@@ -28,10 +28,12 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function document_end() {
-        $this->doc = rtrim($this->doc, DOKU_LF);
+        $this->block();
+        $this->doc = rtrim($this->doc);
     }
 
     function header($text, $level, $pos) {
+        $this->block();
         if(!$text) return; //skip empty headlines
 
         // write the header
@@ -40,100 +42,153 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function section_open($level) {
-        $this->doc .= DOKU_LF;
+        $this->block();
+#        $this->doc .= DOKU_LF;
     }
 
     function section_close() {
+        $this->block();
         $this->doc .= DOKU_LF;
     }
 
     function cdata($text) {
-        $this->doc .= $text;
+        if (strlen($text) === 0) {
+            $this->not_block();
+            return;
+        }
+
+        if (!$this->previous_block && trim(substr($text, 0, 1)) === '') {
+            $this->doc .= ' ';
+        }
+        $this->not_block();
+        if (trim(substr($text, -1, 1)) === '' && trim($text) !== '') {
+            $this->prepend_not_block = ' ';
+        }
+        $this->doc .= trim($text);
     }
 
     function p_close() {
+        $this->block();
         if ($this->quotelvl === 0) {
             $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
         }
     }
 
     function p_open() {
+        $this->block();
+        if (strlen($this->doc) > 0 && substr($this->doc, 1, -1) !== DOKU_LF) {
+            $this->doc .= DOKU_LF . DOKU_LF;
+        }
         $this->doc .= str_repeat('>', $this->quotelvl);
     }
 
     function linebreak() {
+        $this->not_block();
         $this->doc .= '\\\\ ';
     }
 
     function hr() {
-        $this->doc .= '----'.DOKU_LF;
+        $this->block();
+        $this->doc .= '----';
+    }
+
+    function block() {
+        if (isset($this->prepend_not_block)) {
+            unset($this->prepend_not_block);
+        }
+        $this->previous_block = true;
+    }
+
+    function not_block() {
+        if (isset($this->prepend_not_block)) {
+            $this->doc .= $this->prepend_not_block;
+            unset($this->prepend_not_block);
+        }
+        $this->previous_block = false;
     }
 
     function strong_open() {
+        $this->not_block();
         $this->doc .= '**';
     }
 
     function strong_close() {
+        $this->not_block();
         $this->doc .= '**';
     }
 
     function emphasis_open() {
+        $this->not_block();
         $this->doc .= '//';
     }
 
     function emphasis_close() {
+        $this->not_block();
         $this->doc .= '//';
     }
 
     function underline_open() {
+        $this->not_block();
         $this->doc .= '__';
     }
 
     function underline_close() {
+        $this->not_block();
         $this->doc .= '__';
     }
 
     function monospace_open() {
+        $this->not_block();
         $this->doc .= "''";
     }
 
     function monospace_close() {
+        $this->not_block();
         $this->doc .= "''";
     }
 
     function subscript_open() {
+        $this->not_block();
         $this->doc .= '<sub>';
     }
 
     function subscript_close() {
+        $this->not_block();
         $this->doc .= '</sub>';
     }
 
     function superscript_open() {
+        $this->not_block();
         $this->doc .= '<sup>';
     }
 
     function superscript_close() {
+        $this->not_block();
         $this->doc .= '</sup>';
     }
 
     function deleted_open() {
+        $this->not_block();
         $this->doc .= '<del>';
     }
 
     function deleted_close() {
+        $this->not_block();
         $this->doc .= '</del>';
     }
 
     function footnote_open() {
+        $this->not_block();
         $this->doc .= '((';
     }
 
     function footnote_close() {
+        $this->not_block();
         $this->doc .= '))';
     }
 
     function listu_open() {
+        $this->block();
         if (!isset($this->_liststack)) {
             $this->_liststack = array();
         }
@@ -144,6 +199,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function listu_close() {
+        $this->block();
         array_pop($this->_liststack);
         if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
@@ -151,6 +207,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function listo_open() {
+        $this->block();
         if (!isset($this->_liststack)) {
             $this->_liststack = array();
         }
@@ -161,6 +218,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function listo_close() {
+        $this->block();
         array_pop($this->_liststack);
         if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
@@ -168,14 +226,17 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function listitem_open($level) {
-        $this->doc .= str_repeat(' ', $level * 2) . end($this->_liststack);
+        $this->block();
+        $this->doc .= str_repeat(' ', $level * 2) . end($this->_liststack) . ' ';
     }
 
     function listcontent_close() {
+        $this->block();
         $this->doc .= DOKU_LF;
     }
 
     function unformatted($text) {
+        $this->not_block();
         if (strpos($text, '%%') !== false) {
             $this->doc .= "<nowiki>$text</nowiki>";
         } else {
@@ -184,30 +245,37 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function php($text, $wrapper='code') {
+        $this->not_block();
         $this->doc .= "<php>$text</php>";
     }
 
     function phpblock($text) {
-        $this->doc .= "<PHP>$text</PHP>" . DOKU_LF;
+        $this->block();
+        $this->doc .= "<PHP>$text</PHP>";
     }
 
     function html($text, $wrapper='code') {
-        $this->doc .= "<html>$text</html>" . DOKU_LF;
+        $this->not_block();
+        $this->doc .= "<html>$text</html>";
     }
 
     function htmlblock($text) {
-        $this->doc .= "<HTML>$text</HTML>". DOKU_LF;
+        $this->block();
+        $this->doc .= "<HTML>$text</HTML>";
     }
 
     function quote_open() {
+        $this->block();
         if (substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
             $this->doc .= '>';
         } else {
             $this->doc .= DOKU_LF . str_repeat('>', $this->quotelvl);
         }
+        $this->prepend_not_block = ' ';
     }
 
     function quote_close() {
+        $this->block();
         $this->quotelvl--;
         if (strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
             return;
@@ -216,6 +284,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function preformatted($text) {
+        $this->block();
         $this->doc .= preg_replace('/^/m', '  ', $text) . DOKU_LF;
     }
 
@@ -228,6 +297,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function _highlight($type, $text, $language=null, $filename=null) {
+        $this->block();
         $this->doc .= "<$type";
         if ($language != null) {
             $this->doc .= " $language";
@@ -235,53 +305,64 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         if ($filename != null) {
             $this->doc .= " $filename";
         }
-        $this->doc .= ">$text</$type>" . DOKU_LF;
+        $this->doc .= ">$text</$type>";
     }
 
     function acronym($acronym) {
+        $this->not_block();
         $this->doc .= $acronym;
     }
 
     function smiley($smiley) {
+        $this->not_block();
         $this->doc .= $smiley;
     }
 
     function entity($entity) {
+        $this->not_block();
         $this->doc .= $entity;
     }
 
     function multiplyentity($x, $y) {
+        $this->not_block();
         $this->doc .= "{$x}x{$y}";
     }
 
     function singlequoteopening() {
+        $this->not_block();
         $this->doc .= "'";
     }
 
     function singlequoteclosing() {
+        $this->not_block();
         $this->doc .= "'";
     }
 
     function apostrophe() {
+        $this->not_block();
         $this->doc .= "'";
     }
 
     function doublequoteopening() {
+        $this->not_block();
         $this->doc .= '"';
     }
 
     function doublequoteclosing() {
+        $this->not_block();
         $this->doc .= '"';
     }
 
     /**
     */
     function camelcaselink($link) {
-      $this->doc .= $link;
+        $this->not_block();
+        $this->doc .= $link;
     }
 
 
     function locallink($hash, $name = NULL){
+        $this->not_block();
         $this->doc .= "[[#$hash";
         if ($name !== null) {
             $this->doc .= '|';
@@ -291,6 +372,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function internallink($id, $name = NULL, $search=NULL,$returnonly=false,$linktype='content') {
+        $this->not_block();
         $this->doc .= "[[$id";
         if ($name !== null) {
             $this->doc .= '|';
@@ -300,6 +382,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function externallink($url, $name = NULL) {
+        $this->not_block();
         if ($name !== null && !in_array($url, array($name, 'http://' . $name))) {
             $this->doc .= "[[$url|";
             $this->_echoLinkTitle($name);
@@ -315,6 +398,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     /**
     */
     function interwikilink($match, $name = NULL, $wikiName, $wikiUri) {
+        $this->not_block();
         $this->doc .= "[[$wikiName>$wikiUri";
         if ($name !== null) {
             $this->doc .= '|';
@@ -326,6 +410,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     /**
      */
     function windowssharelink($url, $name = NULL) {
+        $this->not_block();
         $this->doc .= "[[$url";
         if ($name !== null) {
             $this->doc .= '|';
@@ -335,6 +420,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function emaillink($address, $name = NULL) {
+        $this->not_block();
         if ($name === null) {
             $this->doc .= "<$address>";
         } else {
@@ -346,6 +432,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function internalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
                             $height=NULL, $cache=NULL, $linking=NULL) {
+        $this->not_block();
         $this->doc .= '{{';
         if ($align === 'center' || $align === 'right') {
             $this->doc .= ' ';
@@ -390,6 +477,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
      * @author Andreas Gohr <andi@splitbrain.org>
      */
     function rss ($url,$params){
+        $this->block();
         $this->doc .= '{{rss>' . $url;
         $vals = array();
         if ($params['max'] !== 8) {
@@ -425,16 +513,19 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function table_open() {
+        $this->block();
         $this->_table = array();
         $this->_row = 0;
         $this->_rowspans = array();
     }
 
     function table_close($pos) {
+        $this->block();
         $this->doc .= table_to_wikitext($this->_table);
     }
 
     function tablerow_open() {
+        $this->block();
         $this->_table[++$this->_row] = array();
         $this->_key = 1;
         while (isset($this->_rowspans[$this->_key])) {
@@ -447,6 +538,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function tablerow_close(){
+        $this->block();
     }
 
     function tableheader_open($colspan = 1, $align = NULL, $rowspan = 1){
@@ -454,6 +546,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function _cellopen($tag, $colspan, $align, $rowspan) {
+        $this->block();
         $this->_table[$this->_row][$this->_key] = compact('tag', 'colspan', 'align', 'rowspan');
         if ($rowspan > 1) {
             $this->_rowspans[$this->_key] = $rowspan;
@@ -467,6 +560,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function _cellclose() {
+        $this->block();
         $this->_table[$this->_row][$this->_key]['text'] = trim(substr($this->doc, $this->_pos));
         $this->doc = substr($this->doc, 0, $this->_pos);
         $this->_key += $this->_table[$this->_row][$this->_key]['colspan'];
@@ -488,8 +582,12 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_cellclose();
     }
 
-    function plugin($plugin, $args, $state, $match) {
-        $this->doc .= $match;
+    function plugin($name, $args, $state, $match) {
+        $this->not_block();
+        $plugin =& plugin_load('syntax',$name);
+        if($plugin === null || !$plugin->render($this->getFormat(),$this,$args)) {
+            $this->doc .= $match;
+        }
     }
 
     function _echoLinkTitle($title) {

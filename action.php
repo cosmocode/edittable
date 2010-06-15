@@ -149,13 +149,6 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $Renderer = new Doku_Renderer_xhtml_table_edit();
         $instructions = p_get_instructions($TEXT);
 
-        $Renderer->reset();
-
-        $Renderer->smileys = getSmileys();
-        $Renderer->entities = getEntities();
-        $Renderer->acronyms = getAcronyms();
-        $Renderer->interwiki = getInterwiki();
-
         // Loop through the instructions
         foreach ( $instructions as $instruction ) {
             // Execute the callback against the Renderer
