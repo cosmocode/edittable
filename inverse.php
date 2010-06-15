@@ -57,7 +57,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
             return;
         }
 
-        if (!$this->previous_block && trim(substr($text, 0, 1)) === '') {
+        if (!$this->previous_block && trim(substr($text, 0, 1)) === '' && trim($text) !== '') {
             $this->doc .= ' ';
         }
         $this->not_block();

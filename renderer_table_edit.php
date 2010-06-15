@@ -10,6 +10,7 @@ require_once DOKU_PLUGIN."/edittable/inverse.php";
 
 class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     function table_open($maxcols = NULL, $numrows = NULL){
+        parent::block();
         // initialize the row counter used for classes
         $this->_counter['row_counter'] = 0;
         $this->_counter['table_begin_pos'] = strlen($this->doc);
@@ -17,6 +18,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     }
 
     function table_close() {
+        parent::block();
         $this->doc .= '</table>'.DOKU_LF;
     }
 
@@ -37,6 +39,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     }
 
     function tablerow_open(){
+        parent::block();
         // initialize the cell counter used for classes
         $this->_counter['cell_counter'] = 0;
         $class = 'row' . $this->_counter['row_counter']++;
@@ -44,10 +47,12 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     }
 
     function tablerow_close() {
+        parent::block();
         $this->doc .= '</tr>';
     }
 
     function _tablefield_open($tag, $colspan, $align, $rowspan) {
+        parent::block();
         $basename = 'table[' . $this->_counter['row_counter'] . '][' . $this->_counter['cell_counter'] . ']';
         $class = 'class="col' . $this->_counter['cell_counter']++;
         $class .= '"';
@@ -71,6 +76,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     }
 
     function _tablefield_close($tag) {
+        parent::block();
         $this->doc .= '" /></' . $tag . '>';
     }
 
