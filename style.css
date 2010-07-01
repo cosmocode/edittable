@@ -84,3 +84,12 @@ div.dokuwiki div.editbutton_table form input.button {
     -moz-border-radius-bottomleft: 0.5em;
     -webkit-border-bottom-left-radius: 0.5em;
 }
+
+/* Section highlighting fix */
+div.dokuwiki div.section_highlight table {
+  background-color: __background_alt__;
+}
+
+div.dokuwiki div.table.section_highlight {
+  background-color: transparent !important;
+}
