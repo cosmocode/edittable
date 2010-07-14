@@ -73,11 +73,13 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
         $this->doc .='<input name="' . $basename . '[text]" class="' . $align .
                      'align"';
         $this->doc .= 'value="';
+        $this->pre_table_doc = $this->doc;
+        $this->doc = '';
     }
 
     function _tablefield_close($tag) {
         parent::block();
-        $this->doc .= '" /></' . $tag . '>';
+        $this->doc = $this->pre_table_doc . hsc($this->doc) . '" /></' . $tag . '>';
     }
 
     function cdata($text) {
