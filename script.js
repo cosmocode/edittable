@@ -755,6 +755,7 @@ addInitEvent(function () {
             };
         } else if (arr.ops === '-' && arr.target === 'row') {
             click_handler = function () {
+                if (!confirm(LANG.plugins.edittable.confirmdeleterow)) return;
                 var nextcur = getNextcur();
                 assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
 
@@ -816,6 +817,7 @@ addInitEvent(function () {
             };
         } else {
             click_handler = function () {
+                if (!confirm(LANG.plugins.edittable.confirmdeletecol)) return;
                 var nextcur = getNextcur();
                 assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
 

@@ -13,3 +13,5 @@ $lang['struct_col_minus'] = 'Spalte entfernen';
 $lang['struct_row_plus']  = 'Zeile darunter einfügen';
 $lang['struct_row_minus'] = 'Zeile entfernen';
 $lang['secedit_name']     = 'Tabelle';
+$lang['js']['confirmdeleterow'] = 'Zeile wirklich löschen?';
+$lang['js']['confirmdeletecol'] = 'Spalte wirklich löschen?';
