@@ -862,7 +862,21 @@ addInitEvent(function () {
      */
     drag_marker = document.createElement('span');
     drag_marker.id = 'table__dragmarker';
-    drag_marker.style.cssFloat = 'right';
+    drag_marker.set = function(target, topright, bottomright, bottomleft) {
+        while (drag_marker.hasChildNodes()) {
+            drag_marker.removeChild(drag_marker.lastChild);
+        }
+        function add(cssclass) {
+            img = document.createElement('img');
+            img.className = cssclass;
+            img.src = DOKU_BASE + '/lib/plugins/edittable/images/'  + cssclass + '.png';
+            drag_marker.appendChild(img);
+        }
+        if (topright) add('dragmarker_topright');
+        if (bottomright) add('dragmarker_bottomright');
+        if (bottomleft) add('dragmarker_bottomleft');
+        prependChild(target, drag_marker);
+    };
 
     function checkSpans(obj, func) {
         // If there is (row|col)span on (row|col) move, die.
@@ -896,7 +910,12 @@ addInitEvent(function () {
                 return false;
             }
             document.body.style.cursor = 'move';
-            prependChild(e.target, drag_marker);
+            var rowhandle = hasClass(e.target, 'rowhandle');
+            drag_marker._src_pos = rowhandle ? e.target.parentNode.getPos() : findColumn(e.pageX);
+            drag_marker.set(e.target,
+                            rowhandle && drag_marker._src_pos !== 1,
+                            (rowhandle ? e.target.parentNode : e.target).nextSibling,
+                            !rowhandle && drag_marker._src_pos !== 1);
 
             return drag.start.call(this, e);
         };
@@ -905,15 +924,16 @@ addInitEvent(function () {
             var target = null;
 
             // Move marker
-            if (hasClass(this.handle, 'rowhandle')) {
-                var row = findRow(e.pageY);
-                if (row !== -1) {
-                    target = table.rows[row].cells[0];
+            var rowhandle = hasClass(e.target, 'rowhandle');
+            if (rowhandle) {
+                var pos = findRow(e.pageY);
+                if (pos > 0) {
+                    target = table.rows[pos].cells[0];
                 }
             } else {
-                var col = findColumn(e.pageX);
-                if (col !== -1) {
-                    target = table.tHead.rows[0].cells[col];
+                var pos = findColumn(e.pageX);
+                if (pos > 0) {
+                    target = table.tHead.rows[0].cells[pos];
                 }
             }
 
@@ -922,7 +942,11 @@ addInitEvent(function () {
                     var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
                     return (other && root === other._parent);
                 })) {
-                prependChild(target, drag_marker);
+                drag_marker.set(target,
+                                rowhandle && drag_marker._src_pos >= pos && (drag_marker._src_pos !== 1 || pos !== 1),
+                                drag_marker._src_pos < pos || (drag_marker._src_pos === pos && (rowhandle ? table.rows.length :
+                                                                           table.tHead.rows[0].cells.length) > pos + 1),
+                                !rowhandle && drag_marker._src_pos >= pos && (drag_marker._src_pos !== 1 || pos !== 1));
             }
             return false;
         };
@@ -937,19 +961,25 @@ addInitEvent(function () {
 
             // Are we moving a row or a column?
             if (hasClass(src, 'rowhandle')) {
+                var ins = target.parentNode;
+                if (drag_marker._src_pos > ins.getPos()) {
+                    ins = previousElement.call(ins);
+                }
+                ins = ins ? nextElement.call(ins) : tbody.rows[0];
+
                 // Move row HTML element.
-                var ins = target.parentNode.getPos ? target.parentNode.nextSibling : tbody.rows[0];
                 src.parentNode.parentNode.insertBefore(src.parentNode, ins);
 
                 // Rebuild pos information after move.
                 for (var r = 0 ; r < tbody.rows.length ; ++r) {
-                    rows[r].move(r);
+                    rows[r].move(r + 1);
                 }
 
                 setCurrentField(src.parentNode.cells[1]);
             } else {
                 var from = countCols.call(src.parentNode, src) - 1;
                 var to = countCols.call(target.parentNode, target);
+                if (from >= to) to--;
 
                 for (var i = 0 ; i < tbody.rows.length ; ++i) {
                     var obj = null;

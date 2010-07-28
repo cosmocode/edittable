@@ -55,13 +55,28 @@ html>body div.dokuwiki table.edit td.handle {
 }
 
 #table__dragmarker {
-    width: 16px;
-    height: 16px;
-    background: transparent url(images/arrow.png) no-repeat center center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    float: right;
+    display:block;
+    height:100%;
+    width:100%;
+    position:relative;
+}
+
+#table__dragmarker .dragmarker_topright {
+    position: absolute;
+    top: -4px;
+    right: 0px;
+}
+
+#table__dragmarker .dragmarker_bottomright {
+    position: absolute;
+    top: 11px;
+    right: 0px;
+}
+
+#table__dragmarker .dragmarker_bottomleft {
+    position: absolute;
+    top: 11px;
+    left: 0px;
 }
 
 /* the section edit button - yes, it's not the most beautiful CSS you've ever seen */
