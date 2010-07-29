@@ -211,6 +211,64 @@ addInitEvent(function () {
         return getType.call(this) >= type;
     }
 
+    function moveNextRows(update) {
+        var nextrow = nextElement.call(this);
+        // Update pos information in rows after the new one.
+        while (nextrow) {
+            nextrow.move(update(nextrow.getPos()));
+            nextrow = nextElement.call(nextrow);
+        }
+    }
+
+    function splitHandleColumns(target_col, mv_delta, match_func) {
+        table.forEveryRow(function () {
+            var match = null;
+            this.forEveryCell(function () {
+                var pos = this.getPos();
+                if (pos[1] === target_col) {
+                    match = this;
+                }
+                if (pos[1] >= target_col) {
+                    pos[1] += mv_delta;
+                    this.setPos(pos);
+                }
+            });
+            match_func(this, match);
+        });
+    }
+
+    function addColumn(target_col) {
+        splitHandleColumns(target_col, 1,
+                           function (row, ins) {
+                               var newnode = null;
+                               if  (ins && ins._parent) {
+                                   // TODO: Abstraction fail
+                                   var root = ins._parent ? ins._parent : ins;
+                                   var before = previousElement.call(ins);
+                                   if (before && before._parent === root) {
+                                       root.setVal('colspan', root.getVal('colspan') + 1);
+                                       var pos = previousElement.call(ins).getPos();
+                                       newnode = getNewPlaceholder([row.getPos(), pos[1] + 1], root);
+                                   }
+                               }
+                               if (newnode === null) {
+                                   // FIXME: Inheritance
+                                   newnode = getNewCell(null, {'pos': [row.getPos(), target_col], 'text': '',
+                                                               'colspan': 1, 'rowspan': 1});
+                               }
+                               row.insertBefore(newnode, ins);
+                            });
+        addHandle.call(table.tHead.rows[0], 'col', null);
+    }
+
+    function deleteColumn (target_col) {
+        splitHandleColumns(target_col, -1,
+                           function (row, rm) {
+                               assert(rm.removeFromSpan([rm, rm]) !== false);
+                           });
+        table.tHead.rows[0].removeChild(lastChildElement.call(table.tHead.rows[0]));
+    }
+
     /**
      * Create a new cell based on a template cell
      *
@@ -297,10 +355,14 @@ addInitEvent(function () {
     /**
      * Table
      */
-    table.forEveryCell = function (func) {
+    table.forEveryRow = function (func) {
         for (var r = 0 ; r < tbody.rows.length ; ++r) {
-            tbody.rows[r].forEveryCell(func);
+            func.call(tbody.rows[r]);
         }
+    }
+
+    table.forEveryCell = function (func) {
+        this.forEveryRow(function () { this.forEveryCell(func); });
     };
 
     /**
@@ -331,12 +393,65 @@ addInitEvent(function () {
             });
         };
 
+        this.remove = function () {
+            while (this.hasChildNodes()) {
+                var c = this.firstChild;
+                if (assertType.call(c, TYPE__CELL)) {
+                    assert(c.removeFromSpan([c, '*']) !== false, 'failed removing');
+                } else {
+                    this.removeChild(c);
+                }
+            }
+
+            // Update pos information in rows after the new one.
+            moveNextRows.call(this, function (i) {return i - 1;});
+
+            // Remove row.
+            this.parentNode.removeChild(this);
+        };
+
+        this.addRow = function (offset) {
+            var newrow = document.createElement('tr');
+            pimpRow.call(newrow);
+            newrow.setPos(this.getPos() + offset);
+
+            // Insert new cells.
+            this.forEveryCell(function () {
+                var root = this._parent ? this._parent : this;
+                var newnode = null;
+                var below = getCellBelow.call(this);
+                var pos = root.getPos();
+                pos[0] += offset;
+                if  (below && root === below._parent) {
+                    // TODO: Abstraction fail
+                    root.setVal('rowspan', root.getVal('rowspan') + 1);
+                    newnode = getNewPlaceholder(pos, root);
+                } else {
+                    // FIXME new row should have the same colspans
+                    newnode = getNewCell(root, {'pos': pos, 'text': '',
+                                                'colspan': 1, 'rowspan': 1});
+                }
+                newrow.appendChild(newnode);
+            });
+            addHandle.call(newrow, 'row', newrow.firstChild);
+
+            // Insert row.
+            var nextrow = this;
+            var mv = (offset > 0) ? [-1, nextElement]
+                                  : [+1, previousElement];
+            while (offset != 0) {
+                nextrow = mv[1].call(nextrow);
+                offset += mv[0];
+            }
+            this.parentNode.insertBefore(newrow, nextrow);
+
+            // Update pos information in rows after the new one.
+            moveNextRows.call(newrow, function (i) {return i + 1;});
+            return newrow;
+        };
     }
 
-    var rows = tbody.getElementsByTagName('tr');
-    for (var r = 0 ; r < rows.length ; ++r) {
-        pimpRow.call(rows[r]);
-    }
+    table.forEveryRow(function () { pimpRow.call(this); });
 
     /**
      * Cells
@@ -713,44 +828,10 @@ addInitEvent(function () {
 
         if (arr.ops === '+' && arr.target === 'row') {
             click_handler = function () {
-                var row = cur_field.parentNode;
-                var newrow = document.createElement('tr');
-                pimpRow.call(newrow);
                 var rowspan = cur_field.getVal('rowspan');
-                newrow.setPos(row.getPos() + rowspan);
 
-                // Insert new cells.
-                row.forEveryCell(function () {
-                    var root = this._parent ? this._parent : this;
-                    var newnode = null;
-                    var below = getCellBelow.call(this);
-                    var pos = root.getPos();
-                    pos[0] += rowspan;
-                    if  (below && root === below._parent) {
-                        // TODO: Abstraction fail
-                        root.setVal('rowspan', root.getVal('rowspan') + 1);
-                        newnode = getNewPlaceholder(pos, root);
-                    } else {
-                        newnode = getNewCell(root, {'pos': pos, 'text': '',
-                                                    'colspan': 1, 'rowspan': 1});
-                    }
-                    newrow.appendChild(newnode);
-                });
+                var newrow = cur_field.parentNode.addRow(rowspan);
 
-                // Insert row.
-                var nextrow = row;
-                while (rowspan-- > 0) {
-                    nextrow = nextElement.call(nextrow);
-                }
-                row.parentNode.insertBefore(newrow, nextrow);
-
-                // Update pos information in rows after the new one.
-                while (nextrow) {
-                    nextrow.move(nextrow.getPos() + 1);
-                    nextrow = nextElement.call(nextrow);
-                }
-
-                addHandle.call(newrow, 'row', newrow.firstChild);
                 return getCell.call(newrow, cur_field.getPos()[1]);
             };
         } else if (arr.ops === '-' && arr.target === 'row') {
@@ -758,61 +839,12 @@ addInitEvent(function () {
                 if (!confirm(LANG.plugins.edittable.confirmdeleterow)) return;
                 var nextcur = getNextcur();
                 assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
-
-                var row = cur_field.parentNode;
-                while (row.hasChildNodes()) {
-                    var c = row.firstChild;
-                    if (assertType.call(c, TYPE__CELL)) {
-                        assert(c.removeFromSpan([c, '*']) !== false, 'failed removing');
-                    } else {
-                        row.removeChild(c);
-                    }
-                }
-
-                var nextrow = nextElement.call(row);
-                // Remove row.
-                row.parentNode.removeChild(row);
-
-                // Update pos information in rows after the new one.
-                while (nextrow) {
-                    nextrow.move(nextrow.getPos() - 1);
-                    nextrow = nextElement.call(nextrow);
-                }
+                cur_field.parentNode.remove();
                 return nextcur;
             };
         } else if (arr.ops === '+' && arr.target === 'col') {
             click_handler = function () {
-                var col = cur_field.getPos()[1] + cur_field.getVal('colspan');
-                for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                    var ins = null;
-                    tbody.rows[i].forEveryCell(function () {
-                        var pos = this.getPos();
-                        if (ins === null && pos[1] === col) {
-                            ins = this;
-                        }
-                        if (ins !== null) {
-                            pos[1]++;
-                            this.setPos(pos);
-                        }
-                    });
-                    var newnode = null;
-                    if  (ins && ins._parent) {
-                        // TODO: Abstraction fail
-                        var root = ins._parent ? ins._parent : ins;
-                        var before = previousElement.call(ins);
-                        if (before && before._parent === root) {
-                            root.setVal('colspan', root.getVal('colspan') + 1);
-                            var pos = previousElement.call(ins).getPos();
-                            newnode = getNewPlaceholder([i + 1, pos[1] + 1], root);
-                        }
-                    }
-                    if (newnode === null) {
-                        newnode = getNewCell(null, {'pos': [i + 1, col], 'text': '',
-                                                    'colspan': 1, 'rowspan': 1});
-                    }
-                    tbody.rows[i].insertBefore(newnode, ins);
-                }
-                addHandle.call(table.tHead.rows[0], 'col', null);
+                addColumn(cur_field.getPos()[1] + cur_field.getVal('colspan'));
                 return cur_field.nextCell();
             };
         } else {
@@ -821,28 +853,8 @@ addInitEvent(function () {
                 var nextcur = getNextcur();
                 assert(nextcur !== null, 'Cannot find next cur_field, the button should have been disabled');
 
-                var col = cur_field.getPos()[1] +
-                          cur_field.getVal('colspan') - 1;
-                var rm = [];
-                var mv = [];
-                table.forEveryCell(function () {
-                    var pos = this.getPos();
-                    if (pos[1] === col) {
-                        rm.push(this);
-                    } else if (pos[1] > col) {
-                        mv.push(this);
-                    }
-                });
-
-                for (var i = 0 ; i < rm.length ; ++i) {
-                    assert(rm[i].removeFromSpan([rm[i], rm[i]]) !== false);
-                }
-                for (var i = 0 ; i < mv.length ; ++i) {
-                    var pos = mv[i].getPos();
-                    pos[1]--;
-                    mv[i].setPos(pos);
-                }
-                table.tHead.rows[0].removeChild(lastChildElement.call(table.tHead.rows[0]));
+                deleteColumn(cur_field.getPos()[1] +
+                          cur_field.getVal('colspan') - 1);
 
                 return nextcur;
             };
@@ -904,6 +916,11 @@ addInitEvent(function () {
 
     function TableEditorDrag () {
         this.start = function (e) {
+            if (e.currentTarget !== e.target) {
+                // Do not handle mousedowns on the drop down button
+                return false;
+            }
+
             if (!checkSpans(e.target, function (node, tgt) {
                  return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
             })) {
@@ -924,7 +941,7 @@ addInitEvent(function () {
             var target = null;
 
             // Move marker
-            var rowhandle = hasClass(e.target, 'rowhandle');
+            var rowhandle = hasClass(this.obj, 'rowhandle');
             if (rowhandle) {
                 var pos = findRow(e.pageY);
                 if (pos > 0) {
@@ -972,7 +989,7 @@ addInitEvent(function () {
 
                 // Rebuild pos information after move.
                 for (var r = 0 ; r < tbody.rows.length ; ++r) {
-                    rows[r].move(r + 1);
+                    tbody.rows[r].move(r + 1);
                 }
 
                 setCurrentField(src.parentNode.cells[1]);
@@ -1031,10 +1048,86 @@ addInitEvent(function () {
         handle.className = 'handle ' + text + 'handle';
 
         (new TableEditorDrag()).attach(handle);
+        var dropdown = document.createElement('span');
+        dropdown.className = 'handle_dropdown';
+        var dropbuttn = document.createElement('img');
+        dropbuttn.src = DOKU_BASE + 'lib/plugins/edittable/images/dropdown.png';
+
+        dropdown.appendChild(dropbuttn);
+        var dropcontent = document.createElement('div');
+        dropcontent.style.display = 'none';
+        dropcontent.style.position = 'absolute';
+
+        dropcontent.appendChild(document.createElement('ul'));
+        if (text === 'row') {
+            var items = [['minus',
+                          function () {
+                              if (tbody.rows.length === 1) {
+                                  alert(LANG.plugins.edittable.last_row);
+                                  return;
+                              }
+                              handle.parentNode.remove();
+                          }],
+                         ['plus_before',
+                          function () { handle.parentNode.addRow(0); }],
+                         ['plus',
+                          function () { handle.parentNode.addRow(1); }]];
+        } else {
+            var items = [['minus',
+                          function () {
+                              if (countCols.call(handle.parentNode, null) === 2) {
+                                  alert(LANG.plugins.edittable.last_column);
+                                  return;
+                              }
+                              deleteColumn(countCols.call(handle.parentNode, handle) - 1);
+                          }],
+                         ['plus_before', function () {
+                              addColumn(countCols.call(handle.parentNode, handle) - 1);
+                          }],
+                         ['plus', function () {
+                              addColumn(countCols.call(handle.parentNode, handle));
+                          }]];
+        }
+        for (var item = 0 ; item < items.length ; ++item) {
+            var b = document.createElement('li');
+            b.appendChild(document.createElement('a'));
+            b.firstChild.innerHTML = LANG.plugins.edittable['struct_' + text + '_' + items[item][0]];
+            addEvent(b.firstChild, 'click', bind(function (c) {
+                             dropcontent.style.display = 'none'; c(); }, items[item][1]));
+            dropcontent.firstChild.appendChild(b);
+        }
+        dropdown.appendChild(dropcontent);
+        handle.appendChild(dropdown);
 
         this.insertBefore(handle, before);
         if (handles_done) updateHandleState(handle);
     }
+
+    addEvent(document.body, 'mousedown', function (e) {
+        // Check if we are in a dropdown
+        var tgt = e.target;
+        while (tgt && !hasClass(tgt, 'handle_dropdown')) {
+            tgt = tgt.parentNode;
+        }
+
+        var show = false;
+        if (tgt && hasClass(tgt, 'handle_dropdown') &&
+            (tgt.lastChild.style.display === 'none' || e.target !== tgt.firstChild)) {
+            // Show after hiding all dropdowns if click on dropdown icon or link
+            // in the dropdown
+            show = true;
+        }
+
+        // Hide all dropdowns
+        var dropdowns = getElementsByClass('handle_dropdown', $('dw__editform'), 'span');
+        for (var drop = 0 ; drop < dropdowns.length ; ++drop) {
+            dropdowns[drop].lastChild.style.display = 'none';
+        }
+
+        if (show) {
+            tgt.lastChild.style.display = '';
+        }
+    });
 
     var newrow = document.createElement('TR');
     newrow.className = 'handles';

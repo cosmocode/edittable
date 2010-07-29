@@ -22,6 +22,14 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
     }
 
+    function getLang($id) {
+        $r = parent::getLang($id);
+        if ($r !== '') return $r;
+
+        $js = parent::getLang('js');
+        return $js[$id];
+    }
+
     function toolbar($event) {
         $menu = array(
                     array('title'  => $this->getLang('toggle_header'),

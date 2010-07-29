@@ -79,6 +79,44 @@ html>body div.dokuwiki table.edit td.handle {
     left: 0px;
 }
 
+.handle .handle_dropdown {
+    float: right;
+    margin-top: 3px;
+}
+
+.handle .handle_dropdown img {
+    padding: 4px 2px 1px;
+    cursor: pointer;
+}
+
+#dw__editform .handle .handle_dropdown div ul {
+    background:__background__ none repeat scroll 0 0;
+    border:1px solid;
+    list-style-image:none;
+    list-style-position:outside;
+    list-style-type:none;
+    opacity:0.9;
+    padding:0.3em;
+    margin:0;
+    cursor: auto;
+    font-size: 0.9em;
+}
+
+#dw__editform .handle .handle_dropdown div ul li {
+    width: 100%;
+    text-align: left;
+}
+
+#dw__editform .handle .handle_dropdown div ul li a {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+#dw__editform .handle .handle_dropdown div ul li a:hover {
+    background: __background_alt__;
+}
+
 /* the section edit button - yes, it's not the most beautiful CSS you've ever seen */
 div.dokuwiki div.editbutton_table {
     margin-top: -1em; /* depends on the table margin in template */
