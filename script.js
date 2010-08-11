@@ -1056,7 +1056,6 @@ addInitEvent(function () {
         dropdown.appendChild(dropbuttn);
         var dropcontent = document.createElement('div');
         dropcontent.style.display = 'none';
-        dropcontent.style.position = 'absolute';
 
         dropcontent.appendChild(document.createElement('ul'));
         if (text === 'row') {
