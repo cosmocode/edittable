@@ -36,7 +36,7 @@ function table_to_wikitext($_table){
         foreach($row as $n => $cell) {
             // Calculate cell width.
             $diff = (utf8_strlen($cell['text']) + $cell['colspan'] +
-                    ($cell['align'] === 'center' ? 4 : 3));
+                    ($cell['align'] === 'center' ? 3 : 2));
 
             // Calculate current max width.
             $span = $cell['colspan'];
@@ -70,7 +70,7 @@ function table_to_wikitext($_table){
                 }
             }
             $pad = $target - utf8_strlen($cell['text']);
-            $pos += $pad + ($cell['colspan']- 1);
+            $pos += $pad + ($cell['colspan'] - 1);
             switch ($cell['align']) {
             case 'right':
                 $lpad = $pad - 1;
