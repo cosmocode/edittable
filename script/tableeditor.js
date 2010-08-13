@@ -359,7 +359,7 @@ addInitEvent(function () {
         for (var r = 0 ; r < tbody.rows.length ; ++r) {
             func.call(tbody.rows[r]);
         }
-    }
+    };
 
     table.forEveryCell = function (func) {
         this.forEveryRow(function () { this.forEveryCell(func); });
