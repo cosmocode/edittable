@@ -419,14 +419,18 @@ addInitEvent(function () {
             this.forEveryCell(function () {
                 var root = this._parent ? this._parent : this;
                 var newnode = null;
-                var below = getCellBelow.call(this);
                 var pos = root.getPos();
                 pos[0] += offset;
-                if  (below && root === below._parent) {
-                    // TODO: Abstraction fail
-                    root.setVal('rowspan', root.getVal('rowspan') + 1);
-                    newnode = getNewPlaceholder(pos, root);
-                } else {
+                if  (offset > 0) {
+                    // Do not try to continue spannings if adding above row
+                    var below = getCellBelow.call(this);
+                    if ( below && root === below._parent) {
+                        // TODO: Abstraction fail
+                        root.setVal('rowspan', root.getVal('rowspan') + 1);
+                        newnode = getNewPlaceholder(pos, root);
+                    }
+                }
+                if (newnode === null) {
                     // FIXME new row should have the same colspans
                     newnode = getNewCell(root, {'pos': pos, 'text': '',
                                                 'colspan': 1, 'rowspan': 1});
