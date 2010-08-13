@@ -19,3 +19,4 @@ $lang['js']['struct_row_minus'] = 'Remove row';
 $lang['js']['struct_row_plus_before']  = 'Add row above';
 $lang['js']['last_column'] = 'You cannot delete the last column!';
 $lang['js']['last_row'] = 'You cannot delete the last row!';
+$lang['add_table'] = 'Insert a new table';

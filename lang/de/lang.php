@@ -19,3 +19,4 @@ $lang['js']['confirmdeleterow'] = 'Zeile wirklich löschen?';
 $lang['js']['confirmdeletecol'] = 'Spalte wirklich löschen?';
 $lang['js']['last_column'] = 'Die letzte Spalte darf nicht gelöscht werden!';
 $lang['js']['last_row'] = 'Die letzte Zeile darf nicht gelöscht werden!';
+$lang['add_table'] = 'Eine neue Tabelle einfügen';

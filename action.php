@@ -122,8 +122,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
 
         $event->data[] = array('title'  => $this->getLang('add_table'),
                                'type'   => 'insertTable',
-                               'icon'   => '../../plugins/edittable/images/add_table.png',
-                               'insert' => "^   ^   ^\n|   |   |\n");
+                               'icon'   => '../../plugins/edittable/images/add_table.png');
     }
 
     /**
@@ -154,7 +153,10 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         global $TEXT;
         if (isset($_POST['do']['edit'])) {
             $_REQUEST['target'] = 'table';
-            $TEXT = "^ {$_POST['edittable__new']['text']} ^  ^\n|  |  |";
+            $TEXT = "^  ^  ^\n";
+            foreach (explode("\n", $_POST['edittable__new']['text']) as $line) {
+                $TEXT .= "| $line |  |\n";
+            }
         } elseif (isset($_POST['do']['draftdel'])) {
             $TEXT = $_POST['edittable__new']['pre'] .
                     $_POST['edittable__new']['text'] .

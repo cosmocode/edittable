@@ -1,30 +1,31 @@
 function addBtnActionInsertTable(btn, param, edid) {
     addEvent(btn, 'click', function () {
         var editform = $('dw__editform');
-        var sel = getSelection($(edid));
-        var text = $(edid).value;
-        $(edid).parentNode.removeChild($(edid));
+        var ed = $(edid);
 
-        var pos_field = document.createElement('textarea');
-        pos_field.name = 'edittable__new[pre]';
-        pos_field.value = text.substr(0, sel.start);
-        editform.appendChild(pos_field);
+        function addField(name, val) {
+            var pos_field = document.createElement('textarea');
+            pos_field.name = 'edittable__new[' + name + ']';
+            pos_field.value = val;
+            pos_field.style.display = 'none';
+            editform.appendChild(pos_field);
+        }
 
-        pos_field = document.createElement('textarea');
-        pos_field.name = 'edittable__new[text]';
-        pos_field.value = text.substr(sel.start, sel.end - sel.start);
-        editform.appendChild(pos_field);
+        var sel = getSelection(ed);
+        addField('pre', ed.value.substr(0, sel.start));
+        addField('text', ed.value.substr(sel.start, sel.end - sel.start));
+        addField('suf', ed.value.substr(sel.end));
 
-        pos_field = document.createElement('textarea');
-        pos_field.name = 'edittable__new[suf]';
-        pos_field.value = text.substr(sel.end);
-        editform.appendChild(pos_field);
+        ed.parentNode.removeChild(ed);
 
         // Fake POST
         var editbutton = document.createElement('input');
         editbutton.name = 'do[edit]';
         editbutton.type = 'submit';
+        editbutton.style.display = 'none';
         editform.appendChild(editbutton);
+        // Prevent warning
+        textChanged = false;
         editbutton.click();
     });
     return true;
