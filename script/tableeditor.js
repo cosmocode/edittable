@@ -881,7 +881,8 @@ addInitEvent(function () {
         function add(cssclass) {
             img = document.createElement('img');
             img.className = cssclass;
-            img.src = DOKU_BASE + '/lib/plugins/edittable/images/'  + cssclass + '.png';
+            img.src = DOKU_BASE + 'lib/plugins/edittable/images/' + cssclass
+                    + '.png';
             drag_marker.appendChild(img);
         }
         if (topright) add('dragmarker_topright');
