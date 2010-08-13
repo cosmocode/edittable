@@ -819,9 +819,9 @@ addInitEvent(function () {
             update = function () {return [false, false];};
         } else {
             var getNextcur = function () {
-                var nextcur = ops.next.call(cur_field);
+                var nextcur = ops.prev.call(cur_field);
                 if (!assertType.call(nextcur, TYPE__CELL)) {
-                    nextcur = ops.prev.call(cur_field);
+                    nextcur = ops.next.call(cur_field);
                 }
                 return (nextcur && nextcur._parent) ? nextcur._parent : nextcur;
             };
