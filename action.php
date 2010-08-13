@@ -18,6 +18,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
     function register(&$controller) {
         $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'html_secedit_button');
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
         $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'html_table_editform');
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
     }
@@ -30,7 +31,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         return $js[$id];
     }
 
-    function toolbar($event) {
+    function toolbar(&$event) {
         $menu = array(
                     array('title'  => $this->getLang('toggle_header'),
                           'key'    => 'H',
@@ -118,6 +119,11 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         // use JSON to build the JavaScript array
         $json = new JSON();
         echo 'var table_toolbar = '.$json->encode($menu).';'.DOKU_LF;
+
+        $event->data[] = array('title'  => $this->getLang('add_table'),
+                               'type'   => 'insertTable',
+                               'icon'   => '../../plugins/edittable/images/add_table.png',
+                               'insert' => "^   ^   ^\n|   |   |\n");
     }
 
     /**
@@ -134,6 +140,36 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
         global $TEXT;
         $TEXT = table_to_wikitext($_POST['table']);
+    }
+
+    function handle_newtable($event) {
+        if (!isset($_POST['edittable__new'])) {
+            return;
+        }
+        foreach($_POST['edittable__new'] as &$v) {
+            // Form performs a formText
+            $v = cleanText($v);
+        }
+
+        global $TEXT;
+        if (isset($_POST['do']['edit'])) {
+            $_REQUEST['target'] = 'table';
+            $TEXT = "^ {$_POST['edittable__new']['text']} ^  ^\n|  |  |";
+        } elseif (isset($_POST['do']['draftdel'])) {
+            $TEXT = $_POST['edittable__new']['pre'] .
+                    $_POST['edittable__new']['text'] .
+                    $_POST['edittable__new']['suf'];
+            global $ACT;
+            $ACT = 'edit';
+            $_REQUEST['target'] = 'section';
+        } elseif (isset($_POST['do']['save'])) {
+            $TEXT = $_POST['edittable__new']['pre'] .
+                    $TEXT .
+                    $_POST['edittable__new']['suf'];
+            global $ACT;
+            $ACT = 'edit';
+            $_REQUEST['target'] = 'section';
+        }
     }
 
     function html_secedit_button(&$event) {
@@ -164,5 +200,11 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
 
         $event->data['form']->addElement($Renderer->doc);
+
+        if (isset($_POST['edittable__new'])) {
+            foreach($_POST['edittable__new'] as $k => $v) {
+                $event->data['form']->addHidden("edittable__new[$k]", $v);
+            }
+        }
     }
 }
