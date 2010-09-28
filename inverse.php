@@ -354,14 +354,14 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     /**
-    */
+     */
     function camelcaselink($link) {
         $this->not_block();
         $this->doc .= $link;
     }
 
 
-    function locallink($hash, $name = NULL){
+    function locallink($hash, $name = null){
         $this->not_block();
         $this->doc .= "[[#$hash";
         if ($name !== null) {
@@ -371,7 +371,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= ']]';
     }
 
-    function internallink($id, $name = NULL, $search=NULL,$returnonly=false,$linktype='content') {
+    function internallink($id, $name = null, $search=null,$returnonly=false,$linktype='content') {
         $this->not_block();
         $this->doc .= "[[$id";
         if ($name !== null) {
@@ -381,7 +381,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= ']]';
     }
 
-    function externallink($url, $name = NULL) {
+    function externallink($url, $name = null) {
         $this->not_block();
         if ($name !== null && !in_array($url, array($name, 'http://' . $name))) {
             $this->doc .= "[[$url|";
@@ -396,8 +396,8 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     /**
-    */
-    function interwikilink($match, $name = NULL, $wikiName, $wikiUri) {
+     */
+    function interwikilink($match, $name = null, $wikiName, $wikiUri) {
         $this->not_block();
         $this->doc .= "[[$wikiName>$wikiUri";
         if ($name !== null) {
@@ -409,7 +409,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     /**
      */
-    function windowssharelink($url, $name = NULL) {
+    function windowssharelink($url, $name = null) {
         $this->not_block();
         $this->doc .= "[[$url";
         if ($name !== null) {
@@ -419,19 +419,19 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= "]]";
     }
 
-    function emaillink($address, $name = NULL) {
+    function emaillink($address, $name = null) {
         $this->not_block();
         if ($name === null) {
             $this->doc .= "<$address>";
         } else {
-            $this->doc .= "[[$adress|";
+            $this->doc .= "[[$address|";
             $this->_echoLinkTitle($name);
             $this->doc .= ']]';
         }
     }
 
-    function internalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
-                            $height=NULL, $cache=NULL, $linking=NULL) {
+    function internalmedia ($src, $title=null, $align=null, $width=null,
+                            $height=null, $cache=null, $linking=null) {
         $this->not_block();
         $this->doc .= '{{';
         if ($align === 'center' || $align === 'right') {
@@ -466,8 +466,8 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= '}}';
     }
 
-    function externalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
-                            $height=NULL, $cache=NULL, $linking=NULL) {
+    function externalmedia ($src, $title=null, $align=null, $width=null,
+                            $height=null, $cache=null, $linking=null) {
         $this->internalmedia($src, $title, $align, $width, $height, $cache, $linking);
     }
 
@@ -541,7 +541,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->block();
     }
 
-    function tableheader_open($colspan = 1, $align = NULL, $rowspan = 1){
+    function tableheader_open($colspan = 1, $align = null, $rowspan = 1){
         $this->_cellopen('th', $colspan, $align, $rowspan);
     }
 
@@ -574,7 +574,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_ownspan = false;
     }
 
-    function tablecell_open($colspan = 1, $align = NULL, $rowspan = 1){
+    function tablecell_open($colspan = 1, $align = null, $rowspan = 1){
         $this->_cellopen('td', $colspan, $align, $rowspan);
     }
 

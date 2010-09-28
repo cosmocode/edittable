@@ -9,7 +9,7 @@
 require_once DOKU_PLUGIN."/edittable/inverse.php";
 
 class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
-    function table_open($maxcols = NULL, $numrows = NULL){
+    function table_open($maxcols = null, $numrows = null){
         parent::block();
         // initialize the row counter used for classes
         $this->_counter['row_counter'] = 0;
@@ -22,7 +22,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
         $this->doc .= '</table>'.DOKU_LF;
     }
 
-    function tableheader_open($colspan = 1, $align = NULL, $rowspan = 1){
+    function tableheader_open($colspan = 1, $align = null, $rowspan = 1){
         $this->_tablefield_open('th', $colspan, $align, $rowspan);
     }
 
@@ -30,7 +30,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
         $this->_tablefield_close('th');
     }
 
-    function tablecell_open($colspan = 1, $align = NULL, $rowspan = 1){
+    function tablecell_open($colspan = 1, $align = null, $rowspan = 1){
         $this->_tablefield_open('td', $colspan, $align, $rowspan);
     }
 

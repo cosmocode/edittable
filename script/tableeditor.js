@@ -1021,7 +1021,7 @@ addInitEvent(function () {
                     if (obj === ins) continue;
                     for (var n in diffs) {
                         var pos = diffs[n][0].getPos();
-                        pos[1] = pos[1] + (diffs[n][1] ? -1 : 1);
+                        pos[1] += diffs[n][1] ? -1 : 1;
                         diffs[n][0].setPos(pos);
                     }
                     obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
