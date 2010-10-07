@@ -28,6 +28,7 @@ addInitEvent(function () {
         // There is no table editor.
         return;
     }
+    initSizeCtl('size__ctl','edit__wrap');
     var tbody = table.getElementsByTagName('tbody')[0];
     prependChild(table, document.createElement('thead'));
 

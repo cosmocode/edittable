@@ -16,8 +16,14 @@ div.toolbar #tool__bar_table {
     margin-bottom: 0.5em;
 }
 
-div.dokuwiki table.edit {
+#dw__editform #edit__wrap {
     margin-top: 1.5em;
+    overflow: auto;
+    border: 1px solid __border__;
+}
+
+div.dokuwiki table.edit {
+    margin: -1px;
 }
 
 div.dokuwiki table.edit input {
