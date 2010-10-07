@@ -39,7 +39,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
                           'type'   => 'toggletag'),
 
                     array('title'  => $this->getLang('val_align_left'),
-                          'key'    => 'L',
+                          'key'    => 'N',
                           'icon'   => 'a_left.png',
                           'type'   => 'val',
                           'prop'   => 'align',
@@ -47,7 +47,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
                           'val'    => 'left'),
 
                     array('title'  => $this->getLang('val_align_center'),
-                          'key'    => 'C',
+                          'key'    => 'M',
                           'icon'   => 'a_center.png',
                           'type'   => 'val',
                           'prop'   => 'align',
