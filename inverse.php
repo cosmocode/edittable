@@ -584,10 +584,12 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function plugin($name, $args, $state, $match) {
         $this->not_block();
-        $plugin =& plugin_load('syntax',$name);
-        if($plugin === null || !$plugin->render($this->getFormat(),$this,$args)) {
+        // This will break for plugins which provide a catch-all render method
+        // like the do or pagenavi plugins
+#        $plugin =& plugin_load('syntax',$name);
+#        if($plugin === null || !$plugin->render($this->getFormat(),$this,$args)) {
             $this->doc .= $match;
-        }
+#        }
     }
 
     function _echoLinkTitle($title) {
