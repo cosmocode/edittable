@@ -994,7 +994,7 @@ addInitEvent(function () {
             // Move marker
             var rowhandle = hasClass(this.obj, 'rowhandle');
             if (rowhandle) {
-                var pos = findRow(e.pageY);
+                var pos = findRow(e.pageY + $('edit__wrap').scrollTop);
                 if (pos > 0) {
                     target = table.rows[pos].cells[0];
                 }
