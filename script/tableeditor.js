@@ -358,7 +358,7 @@ addInitEvent(function () {
      */
     table.forEveryRow = function (func) {
         for (var r = 0 ; r < tbody.rows.length ; ++r) {
-            func.call(tbody.rows[r]);
+            func.call(tbody.rows[r], r);
         }
     };
 
@@ -456,7 +456,7 @@ addInitEvent(function () {
         };
     }
 
-    table.forEveryRow(function () { pimpRow.call(this); });
+    table.forEveryRow(pimpRow);
 
     /**
      * Cells
@@ -1035,9 +1035,9 @@ addInitEvent(function () {
                 src.parentNode.parentNode.insertBefore(src.parentNode, ins);
 
                 // Rebuild pos information after move.
-                for (var r = 0 ; r < tbody.rows.length ; ++r) {
-                    tbody.rows[r].move(r + 1);
-                }
+                table.forEveryRow(function (r) {
+                    this.move(r + 1);
+                });
 
                 setCurrentField(src.parentNode.cells[1]);
             } else {
@@ -1070,7 +1070,6 @@ addInitEvent(function () {
                     obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
                     this.insertBefore(obj, ins);
                 });
-
                 setCurrentField(obj);
 
                 // Move column handle
@@ -1189,9 +1188,9 @@ addInitEvent(function () {
     nullhandle.className = 'handle nullhandle';
     prependChild(newrow, nullhandle);
 
-    for (var r = 0 ; r < tbody.rows.length ; ++r) {
-        addHandle.call(tbody.rows[r], 'row', tbody.rows[r].firstChild);
-    }
+    table.forEveryRow(function () {
+        addHandle.call(this, 'row', this.firstChild);
+    });
     handles_done = true;
 
     function updateHandlesState () {
