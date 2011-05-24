@@ -896,27 +896,74 @@ addInitEvent(function () {
         prependChild(target, drag_marker);
     };
 
-    function checkSpans(obj, func) {
-        // If there is (row|col)span on (row|col) move, die.
+    /**
+     * Check whether a row / col move can happen
+     *
+     * This function checks for spans prohibiting a move. If the passed
+     * row / col itself should be moved, it simply checks whether there is some
+     * span in the row / col. If the row / col is a move target, it verifies
+     * for every cell in the row / col, that all elements below / on the right
+     * belong to a different cell.
+     *
+     * @param obj          DOMObject  The object row or column handle
+     * @param other_object string     (false|'next'|'previous') Whether the next,
+     *                                previous, or no other row | col is to be
+     *                                checked
+     */
+    function checkSpans(obj, check_other_object) {
         var _break = false;
-        if (hasClass(obj, 'rowhandle')) {
-            obj.parentNode.forEveryCell(function () {
-                if (func(this, 'row')) {
-                    _break = true;
-                }
-            });
-        } else if (hasClass(obj, 'colhandle')) {
-            var pos = countCols.call(obj.parentNode, obj) - 1;
-            for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                var elem = tbody.rows[i].childNodes[pos];
-                while (elem && (!elem.getPos || elem.getPos()[1] !== pos)) {
-                    elem = nextElement.call(elem);
-                }
-                if (elem && func(elem, 'col')) {
-                    _break = true;
-                }
-            }
+        var obj_class;
+        var check_func;
+        var other_obj_func;
+        var cell_parent;
+
+        function node_or_p(node) {
+            return (node && node._parent) ? node._parent : node;
         }
+
+        // Check function is different depending on whether neighbor row / ol
+        // has to be checked as well
+        if (check_other_object) {
+            check_func = function () {
+                       return node_or_p(this) === node_or_p(other_obj_func.call(this));
+                   };
+        } else {
+            check_func = function () {
+                       return node_or_p(this)[obj_class + 'Span'] > 1;
+                   };
+        }
+
+        // Set _break if check_func defined above returns the expected value
+        check_func = bind(function (_check_func) {
+                              if (_check_func.call(this)) {
+                                  _break = true;
+                              }
+                          },
+                          check_func);
+
+        // Set params depending on the type of object we are handling
+        if (hasClass(obj, 'rowhandle')) {
+            obj_class = 'row';
+            other_obj_func = (check_other_object === 'next') ? getCellBelow : getCellAbove;
+            cell_parent = obj.parentNode;
+        } else if (hasClass(obj, 'colhandle')) {
+            obj_class = 'col';
+            other_obj_func = (check_other_object === 'next') ? nextElement : previousElement;
+            cell_parent = table;
+
+            check_func = bind(function (_check_func, pos) {
+                                  if (this.getPos()[1] !== pos) {
+                                      return;
+                                  }
+                                  _check_func.call(this);
+                              },
+                              check_func,
+                              countCols.call(obj.parentNode, obj) - 1);
+        }
+
+        // Perform the actual checking
+        cell_parent.forEveryCell(check_func);
+
         return !_break;
     }
 
@@ -927,9 +974,7 @@ addInitEvent(function () {
                 return false;
             }
 
-            if (!checkSpans(e.target, function (node, tgt) {
-                 return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
-            })) {
+            if (!checkSpans(e.target, false)) {
                 return false;
             }
             document.body.style.cursor = 'move';
@@ -960,11 +1005,7 @@ addInitEvent(function () {
                 }
             }
 
-            if (target && checkSpans(target, function (node, tgt) {
-                    var root = node._parent ? node._parent : node;
-                    var other = (tgt === 'row' ? getCellBelow : nextElement).call(node);
-                    return (other && root === other._parent);
-                })) {
+            if (target && checkSpans(target, drag_marker._src_pos > pos ? 'previous' : 'next')) {
                 drag_marker.set(target,
                                 rowhandle && drag_marker._src_pos >= pos && (drag_marker._src_pos !== 1 || pos !== 1),
                                 drag_marker._src_pos < pos || (drag_marker._src_pos === pos && (rowhandle ? table.rows.length :
@@ -1004,11 +1045,12 @@ addInitEvent(function () {
                 var to = countCols.call(target.parentNode, target);
                 if (from >= to) to--;
 
-                for (var i = 0 ; i < tbody.rows.length ; ++i) {
-                    var obj = null;
+                var obj;
+                table.forEveryRow(function () {
+                    obj = null;
                     var ins = null;
                     var diffs = [];
-                    tbody.rows[i].forEveryCell(function () {
+                    this.forEveryCell(function () {
                         var pos = this.getPos();
                         if (ins === null && pos[1] === to) {
                             ins = this;
@@ -1019,17 +1061,20 @@ addInitEvent(function () {
                             diffs.push([this, (ins === null)]);
                         }
                     });
-                    if (obj === ins) continue;
+                    if (obj === ins) return;
                     for (var n in diffs) {
                         var pos = diffs[n][0].getPos();
                         pos[1] += diffs[n][1] ? -1 : 1;
                         diffs[n][0].setPos(pos);
                     }
                     obj.setPos([obj.getPos()[0], to - (to > from ? 1 : 0)]);
-                    tbody.rows[i].insertBefore(obj, ins);
-                }
+                    this.insertBefore(obj, ins);
+                });
+
                 setCurrentField(obj);
-                target.parentNode.insertBefore(src, target.nextSibling);
+
+                // Move column handle
+                target.parentNode.insertBefore(src, (from >= to) ? target : target.nextSibling);
             }
 
             drag.stop.call(this);
@@ -1040,10 +1085,10 @@ addInitEvent(function () {
     TableEditorDrag.prototype = drag;
 
     function updateHandleState(handle) {
-        updateClass(handle, 'disabledhandle',
-                    !checkSpans(handle, function (node, tgt) {
-             return (node._parent ? node._parent : node)[tgt + 'Span'] > 1;
-        }));
+        if (hasClass(handle, 'nullhandle')) {
+            return;
+        }
+        updateClass(handle, 'disabledhandle', !checkSpans(handle, false));
     }
 
     var handles_done = false;
