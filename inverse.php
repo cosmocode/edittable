@@ -391,7 +391,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
             if ($url === "http://$name") {
                 $url = $name;
             }
-            $this->doc .= $url;
+            $this->doc .= "[[$url]]";
         }
     }
 
