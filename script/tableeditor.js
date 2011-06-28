@@ -13,15 +13,6 @@
  * @author Adrian Lang <lang@cosmocode.de>
  */
 
-function map(arr, func) {
-    for (var index in arr) {
-        if (arr.hasOwnProperty(index)) {
-            arr[index] = func(arr[index]);
-        }
-    }
-    return arr;
-}
-
 addInitEvent(function () {
     var table = getElementsByClass('edit', document, 'table')[0];
     if (!table) {
@@ -55,6 +46,74 @@ addInitEvent(function () {
         }
     }
     setCurrentField._handlers = [];
+
+    /** HELPER FUNCTIONS **/
+
+    function assert(cond, desc) {
+        if (!cond) {
+            throw (desc ? desc : 'Assertion failed ') + 'in ' + arguments.callee.caller;
+        }
+    }
+
+    /**
+     * Functions for handling classes
+     *
+     * @author Benutzer:D <http://de.wikipedia.org/wiki/Benutzer:D/monobook/api.js>
+     */
+
+    function classNameRE(className) {
+        return new RegExp("(^|\\s+)" + className + "(\\s+|$)");
+    }
+
+    /** returns an Array of the classes of an element */
+    function getClasses(element) {
+        return element.className.split(/\s+/);
+    }
+
+    /** returns whether an element has a class */
+    function hasClass(element, className) {
+        if (!element.className) return false;
+        var re  = classNameRE(className);
+        return re.test(element.className);
+        // return (" " + element.className + " ").indexOf(" " + className + " ") !== -1;
+    }
+
+    /** adds a class to an element */
+    function addClass(element, className) {
+        if (hasClass(element, className))  return;
+        var old = element.className ? element.className : "";
+        element.className = (old + " " + className).match(/^\s*(.+)\s*$/)[1];
+    }
+
+    /** removes a class to an element */
+    function removeClass(element, className) {
+        var re  = classNameRE(className);
+        var old = element.className ? element.className : "";
+        element.className = old.replace(re, " ");
+    }
+
+    /** replaces a class in an element with another */
+    function replaceClass(element, oldClassName, newClassName) {
+        this.removeClass(element, oldClassName);
+        this.addClass(element, newClassName);
+    }
+
+    /** sets or unsets a class on an element */
+    function updateClass(element, className, active) {
+        var has = hasClass(element, className);
+        if (has === active) return;
+        if (active) addClass(element, className);
+        else        removeClass(element, className);
+    }
+
+    function map(arr, func) {
+        for (var index in arr) {
+            if (arr.hasOwnProperty(index)) {
+                arr[index] = func(arr[index]);
+            }
+        }
+        return arr;
+    }
 
     /**
      * General helper functions
@@ -1250,59 +1309,3 @@ addInitEvent(function () {
     };
 });
 
-function assert(cond, desc) {
-    if (!cond) {
-        throw (desc ? desc : 'Assertion failed ') + 'in ' + arguments.callee.caller;
-    }
-}
-
-/**
- * Functions for handling classes
- *
- * @author Benutzer:D <http://de.wikipedia.org/wiki/Benutzer:D/monobook/api.js>
- */
-
-function classNameRE(className) {
-    return new RegExp("(^|\\s+)" + className + "(\\s+|$)");
-}
-
-/** returns an Array of the classes of an element */
-function getClasses(element) {
-    return element.className.split(/\s+/);
-}
-
-/** returns whether an element has a class */
-function hasClass(element, className) {
-    if (!element.className) return false;
-    var re  = classNameRE(className);
-    return re.test(element.className);
-    // return (" " + element.className + " ").indexOf(" " + className + " ") !== -1;
-}
-
-/** adds a class to an element */
-function addClass(element, className) {
-    if (hasClass(element, className))  return;
-    var old = element.className ? element.className : "";
-    element.className = (old + " " + className).match(/^\s*(.+)\s*$/)[1];
-}
-
-/** removes a class to an element */
-function removeClass(element, className) {
-    var re  = classNameRE(className);
-    var old = element.className ? element.className : "";
-    element.className = old.replace(re, " ");
-}
-
-/** replaces a class in an element with another */
-function replaceClass(element, oldClassName, newClassName) {
-    this.removeClass(element, oldClassName);
-    this.addClass(element, newClassName);
-}
-
-/** sets or unsets a class on an element */
-function updateClass(element, className, active) {
-    var has = hasClass(element, className);
-    if (has === active) return;
-    if (active) addClass(element, className);
-    else        removeClass(element, className);
-}
