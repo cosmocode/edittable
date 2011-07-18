@@ -21,6 +21,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
         $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'html_table_editform');
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
+        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jump_to_section');
     }
 
     function getLang($id) {
@@ -207,6 +208,22 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             foreach($_POST['edittable__new'] as $k => $v) {
                 $event->data['form']->addHidden("edittable__new[$k]", $v);
             }
+        }
+    }
+
+    /**
+     * Jump after save to the section containing this table
+     */
+    function jump_to_section(&$event) {
+        if (!isset($_POST['table'])) {
+            return;
+        }
+
+        global $PRE;
+        if(preg_match_all('/^\s*={2,}([^=\n]+)/m',$PRE,$match, PREG_SET_ORDER)) {
+            $check = false; //Byref
+            $match = array_pop($match);
+            $event->data['fragment'] = sectionID($match[1], $check);
         }
     }
 }
