@@ -1,9 +1,8 @@
 <?php
-require_once DOKU_INC.'_test/lib/unittest.php';
-require_once DOKU_INC.'inc/init.php';
 require_once dirname(__FILE__) . '/../inverse.php';
 
-class edittable_test_inverse extends Doku_UnitTestCase {
+class edittable_test_inverse extends DokuWikiTest {
+
     function test() {
         $this->externallink();
     }
@@ -22,6 +21,6 @@ class edittable_test_inverse extends Doku_UnitTestCase {
             call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
         }
 
-        $this->assertEqual($Renderer->doc, $text);
+        $this->assertEquals($Renderer->doc, $text);
     }
 }
