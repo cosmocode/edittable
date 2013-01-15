@@ -16,7 +16,12 @@ function addBtnActionInsertTable(btn, param, edid) {
         addField('text', ed.value.substr(sel.start, sel.end - sel.start));
         addField('suf', ed.value.substr(sel.end));
 
-        ed.parentNode.removeChild(ed);
+        // adora belle requires a range, even though we handle ranging ourselve here
+        var range = document.createElement('input');
+        range.name = 'range';
+        range.value = '0-0';
+        range.type = 'hidden';
+        editform.appendChild(range);
 
         // Fake POST
         var editbutton = document.createElement('input');
@@ -27,6 +32,7 @@ function addBtnActionInsertTable(btn, param, edid) {
         // Prevent warning
         textChanged = false;
         editbutton.click();
+
     });
     return true;
 }
