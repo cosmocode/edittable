@@ -13,8 +13,8 @@
  * @author Adrian Lang <lang@cosmocode.de>
  */
 
-addInitEvent(function () {
-    var table = getElementsByClass('edit', document, 'table')[0];
+jQuery(function () {
+    var table = jQuery('table.edit')[0];
     if (!table) {
         // There is no table editor.
         return;
