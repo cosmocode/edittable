@@ -1,6 +1,10 @@
 <?php
 require_once dirname(__FILE__) . '/../inverse.php';
 
+/**
+ * @group plugin_edittable
+ * @group plugins
+ */
 class edittable_test_inverse extends DokuWikiTest {
 
     function test() {

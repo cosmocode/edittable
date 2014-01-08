@@ -1,34 +1,10 @@
 jQuery(function () {
+    var $container = jQuery('#edittable__editor');
+    if(!$container.length) return;
 
+    var data = JSON.parse(jQuery('#edittable__data').html());
+    var meta = JSON.parse(jQuery('#edittable__meta').html());
     var lastselect = {row: 0, col: 0};
-
-    // FIXME this needs to be pulled from the document
-
-    var data = [
-        ['Ford', 'Kia', '', 'Nissan', 'Toyota', 'Honda'],
-        ['Harry', ':::', '', 'Ron', 'Hermine', 'Luna']
-    ];
-
-    var meta = [
-        [
-            {},
-            {colspan: 2, rowspan: 2},
-            {hide: true},
-            {},
-            {},
-            {}
-        ],
-        [
-            {},
-            {hide: true},
-            {hide: true},
-            {},
-            {},
-            {}
-        ]
-    ];
-
-    var $container = jQuery("#example1"); // FIXME
 
     $container.handsontable({
         data: data,
@@ -36,7 +12,6 @@ jQuery(function () {
         startCols: 5,
         colHeaders: true,
         rowHeaders: true,
-        minSpareRows: 1,
         contextMenu: ["row_above", "row_below", "hsep1", "col_left", "col_right", "hsep2", "remove_row", "remove_col"], //fixme add span
         multiSelect: false, // until properly tested with col/row span
         fillHandle: false, // until properly tested with col/row span
@@ -58,7 +33,9 @@ jQuery(function () {
         },
 
         /**
-         * custom cell renderer
+         * Custom cell renderer
+         *
+         * It handles all our custom meta attributes like alignments and rowspans
          *
          * @param instance
          * @param td
@@ -71,23 +48,16 @@ jQuery(function () {
         renderer: function (instance, td, row, col, prop, value, cellProperties) {
             // for some reason, neither cellProperties nor instance.getCellMeta() give the right data
             var cellMeta = meta[row][col];
-
             var $td = jQuery(td);
 
             if (cellMeta.colspan) {
                 $td.attr('colspan', cellMeta.colspan);
-
-                console.log('colspan ' + row + ',' + col + ' = ' + cellMeta.colspan);
-
             } else {
                 $td.removeAttr('colspan');
             }
 
-
             if (cellMeta.rowspan) {
                 $td.attr('rowspan', cellMeta.rowspan);
-
-                console.log('rowspan ' + row + ',' + col + ' = ' + cellMeta.rowspan);
             } else {
                 $td.removeAttr('rowspan');
             }

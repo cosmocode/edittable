@@ -189,6 +189,12 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $event->data['name'] = $this->getLang('secedit_name');
     }
 
+    /**
+     * Creates the actual Table Editor form
+     *
+     * @todo  move this to it's own action class
+     * @param Doku_Event $event
+     */
     function html_table_editform(Doku_Event &$event) {
         global $TEXT;
         global $RANGE;
@@ -200,6 +206,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $event->stopPropagation();
         $event->preventDefault();
 
+        // load our own renderer to convert table to array
         require_once 'renderer_table_edit.php';
         $Renderer = new Doku_Renderer_xhtml_table_edit();
         $instructions = p_get_instructions($TEXT);
@@ -210,12 +217,15 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
         }
 
-
-        dbg($Renderer->doc);
-        dbg($Renderer->getData());
-        dbg($Renderer->getMeta());
-
-        //$event->data['form']->addElement('<div id="edit__wrap">' .$Renderer->doc .'</div>');
+        // output data and editor field
+        $json = new JSON();
+        $event->data['form']->addElement(
+            '<script type="application/json" id="edittable__data">'.$json->encode($Renderer->getData()).'</script>'
+        );
+        $event->data['form']->addElement(
+            '<script type="application/json" id="edittable__meta">'.$json->encode($Renderer->getMeta()).'</script>'
+        );
+        $event->data['form']->addElement('<div id="edittable__editor"></div>');
 
         if (isset($_POST['edittable__new'])) {
             foreach($_POST['edittable__new'] as $k => $v) {

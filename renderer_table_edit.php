@@ -21,7 +21,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
     private $tmetacell = array();
 
     /** @var int current row */
-    private $current_row = 0;
+    private $current_row = -1;
 
     /** @var int current column */
     private $current_col = 0;
@@ -97,7 +97,7 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
 
         // remember these, we use them when closing
         $this->tmetacell = array();
-        $this->tmetacell['type'] = $tag;
+        $this->tmetacell['tag'] = $tag;
         $this->tmetacell['colspan'] = $colspan;
         $this->tmetacell['rowspan'] = $rowspan;
         $this->tmetacell['align'] = $align;
