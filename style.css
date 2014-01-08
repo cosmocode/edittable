@@ -1,3 +1,6 @@
+@import "jquery.handsontable.full.css";
+
+
 /* Table edit toolbar */
 div.toolbar #tool__bar_table button.selected {
     background: __background__ url(images/buttonshadow_toggled.png) repeat-x bottom;

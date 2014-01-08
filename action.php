@@ -210,7 +210,12 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
         }
 
-        $event->data['form']->addElement('<div id="edit__wrap">' .$Renderer->doc .'</div>');
+
+        dbg($Renderer->doc);
+        dbg($Renderer->getData());
+        dbg($Renderer->getMeta());
+
+        //$event->data['form']->addElement('<div id="edit__wrap">' .$Renderer->doc .'</div>');
 
         if (isset($_POST['edittable__new'])) {
             foreach($_POST['edittable__new'] as $k => $v) {

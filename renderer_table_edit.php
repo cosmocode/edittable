@@ -1,93 +1,144 @@
 <?php
 /**
- * Helper functions for table editing
+ * Table Renderer for Table Editor
  *
- * @author     Adrian Lang <lang@cosmocode.de>
+ * This renderer will use the inverse renderer to create Wiki text for everything inside the table. The table
+ * it self is stored in two arrays which then can be outputted as JSON.
+ *
+ * @author     Andreas Gohr <gohr@cosmocode.de>
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-require_once DOKU_PLUGIN."/edittable/inverse.php";
+require_once DOKU_PLUGIN . "/edittable/inverse.php";
 
 class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
-    function table_open($maxcols = null, $numrows = null){
-        parent::block();
-        // initialize the row counter used for classes
-        $this->_counter['row_counter'] = 0;
-        $this->_counter['table_begin_pos'] = strlen($this->doc);
-        $this->doc .= '<table class="inline edit">'.DOKU_LF;
+    /** @var array holds the data cells */
+    private $tdata = array();
+    /** @var array holds the cell meta data */
+    private $tmeta = array();
+
+    /** @var array holds the meta data of the current cell */
+    private $tmetacell = array();
+
+    /** @var int current row */
+    private $current_row = 0;
+
+    /** @var int current column */
+    private $current_col = 0;
+
+    /**
+     * Returns the whole table data as two dimensional array
+     *
+     * @return array
+     */
+    public function getData() {
+        return $this->tdata;
+    }
+
+    /**
+     * Returns meta data for all cells in a two dimensional array of arrays
+     *
+     * @return array
+     */
+    public function getMeta() {
+        return $this->tmeta;
+    }
+
+    // renderer functions below
+
+    function table_open($maxcols = null, $numrows = null) {
+        // FIXME: is this needed somewhere? $this->_counter['table_begin_pos'] = strlen($this->doc);
     }
 
     function table_close() {
-        parent::block();
-        $this->doc .= '</table>'.DOKU_LF;
     }
 
-    function tableheader_open($colspan = 1, $align = null, $rowspan = 1){
-        $this->_tablefield_open('th', $colspan, $align, $rowspan);
-    }
-
-    function tableheader_close(){
-        $this->_tablefield_close('th');
-    }
-
-    function tablecell_open($colspan = 1, $align = null, $rowspan = 1){
-        $this->_tablefield_open('td', $colspan, $align, $rowspan);
-    }
-
-    function tablecell_close(){
-        $this->_tablefield_close('td');
-    }
-
-    function tablerow_open(){
-        parent::block();
-        // initialize the cell counter used for classes
-        $this->_counter['cell_counter'] = 0;
-        $class = 'row' . $this->_counter['row_counter']++;
-        $this->doc .= DOKU_TAB . '<tr class="'.$class.'">' . DOKU_LF . DOKU_TAB . DOKU_TAB;
+    function tablerow_open() {
+        // move counters
+        $this->current_row++;
+        $this->current_col = 0;
     }
 
     function tablerow_close() {
-        parent::block();
-        $this->doc .= '</tr>';
+        // resort just for better debug readability
+        ksort($this->tdata[$this->current_row]);
+        ksort($this->tmeta[$this->current_row]);
     }
 
-    function _tablefield_open($tag, $colspan, $align, $rowspan) {
-        parent::block();
-        $basename = 'table[' . $this->_counter['row_counter'] . '][' . $this->_counter['cell_counter'] . ']';
-        $class = 'class="col' . $this->_counter['cell_counter']++;
-        $class .= '"';
-        $this->doc .= "<$tag $class";
-        if ( $colspan > 1 ) {
-            $this->_counter['cell_counter'] += $colspan-1;
-            $this->doc .= ' colspan="'.$colspan.'"';
+    function tableheader_open($colspan = 1, $align = null, $rowspan = 1) {
+        $this->_tablefield_open('th', $colspan, $align, $rowspan);
+    }
+
+    function tableheader_close() {
+        $this->_tablefield_close();
+    }
+
+    function tablecell_open($colspan = 1, $align = null, $rowspan = 1) {
+        $this->_tablefield_open('td', $colspan, $align, $rowspan);
+    }
+
+    function tablecell_close() {
+        $this->_tablefield_close();
+    }
+
+    /**
+     * Used for a opening THs and TDs
+     *
+     * @param $tag
+     * @param $colspan
+     * @param $align
+     * @param $rowspan
+     */
+    private function _tablefield_open($tag, $colspan, $align, $rowspan) {
+        // skip cells that already exist - those are previous (span) cells!
+        while(isset($this->tmeta[$this->current_row][$this->current_col])) {
+            $this->current_col++;
         }
-        if ( $rowspan > 1 ) {
-            $this->doc .= ' rowspan="'.$rowspan.'"';
-        }
-        $this->doc .= '>';
-        foreach(compact('rowspan', 'colspan', 'align', 'tag') as $name => $val) {
-            $this->doc .= '<input ' . html_attbuild(array('type'  => 'hidden',
-                                                          'name'  => "{$basename}[{$name}]",
-                                                          'value' => $val)) . ' />';
-        }
-        $this->doc .='<input name="' . $basename . '[text]" class="' . $align .
-                     'align"';
-        $this->doc .= 'value="';
-        $this->pre_table_doc = $this->doc;
+
+        // remember these, we use them when closing
+        $this->tmetacell = array();
+        $this->tmetacell['type'] = $tag;
+        $this->tmetacell['colspan'] = $colspan;
+        $this->tmetacell['rowspan'] = $rowspan;
+        $this->tmetacell['align'] = $align;
+
+        // empty $doc
         $this->doc = '';
     }
 
-    function _tablefield_close($tag) {
-        parent::block();
-        $this->doc = $this->pre_table_doc . hsc($this->doc) . '" /></' . $tag . '>';
-    }
+    /**
+     * Used for closing THs and TDs
+     */
+    private function _tablefield_close() {
+        // these have been set to the correct cell already
+        $row = $this->current_row;
+        $col = $this->current_col;
 
-    function cdata($text) {
-        $this->doc .= $this->_xmlEntities(parent::cdata($text));
-    }
+        $this->tdata[$row][$col] = trim($this->doc);
+        $this->tmeta[$row][$col] = $this->tmetacell; // as remembered in the open call
 
-    function _xmlEntities($string) {
-        return htmlspecialchars($string,ENT_QUOTES,'UTF-8');
-    }
+        // now fill up missing span cells
+        {
+            $rowspan = $this->tmetacell['rowspan'];
+            $colspan = $this->tmetacell['colspan'];
 
+            for($c = 1; $c < $colspan; $c++) {
+                // hide colspanned cell in same row
+                $this->tmeta[$row][$col + $c]['hide'] = true;
+                $this->tdata[$row][$col + $c] = '';
+
+                // hide colspanned rows below if rowspan is in effect as well
+                for($r = 1; $r < $rowspan; $r++) {
+                    $this->tmeta[$row + $r][$col + $c]['hide'] = true;
+                    $this->tdata[$row + $r][$col + $c] = '';
+                }
+            }
+
+            // hide rowspanned columns
+            for($r = 1; $r < $rowspan; $r++) {
+                $this->tmeta[$row + $r][$col]['hide'] = true;
+                $this->tdata[$row + $r][$col] = ':::';
+            }
+        }
+    }
 }
