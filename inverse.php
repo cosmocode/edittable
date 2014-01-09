@@ -594,9 +594,15 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function _echoLinkTitle($title) {
         if (is_array($title)) {
-            extract($title);
-            $this->internalmedia($src, $title, $align, $width, $height, $cache,
-                                 $linking);
+            $this->internalmedia(
+                $title['src'],
+                $title['title'],
+                $title['align'],
+                $title['width'],
+                $title['height'],
+                $title['cache'],
+                $title['linking']
+            );
         } else {
             $this->doc .= $title;
         }
