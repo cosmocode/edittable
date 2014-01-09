@@ -512,14 +512,14 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= '}}';
     }
 
-    function table_open() {
+    function table_open($maxcols = null, $numrows = null, $pos = null) {
         $this->block();
         $this->_table = array();
         $this->_row = 0;
         $this->_rowspans = array();
     }
 
-    function table_close($pos) {
+    function table_close($pos = null) {
         $this->block();
         $this->doc .= table_to_wikitext($this->_table);
     }
@@ -582,7 +582,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_cellclose();
     }
 
-    function plugin($name, $args, $state, $match) {
+    function plugin($name, $args, $state='', $match='') {
         $this->not_block();
         // This will break for plugins which provide a catch-all render method
         // like the do or pagenavi plugins
