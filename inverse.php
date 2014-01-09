@@ -15,11 +15,11 @@ require_once DOKU_PLUGIN . 'edittable/common.php';
 class Doku_Renderer_wiki extends Doku_Renderer {
 
     // @access public
-    var $doc = '';        // will contain the whole document
+    var $doc = ''; // will contain the whole document
 
     private $quotelvl = 0;
 
-    function getFormat(){
+    function getFormat() {
         return 'wiki';
     }
 
@@ -52,16 +52,16 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function cdata($text) {
-        if (strlen($text) === 0) {
+        if(strlen($text) === 0) {
             $this->not_block();
             return;
         }
 
-        if (!$this->previous_block && trim(substr($text, 0, 1)) === '' && trim($text) !== '') {
+        if(!$this->previous_block && trim(substr($text, 0, 1)) === '' && trim($text) !== '') {
             $this->doc .= ' ';
         }
         $this->not_block();
-        if (trim(substr($text, -1, 1)) === '' && trim($text) !== '') {
+        if(trim(substr($text, -1, 1)) === '' && trim($text) !== '') {
             $this->prepend_not_block = ' ';
         }
         $this->doc .= trim($text);
@@ -69,14 +69,14 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function p_close() {
         $this->block();
-        if ($this->quotelvl === 0) {
+        if($this->quotelvl === 0) {
             $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
         }
     }
 
     function p_open() {
         $this->block();
-        if (strlen($this->doc) > 0 && substr($this->doc, 1, -1) !== DOKU_LF) {
+        if(strlen($this->doc) > 0 && substr($this->doc, 1, -1) !== DOKU_LF) {
             $this->doc .= DOKU_LF . DOKU_LF;
         }
         $this->doc .= str_repeat('>', $this->quotelvl);
@@ -93,14 +93,14 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     }
 
     function block() {
-        if (isset($this->prepend_not_block)) {
+        if(isset($this->prepend_not_block)) {
             unset($this->prepend_not_block);
         }
         $this->previous_block = true;
     }
 
     function not_block() {
-        if (isset($this->prepend_not_block)) {
+        if(isset($this->prepend_not_block)) {
             $this->doc .= $this->prepend_not_block;
             unset($this->prepend_not_block);
         }
@@ -189,10 +189,10 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function listu_open() {
         $this->block();
-        if (!isset($this->_liststack)) {
+        if(!isset($this->_liststack)) {
             $this->_liststack = array();
         }
-        if (count($this->_liststack) === 0) {
+        if(count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
         $this->_liststack[] = '*';
@@ -201,17 +201,17 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     function listu_close() {
         $this->block();
         array_pop($this->_liststack);
-        if (count($this->_liststack) === 0) {
+        if(count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
 
     function listo_open() {
         $this->block();
-        if (!isset($this->_liststack)) {
+        if(!isset($this->_liststack)) {
             $this->_liststack = array();
         }
-        if (count($this->_liststack) === 0) {
+        if(count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
         $this->_liststack[] = '-';
@@ -220,7 +220,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     function listo_close() {
         $this->block();
         array_pop($this->_liststack);
-        if (count($this->_liststack) === 0) {
+        if(count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
@@ -237,14 +237,14 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function unformatted($text) {
         $this->not_block();
-        if (strpos($text, '%%') !== false) {
+        if(strpos($text, '%%') !== false) {
             $this->doc .= "<nowiki>$text</nowiki>";
         } else {
             $this->doc .= "%%$text%%";
         }
     }
 
-    function php($text, $wrapper='code') {
+    function php($text, $wrapper = 'code') {
         $this->not_block();
         $this->doc .= "<php>$text</php>";
     }
@@ -254,7 +254,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= "<PHP>$text</PHP>";
     }
 
-    function html($text, $wrapper='code') {
+    function html($text, $wrapper = 'code') {
         $this->not_block();
         $this->doc .= "<html>$text</html>";
     }
@@ -266,7 +266,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function quote_open() {
         $this->block();
-        if (substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
+        if(substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
             $this->doc .= '>';
         } else {
             $this->doc .= DOKU_LF . str_repeat('>', $this->quotelvl);
@@ -277,7 +277,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     function quote_close() {
         $this->block();
         $this->quotelvl--;
-        if (strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
+        if(strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
             return;
         }
         $this->doc .= DOKU_LF . DOKU_LF;
@@ -288,21 +288,21 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= preg_replace('/^/m', '  ', $text) . DOKU_LF;
     }
 
-    function file($text, $language=null, $filename=null) {
-        $this->_highlight('file',$text,$language,$filename);
+    function file($text, $language = null, $filename = null) {
+        $this->_highlight('file', $text, $language, $filename);
     }
 
-    function code($text, $language=null, $filename=null) {
-        $this->_highlight('code',$text,$language,$filename);
+    function code($text, $language = null, $filename = null) {
+        $this->_highlight('code', $text, $language, $filename);
     }
 
-    function _highlight($type, $text, $language=null, $filename=null) {
+    function _highlight($type, $text, $language = null, $filename = null) {
         $this->block();
         $this->doc .= "<$type";
-        if ($language != null) {
+        if($language != null) {
             $this->doc .= " $language";
         }
-        if ($filename != null) {
+        if($filename != null) {
             $this->doc .= " $filename";
         }
         $this->doc .= ">$text</$type>";
@@ -360,21 +360,20 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->doc .= $link;
     }
 
-
-    function locallink($hash, $name = null){
+    function locallink($hash, $name = null) {
         $this->not_block();
         $this->doc .= "[[#$hash";
-        if ($name !== null) {
+        if($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
 
-    function internallink($id, $name = null, $search=null,$returnonly=false,$linktype='content') {
+    function internallink($id, $name = null, $search = null, $returnonly = false, $linktype = 'content') {
         $this->not_block();
         $this->doc .= "[[$id";
-        if ($name !== null) {
+        if($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
@@ -383,12 +382,12 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function externallink($url, $name = null) {
         $this->not_block();
-        if ($name !== null && !in_array($url, array($name, 'http://' . $name))) {
+        if($name !== null && !in_array($url, array($name, 'http://' . $name))) {
             $this->doc .= "[[$url|";
             $this->_echoLinkTitle($name);
             $this->doc .= ']]';
         } else {
-            if ($url === "http://$name") {
+            if($url === "http://$name") {
                 $url = $name;
             }
             $this->doc .= "[[$url]]";
@@ -400,7 +399,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     function interwikilink($match, $name = null, $wikiName, $wikiUri) {
         $this->not_block();
         $this->doc .= "[[$wikiName>$wikiUri";
-        if ($name !== null) {
+        if($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
@@ -412,7 +411,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
     function windowssharelink($url, $name = null) {
         $this->not_block();
         $this->doc .= "[[$url";
-        if ($name !== null) {
+        if($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
@@ -421,7 +420,7 @@ class Doku_Renderer_wiki extends Doku_Renderer {
 
     function emaillink($address, $name = null) {
         $this->not_block();
-        if ($name === null) {
+        if($name === null) {
             $this->doc .= "<$address>";
         } else {
             $this->doc .= "[[$address|";
@@ -430,44 +429,44 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         }
     }
 
-    function internalmedia ($src, $title=null, $align=null, $width=null,
-                            $height=null, $cache=null, $linking=null) {
+    function internalmedia($src, $title = null, $align = null, $width = null,
+                           $height = null, $cache = null, $linking = null) {
         $this->not_block();
         $this->doc .= '{{';
-        if ($align === 'center' || $align === 'right') {
+        if($align === 'center' || $align === 'right') {
             $this->doc .= ' ';
         }
         $this->doc .= $src;
 
         $params = array();
-        if ($width !== null) {
+        if($width !== null) {
             $params[0] = $width;
-            if ($height !== null) {
+            if($height !== null) {
                 $params[0] .= "x$height";
             }
         }
-        if ($cache !== 'cache') {
+        if($cache !== 'cache') {
             $params[] = $cache;
         }
-        if ($linking !== 'details') {
+        if($linking !== 'details') {
             $params[] = $linking;
         }
-        if (count($params) > 0) {
+        if(count($params) > 0) {
             $this->doc .= '?';
         }
         $this->doc .= join('&', $params);
 
-        if ($align === 'center' || $align === 'left') {
+        if($align === 'center' || $align === 'left') {
             $this->doc .= ' ';
         }
-        if ($title != null) {
+        if($title != null) {
             $this->doc .= "|$title";
         }
         $this->doc .= '}}';
     }
 
-    function externalmedia ($src, $title=null, $align=null, $width=null,
-                            $height=null, $cache=null, $linking=null) {
+    function externalmedia($src, $title = null, $align = null, $width = null,
+                           $height = null, $cache = null, $linking = null) {
         $this->internalmedia($src, $title, $align, $width, $height, $cache, $linking);
     }
 
@@ -476,37 +475,37 @@ class Doku_Renderer_wiki extends Doku_Renderer {
      *
      * @author Andreas Gohr <andi@splitbrain.org>
      */
-    function rss ($url,$params){
+    function rss($url, $params) {
         $this->block();
         $this->doc .= '{{rss>' . $url;
         $vals = array();
-        if ($params['max'] !== 8) {
+        if($params['max'] !== 8) {
             $vals[] = $params['max'];
         }
-        if ($params['reverse']) {
+        if($params['reverse']) {
             $vals[] = 'reverse';
         }
-        if ($params['author']) {
+        if($params['author']) {
             $vals[] = 'author';
         }
-        if ($params['date']) {
+        if($params['date']) {
             $vals[] = 'date';
         }
-        if ($params['details']) {
+        if($params['details']) {
             $vals[] = 'desc';
         }
-        if ($params['refresh'] !== 14400) {
+        if($params['refresh'] !== 14400) {
             $val = '10m';
             foreach(array('d' => 86400, 'h' => 3600, 'm' => 60) as $p => $div) {
                 $res = $params['refresh'] / $div;
-                if ($res === intval($res)) {
+                if($res === intval($res)) {
                     $val = "$res$p";
                     break;
                 }
             }
             $vals[] = $val;
         }
-        if (count($vals) > 0) {
+        if(count($vals) > 0) {
             $this->doc .= ' ' . join(' ', $vals);
         }
         $this->doc .= '}}';
@@ -528,34 +527,34 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->block();
         $this->_table[++$this->_row] = array();
         $this->_key = 1;
-        while (isset($this->_rowspans[$this->_key])) {
+        while(isset($this->_rowspans[$this->_key])) {
             --$this->_rowspans[$this->_key];
-            if ($this->_rowspans[$this->_key] === 1) {
+            if($this->_rowspans[$this->_key] === 1) {
                 unset($this->_rowspans[$this->_key]);
             }
             ++$this->_key;
         }
     }
 
-    function tablerow_close(){
+    function tablerow_close() {
         $this->block();
     }
 
-    function tableheader_open($colspan = 1, $align = null, $rowspan = 1){
+    function tableheader_open($colspan = 1, $align = null, $rowspan = 1) {
         $this->_cellopen('th', $colspan, $align, $rowspan);
     }
 
     function _cellopen($tag, $colspan, $align, $rowspan) {
         $this->block();
         $this->_table[$this->_row][$this->_key] = compact('tag', 'colspan', 'align', 'rowspan');
-        if ($rowspan > 1) {
+        if($rowspan > 1) {
             $this->_rowspans[$this->_key] = $rowspan;
             $this->_ownspan = true;
         }
         $this->_pos = strlen($this->doc);
     }
 
-    function tableheader_close(){
+    function tableheader_close() {
         $this->_cellclose();
     }
 
@@ -564,9 +563,9 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_table[$this->_row][$this->_key]['text'] = trim(substr($this->doc, $this->_pos));
         $this->doc = substr($this->doc, 0, $this->_pos);
         $this->_key += $this->_table[$this->_row][$this->_key]['colspan'];
-        while (isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
+        while(isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
             --$this->_rowspans[$this->_key];
-            if ($this->_rowspans[$this->_key] === 1) {
+            if($this->_rowspans[$this->_key] === 1) {
                 unset($this->_rowspans[$this->_key]);
             }
             ++$this->_key;
@@ -574,26 +573,26 @@ class Doku_Renderer_wiki extends Doku_Renderer {
         $this->_ownspan = false;
     }
 
-    function tablecell_open($colspan = 1, $align = null, $rowspan = 1){
+    function tablecell_open($colspan = 1, $align = null, $rowspan = 1) {
         $this->_cellopen('td', $colspan, $align, $rowspan);
     }
 
-    function tablecell_close(){
+    function tablecell_close() {
         $this->_cellclose();
     }
 
-    function plugin($name, $args, $state='', $match='') {
+    function plugin($name, $args, $state = '', $match = '') {
         $this->not_block();
         // This will break for plugins which provide a catch-all render method
         // like the do or pagenavi plugins
 #        $plugin =& plugin_load('syntax',$name);
 #        if($plugin === null || !$plugin->render($this->getFormat(),$this,$args)) {
-            $this->doc .= $match;
+        $this->doc .= $match;
 #        }
     }
 
     function _echoLinkTitle($title) {
-        if (is_array($title)) {
+        if(is_array($title)) {
             $this->internalmedia(
                 $title['src'],
                 $title['title'],
