@@ -72,6 +72,23 @@ jQuery(function () {
                 $td.show();
             }
 
+            if(cellMeta.align == 'right') {
+                $td.addClass('right');
+                $td.removeClass('center');
+            } else if(cellMeta.align == 'center') {
+                $td.addClass('center');
+                $td.removeClass('right');
+            } else {
+                $td.removeClass('center');
+                $td.removeClass('right');
+            }
+
+            if(cellMeta.tag == 'th'){
+                $td.addClass('header');
+            } else {
+                $td.removeClass('header');
+            }
+
             Handsontable.renderers.TextRenderer.apply(this, arguments);
         },
 
