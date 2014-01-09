@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__) . '/../inverse.php';
+require_once dirname(__FILE__) . '/../renderer/inverse.php';
 
 /**
  * @group plugin_edittable
@@ -18,7 +18,7 @@ class edittable_test_inverse extends DokuWikiTest {
 
     protected function render($text) {
         $instructions = p_get_instructions($text);
-        $Renderer = new Doku_Renderer_wiki;
+        $Renderer = new renderer_plugin_edittable_inverse();
 
         foreach ( $instructions as $instruction ) {
             // Execute the callback against the Renderer

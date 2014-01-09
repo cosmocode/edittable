@@ -206,9 +206,8 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         $event->stopPropagation();
         $event->preventDefault();
 
-        // load our own renderer to convert table to array
-        require_once 'renderer_table_edit.php';
-        $Renderer = new Doku_Renderer_xhtml_table_edit();
+        /** @var renderer_plugin_edittable_json $Renderer our own renderer to convert table to array */
+        $Renderer = plugin_load('renderer', 'edittable_json', true);
         $instructions = p_get_instructions($TEXT);
 
         // Loop through the instructions
@@ -218,12 +217,11 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
 
         // output data and editor field
-        $json = new JSON();
         $event->data['form']->addElement(
-            '<script type="application/json" id="edittable__data">'.$json->encode($Renderer->getData()).'</script>'
+            '<script type="application/json" id="edittable__data">'.$Renderer->getDataJSON().'</script>'
         );
         $event->data['form']->addElement(
-            '<script type="application/json" id="edittable__meta">'.$json->encode($Renderer->getMeta()).'</script>'
+            '<script type="application/json" id="edittable__meta">'.$Renderer->getMetaJSON().'</script>'
         );
         $event->data['form']->addElement('<div id="edittable__editor"></div>');
 

@@ -9,9 +9,12 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-require_once DOKU_PLUGIN . "/edittable/inverse.php";
+// must be run within Dokuwiki
+if (!defined('DOKU_INC')) die();
 
-class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
+require_once DOKU_PLUGIN . "/edittable/renderer/inverse.php";
+
+class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
     /** @var array holds the data cells */
     private $tdata = array();
     /** @var array holds the cell meta data */
@@ -31,8 +34,9 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
      *
      * @return array
      */
-    public function getData() {
-        return $this->tdata;
+    public function getDataJSON() {
+        $json = new JSON();
+        return $json->encode($this->tdata);
     }
 
     /**
@@ -40,8 +44,9 @@ class Doku_Renderer_xhtml_table_edit extends Doku_Renderer_wiki {
      *
      * @return array
      */
-    public function getMeta() {
-        return $this->tmeta;
+    public function getMetaJSON() {
+        $json = new JSON();
+        return $json->encode($this->tmeta);
     }
 
     // renderer functions below

@@ -5,14 +5,13 @@
  * @author Adrian Lang <lang@cosmocode.de>
  */
 
+// must be run within Dokuwiki
+if (!defined('DOKU_INC')) die();
+
 require_once DOKU_INC . 'inc/parser/renderer.php';
-require_once DOKU_INC . 'inc/html.php';
 require_once DOKU_PLUGIN . 'edittable/common.php';
 
-/**
- * The Renderer
- */
-class Doku_Renderer_wiki extends Doku_Renderer {
+class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
     // @access public
     var $doc = ''; // will contain the whole document
