@@ -138,7 +138,9 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
             return;
         }
         global $TEXT;
-        $TEXT = table_to_wikitext($_POST['table']);
+        /** @var helper_plugin_edittable $hlp */
+        $hlp = plugin_load('helper', 'edittable');
+        $TEXT = $hlp->table_to_wikitext($_POST['table']);
     }
 
     function handle_newtable($event) {

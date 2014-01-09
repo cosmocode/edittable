@@ -6,24 +6,35 @@
  */
 
 // must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
+if(!defined('DOKU_INC')) die();
 
 require_once DOKU_INC . 'inc/parser/renderer.php';
-require_once DOKU_PLUGIN . 'edittable/common.php';
 
 class renderer_plugin_edittable_inverse extends Doku_Renderer {
+    /** @var string will contain the whole document */
+    public $doc = '';
 
-    // @access public
-    var $doc = ''; // will contain the whole document
-
+    // bunch of internal state variables
+    private $prepend_not_block = '';
+    private $_key = 0;
+    private $_pos = 0;
+    private $_ownspan = 0;
+    private $previous_block = false;
+    private $_row = 0;
+    private $_rowspans = array();
+    private $_table = array();
+    private $_liststack = array();
     private $quotelvl = 0;
+
+    /** @var helper_plugin_edittable */
+    private $hlp;
 
     function getFormat() {
         return 'wiki';
     }
 
     function document_start() {
-        //reset some internals
+        $this->hlp = plugin_load('helper', 'edittable');
     }
 
     function document_end() {
@@ -519,7 +530,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
     function table_close($pos = null) {
         $this->block();
-        $this->doc .= table_to_wikitext($this->_table);
+        $this->doc .= $this->hlp->table_to_wikitext($this->_table);
     }
 
     function tablerow_open() {
