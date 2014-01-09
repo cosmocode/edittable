@@ -2,8 +2,12 @@ jQuery(function () {
     var $container = jQuery('#edittable__editor');
     if(!$container.length) return;
 
-    var data = JSON.parse(jQuery('#edittable__data').html());
-    var meta = JSON.parse(jQuery('#edittable__meta').html());
+    var $form = jQuery('#dw__editform');
+    var $datafield = $form.find('input[name=edittable_data]');
+    var $metafield = $form.find('input[name=edittable_meta]');
+
+    var data = JSON.parse($datafield.val());
+    var meta = JSON.parse($metafield.val());
     var lastselect = {row: 0, col: 0};
 
     $container.handsontable({
@@ -244,7 +248,19 @@ jQuery(function () {
                 lastselect.row = r;
                 lastselect.col = c;
             }
+        },
+
+        /**
+         * Store data and meta back in the form
+         *
+         * @param changes
+         * @param source
+         */
+        afterChange: function(changes, source){
+            $datafield.val(JSON.stringify(data));
+            $metafield.val(JSON.stringify(meta));
         }
+
     });
 
 });

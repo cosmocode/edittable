@@ -8,16 +8,16 @@
 if(!defined('DOKU_INC')) die();
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
-class action_plugin_edittable extends DokuWiki_Action_Plugin {
+class action_plugin_edittable_other extends DokuWiki_Action_Plugin {
 
     /**
      * Register its handlers with the DokuWiki's event controller
      */
     function register(Doku_Event_Handler &$controller) {
-        $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'html_secedit_button');
+
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
-        $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'html_table_editform');
+
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
         $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jump_to_section');
     }
@@ -183,59 +183,7 @@ class action_plugin_edittable extends DokuWiki_Action_Plugin {
         }
     }
 
-    function html_secedit_button(&$event) {
-        if ($event->data['target'] !== 'table') {
-            return;
-        }
-        $event->data['name'] = $this->getLang('secedit_name');
-    }
 
-    /**
-     * Creates the actual Table Editor form
-     *
-     * @todo  move this to it's own action class
-     * @param Doku_Event $event
-     */
-    function html_table_editform(Doku_Event &$event) {
-        global $TEXT;
-        global $RANGE;
-        if ($event->data['target'] !== 'table') {
-            // Not a table edit
-            return;
-        }
-
-        $event->stopPropagation();
-        $event->preventDefault();
-
-        /** @var renderer_plugin_edittable_json $Renderer our own renderer to convert table to array */
-        $Renderer = plugin_load('renderer', 'edittable_json', true);
-        $instructions = p_get_instructions($TEXT);
-
-        // Loop through the instructions
-        foreach ( $instructions as $instruction ) {
-            // Execute the callback against the Renderer
-            call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
-        }
-
-        // output data and editor field
-        $event->data['form']->addElement(
-            '<script type="application/json" id="edittable__data">'.$Renderer->getDataJSON().'</script>'
-        );
-        $event->data['form']->addElement(
-            '<script type="application/json" id="edittable__meta">'.$Renderer->getMetaJSON().'</script>'
-        );
-        $event->data['form']->addElement('<div id="edittable__editor"></div>');
-
-        if (isset($_POST['edittable__new'])) {
-            foreach($_POST['edittable__new'] as $k => $v) {
-                $event->data['form']->addHidden("edittable__new[$k]", $v);
-            }
-        }
-
-        // set target and range to keep track during previews
-        $event->data['form']->addHidden('target', 'table');
-        $event->data['form']->addHidden('range', $RANGE);
-    }
 
     /**
      * Jump after save to the section containing this table
