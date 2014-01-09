@@ -15,7 +15,7 @@ class action_plugin_edittable_other extends DokuWiki_Action_Plugin {
      */
     function register(Doku_Event_Handler &$controller) {
 
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
+
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
 
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
@@ -124,23 +124,6 @@ class action_plugin_edittable_other extends DokuWiki_Action_Plugin {
                                'icon'   => '../../plugins/edittable/images/add_table.png');
     }
 
-    /**
-     * Handles a POST from the table editor
-     *
-     * This function preprocesses a POST from the table editor. It converts the
-     * table array to plain wiki markup text and stores it in the global $TEXT.
-     *
-     * @author Adrian Lang <lang@cosmocode.de>
-     */
-    function handle_table_post($event) {
-        if (!isset($_POST['table'])) {
-            return;
-        }
-        global $TEXT;
-        /** @var helper_plugin_edittable $hlp */
-        $hlp = plugin_load('helper', 'edittable');
-        $TEXT = $hlp->table_to_wikitext($_POST['table']);
-    }
 
     function handle_newtable($event) {
         if (!isset($_POST['edittable__new'])) {

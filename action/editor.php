@@ -23,9 +23,11 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         // register custom edit buttons
         $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'secedit_button');
 
-
         // register our editor
         $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'editform');
+
+        // register preprocessing for accepting editor data
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
     }
 
     /**
@@ -36,7 +38,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
      * @param Doku_Event $event
      */
     function secedit_button(Doku_Event $event) {
-        if ($event->data['target'] !== 'table') {
+        if($event->data['target'] !== 'table') {
             return;
         }
         $event->data['name'] = $this->getLang('secedit_name');
@@ -51,7 +53,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         global $TEXT;
         global $RANGE;
 
-        if ($event->data['target'] !== 'table') return;
+        if($event->data['target'] !== 'table') return;
         $event->stopPropagation();
         $event->preventDefault();
 
@@ -60,9 +62,9 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $instructions = p_get_instructions($TEXT);
 
         // Loop through the instructions
-        foreach ( $instructions as $instruction ) {
+        foreach($instructions as $instruction) {
             // Execute the callback against the Renderer
-            call_user_func_array(array(&$Renderer, $instruction[0]),$instruction[1]);
+            call_user_func_array(array(&$Renderer, $instruction[0]), $instruction[1]);
         }
 
         // output data and editor field
@@ -71,12 +73,12 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $form =& $event->data['form'];
 
         // data for handsontable
-        $form->addHidden('edittable_data',$Renderer->getDataJSON());
-        $form->addHidden('edittable_meta',$Renderer->getMetaJSON());
+        $form->addHidden('edittable_data', $Renderer->getDataJSON());
+        $form->addHidden('edittable_meta', $Renderer->getMetaJSON());
         $form->addElement('<div id="edittable__editor"></div>');
 
         // FIXME add explanation here
-        if (isset($_POST['edittable__new'])) {
+        if(isset($_POST['edittable__new'])) {
             foreach($_POST['edittable__new'] as $k => $v) {
                 $form->addHidden("edittable__new[$k]", $v);
             }
@@ -85,6 +87,101 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         // set target and range to keep track during previews
         $form->addHidden('target', 'table');
         $form->addHidden('range', $RANGE);
+    }
+
+    /**
+     * Handles a POST from the table editor
+     *
+     * This function preprocesses a POST from the table editor. It converts the
+     * table array to plain wiki markup text and stores it in the global $TEXT.
+     * It pads the table so the markup is easy to read
+     *
+     * @author Andreas Gohr <gohr@cosmocode,de>
+     */
+    function handle_table_post($event) {
+        global $TEXT;
+        global $INPUT;
+        if(!$INPUT->post->has('edittable_data')) return;
+        $TEXT = '';
+
+        $json = new JSON(JSON_LOOSE_TYPE);
+        $data = $json->decode($INPUT->post->str('edittable_data'));
+        $meta = $json->decode($INPUT->post->str('edittable_meta'));
+
+        $rows = count($data);
+        $cols = $rows ? count($data[0]) : 0;
+
+        $colmax = $cols ? array_fill(0, $cols, 0) : array();
+
+        // find maximum column widths
+        for($row = 0; $row < $rows; $row++) {
+            for($col = 0; $col < $cols; $col++) {
+                $len = utf8_strlen($data[$row][$col]);
+
+                // alignment adds padding
+                if($meta[$row][$col]['align'] == 'center') {
+                    $len += 4;
+                } else {
+                    $len += 3;
+                }
+
+                // remember lenght
+                $meta[$row][$col]['length'] = $len;
+
+                if($len > $colmax[$col]) $colmax[$col] = $len;
+            }
+        }
+
+        for($row = 0; $row < $rows; $row++) {
+            for($col = 0; $col < $cols; $col++) {
+
+                // minimum padding according to alignment
+                if($meta[$row][$col]['align'] == 'center') {
+                    $lpad = 2;
+                    $rpad = 2;
+                } elseif($meta[$row][$col]['align'] == 'right') {
+                    $lpad = 2;
+                    $rpad = 1;
+                } else {
+                    $lpad = 1;
+                    $rpad = 2;
+                }
+
+                // target width of this column
+                $target = $colmax[$col];
+
+                // colspanned columns span all the cells
+                for($i=1; $i<$meta[$row][$col]['colspan']; $i++){
+                    $target += $colmax[$col+$i];
+                }
+
+                // how much padding needs to be added?
+                $length = $meta[$row][$col]['length'];
+                $addpad = $target - $length;
+
+                // decide which side needs padding
+                if($meta[$row][$col]['align'] == 'right') {
+                    $lpad += $addpad;
+                }else{
+                    $rpad += $addpad;
+                }
+
+                // FIXME padding for colspans in rowspanned hidden fields aren't right yet
+
+                // add the padding
+                $cdata = $data[$row][$col];
+                if(!$meta[$row][$col]['hide'] || $cdata) {
+                    $cdata = str_pad('', $lpad) . $cdata . str_pad('', $rpad);
+                }
+
+                // finally add the cell
+                $TEXT .= ($meta[$row][$col]['tag'] == 'th') ? '^' : '|';
+                $TEXT .= $cdata;
+            }
+
+            // close the row
+            $TEXT .= "|\n";
+        }
     }
 
 }
