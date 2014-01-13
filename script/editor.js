@@ -21,6 +21,7 @@ jQuery(function () {
         fillHandle: false, // until properly tested with col/row span
         undo: false, // until properly tested with col/row span
         manualColumnResize: true,
+        outsideClickDeselects: false,
 
         /**
          * initialize cell properties
@@ -90,6 +91,28 @@ jQuery(function () {
             }
 
             Handsontable.renderers.TextRenderer.apply(this, arguments);
+        },
+
+        /**
+         * Initialization after the Editor loaded
+         */
+        afterInit: function () {
+            // select first cell
+            this.selectCell(0,0);
+
+            // we need an ID on the input field
+            this.rootElement.find('textarea.handsontableInput').attr('id', 'handsontable__input');
+
+            // we're ready to intialize the toolbar now
+            initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
+
+            // we wrap DokuWiki's pasteText() here to get notified when the toolbar inserted something into our editor
+            var original_pasteText = pasteText;
+            pasteText = function(selection,text,opts) {
+                original_pasteText(selection,text,opts); // do what pasteText does
+                // trigger resize
+                jQuery('#handsontable__input').data('AutoResizer').check();
+            }
         },
 
         /**

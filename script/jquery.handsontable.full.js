@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 13 2014 11:48:20 GMT+0100 (CET)
+ * Date: Mon Jan 13 2014 16:14:12 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2939,6 +2939,9 @@ Handsontable.TableView = function (instance) {
         if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE') {
           return; //click inside container or Web Component (HANDSONTABLE-TABLE is the name of the custom element)
         }
+        if ($(next).hasClass('toolbutton')) return; //ANDI, issue #1267
+        if ($(next).hasClass('pickerbutton')) return; //ANDI, issue #1267
+
         next = next.parentNode;
       }
     }
@@ -2967,11 +2970,11 @@ Handsontable.TableView = function (instance) {
 
   var clearTextSelection = function () {
     //http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-    if (window.getSelection) {
-      if (window.getSelection().empty) {  // Chrome
-        window.getSelection().empty();
-      } else if (window.getSelection().removeAllRanges) {  // Firefox
-        window.getSelection().removeAllRanges();
+    if (document.getSelection) {
+      if (document.getSelection().empty) {  // Chrome
+        document.getSelection().empty();
+      } else if (document.getSelection().removeAllRanges) {  // Firefox
+        document.getSelection().removeAllRanges();
       }
     } else if (document.selection) {  // IE?
       document.selection.empty();
@@ -6210,8 +6213,8 @@ CopyPasteClass.prototype.selectNodeText = function (el) {
 //http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
 CopyPasteClass.prototype.getSelectionText = function () {
   var text = "";
-  if (window.getSelection) {
-    text = window.getSelection().toString();
+  if (document.getSelection) {
+    text = document.getSelection().toString();
   } else if (document.selection && document.selection.type != "Control") {
     text = document.selection.createRange().text;
   }

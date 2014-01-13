@@ -119,9 +119,9 @@ class action_plugin_edittable_other extends DokuWiki_Action_Plugin {
         $json = new JSON();
         echo 'var table_toolbar = '.$json->encode($menu).';'.DOKU_LF;
 
-        $event->data[] = array('title'  => $this->getLang('add_table'),
-                               'type'   => 'insertTable',
-                               'icon'   => '../../plugins/edittable/images/add_table.png');
+        #$event->data[] = array('title'  => $this->getLang('add_table'),
+        #                       'type'   => 'insertTable',
+        #                       'icon'   => '../../plugins/edittable/images/add_table.png');
     }
 
 
