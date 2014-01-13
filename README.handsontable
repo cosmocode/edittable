@@ -1,0 +1,6 @@
+The handsontable version used in this plugin is slightly modified and
+maintained at https://github.com/cosmocode/jquery-handsontable/tree/dokuwiki
+
+No modifications should be done on the handsontable.* files here! Changes
+need to be done in the source files in the above repository, be compiled there
+and copied over here.
