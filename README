@@ -1,6 +1,7 @@
 edittable Plugin for DokuWiki
 
-Perform file cleanup in the wiki
+Simplifies table editing by providing a custom editor based on the
+jQuery Handsontable plugin
 
 All documentation for this plugin can be found at
 http://www.dokuwiki.org/plugin:edittable
