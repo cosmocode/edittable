@@ -8,7 +8,7 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
 
-require_once DOKU_INC . 'inc/parser/renderer.php';
+require_once DOKU_INC.'inc/parser/renderer.php';
 
 class renderer_plugin_edittable_inverse extends Doku_Renderer {
     /** @var string will contain the whole document */
@@ -25,6 +25,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     private $_table = array();
     private $_liststack = array();
     private $quotelvl = 0;
+    private $_extlinkparser = null;
 
     function getFormat() {
         return 'wiki';
@@ -44,7 +45,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
         // write the header
         $markup = str_repeat('=', 7 - $level);
-        $this->doc .= "$markup $text $markup" . DOKU_LF;
+        $this->doc .= "$markup $text $markup".DOKU_LF;
     }
 
     function section_open($level) {
@@ -57,33 +58,37 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->doc .= DOKU_LF;
     }
 
+    // FIXME this did something compllicated with surrounding whitespaces. Why?
     function cdata($text) {
         if(strlen($text) === 0) {
             $this->not_block();
             return;
         }
 
-        if(!$this->previous_block && trim(substr($text, 0, 1)) === '' && trim($text) !== '') {
-            $this->doc .= ' ';
-        }
+//        if(!$this->previous_block && trim(substr($text, 0, 1)) === '' && trim($text) !== '') {
+//            $this->doc .= ' ';
+//        }
         $this->not_block();
-        if(trim(substr($text, -1, 1)) === '' && trim($text) !== '') {
-            $this->prepend_not_block = ' ';
-        }
-        $this->doc .= trim($text);
+
+//        if(trim(substr($text, -1, 1)) === '' && trim($text) !== '') {
+//            $this->prepend_not_block = ' ';
+//        }
+//        $this->doc .= trim($text);
+
+        $this->doc .= $text;
     }
 
     function p_close() {
         $this->block();
         if($this->quotelvl === 0) {
-            $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
+            $this->doc = rtrim($this->doc, DOKU_LF).DOKU_LF.DOKU_LF;
         }
     }
 
     function p_open() {
         $this->block();
         if(strlen($this->doc) > 0 && substr($this->doc, 1, -1) !== DOKU_LF) {
-            $this->doc .= DOKU_LF . DOKU_LF;
+            $this->doc .= DOKU_LF.DOKU_LF;
         }
         $this->doc .= str_repeat('>', $this->quotelvl);
     }
@@ -233,7 +238,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
     function listitem_open($level) {
         $this->block();
-        $this->doc .= str_repeat(' ', $level * 2) . end($this->_liststack) . ' ';
+        $this->doc .= str_repeat(' ', $level * 2).end($this->_liststack).' ';
     }
 
     function listcontent_close() {
@@ -244,6 +249,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     function unformatted($text) {
         $this->not_block();
         if(strpos($text, '%%') !== false) {
+            $this->doc .= "<nowiki>$text</nowiki>";
+        } elseif($text{0} == "\n") {
             $this->doc .= "<nowiki>$text</nowiki>";
         } else {
             $this->doc .= "%%$text%%";
@@ -272,10 +279,10 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
     function quote_open() {
         $this->block();
-        if(substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
+        if(substr($this->doc, -(++$this->quotelvl)) === DOKU_LF.str_repeat('>', $this->quotelvl - 1)) {
             $this->doc .= '>';
         } else {
-            $this->doc .= DOKU_LF . str_repeat('>', $this->quotelvl);
+            $this->doc .= DOKU_LF.str_repeat('>', $this->quotelvl);
         }
         $this->prepend_not_block = ' ';
     }
@@ -286,12 +293,12 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         if(strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
             return;
         }
-        $this->doc .= DOKU_LF . DOKU_LF;
+        $this->doc .= DOKU_LF.DOKU_LF;
     }
 
     function preformatted($text) {
         $this->block();
-        $this->doc .= preg_replace('/^/m', '  ', $text) . DOKU_LF;
+        $this->doc .= preg_replace('/^/m', '  ', $text).DOKU_LF;
     }
 
     function file($text, $language = null, $filename = null) {
@@ -303,6 +310,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     }
 
     function _highlight($type, $text, $language = null, $filename = null) {
+        if( $this->previous_block ) $this->doc .= "\n";
+
         $this->block();
         $this->doc .= "<$type";
         if($language != null) {
@@ -311,7 +320,10 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         if($filename != null) {
             $this->doc .= " $filename";
         }
-        $this->doc .= ">$text</$type>";
+        $this->doc .= ">";
+        $this->doc .= $text;
+        if($text{0} == "\n") $this->doc .= "\n";
+        $this->doc .= "</$type>";
     }
 
     function acronym($acronym) {
@@ -386,22 +398,56 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->doc .= ']]';
     }
 
+    /**
+     * Handle external Links
+     *
+     * @author Andreas Gohr <andi@splitbrain.org>
+     * @param      $url
+     * @param null $name
+     */
     function externallink($url, $name = null) {
         $this->not_block();
-        if($name !== null && !in_array($url, array($name, 'http://' . $name))) {
-            $this->doc .= "[[$url|";
-            $this->_echoLinkTitle($name);
-            $this->doc .= ']]';
-        } else {
-            if($url === "http://$name") {
-                $url = $name;
+
+        /*
+         * When $name is null it might have been a match of an URL that was in the text without
+         * any link syntax. These are recognized by a bunch of patterns in Doku_Parser_Mode_externallink.
+         * We simply reuse these patterns here. However, since we don't parse the pattern through the Lexer,
+         * no escaping is done on the patterns - this means we need a non-conflicting delimiter. I decided for
+         * a single tick >>'<< which seems to work. Since the patterns contain wordboundaries they are matched
+         * against the URL surrounded by spaces.
+         */
+        if($name === null) {
+            // get the patterns from the parser
+            if(is_null($this->_extlinkparser)) {
+                $this->_extlinkparser = new Doku_Parser_Mode_externallink();
+                $this->_extlinkparser->preConnect();
             }
-            $this->doc .= "[[$url]]";
+
+            // check if URL matches pattern
+            foreach($this->_extlinkparser->patterns as $pattern) {
+                if(preg_match("'$pattern'", " $url ")) {
+                    $this->doc .= $url; // gotcha!
+                    return;
+                }
+            }
+        }
+
+        // still here?
+        if($url === "http://$name" || $url === "ftp://$name") {
+            // special case - www.* or ftp.* matching
+            $this->doc .= $name;
+        } else {
+            // link syntax! definitively link syntax
+            $this->doc .= "[[$url";
+            if(!is_null($name)) {
+                // we do have a name!
+                $this->doc .= '|';
+                $this->_echoLinkTitle($name);
+            }
+            $this->doc .= ']]';
         }
     }
 
-    /**
-     */
     function interwikilink($match, $name = null, $wikiName, $wikiUri) {
         $this->not_block();
         $this->doc .= "[[$wikiName>$wikiUri";
@@ -412,8 +458,6 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->doc .= ']]';
     }
 
-    /**
-     */
     function windowssharelink($url, $name = null) {
         $this->not_block();
         $this->doc .= "[[$url";
@@ -483,7 +527,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
      */
     function rss($url, $params) {
         $this->block();
-        $this->doc .= '{{rss>' . $url;
+        $this->doc .= '{{rss>'.$url;
         $vals = array();
         if($params['max'] !== 8) {
             $vals[] = $params['max'];
@@ -512,15 +556,15 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
             $vals[] = $val;
         }
         if(count($vals) > 0) {
-            $this->doc .= ' ' . join(' ', $vals);
+            $this->doc .= ' '.join(' ', $vals);
         }
         $this->doc .= '}}';
     }
 
     function table_open($maxcols = null, $numrows = null, $pos = null) {
         $this->block();
-        $this->_table = array();
-        $this->_row = 0;
+        $this->_table    = array();
+        $this->_row      = 0;
         $this->_rowspans = array();
     }
 
@@ -531,7 +575,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     function tablerow_open() {
         $this->block();
         $this->_table[++$this->_row] = array();
-        $this->_key = 1;
+        $this->_key                  = 1;
         while(isset($this->_rowspans[$this->_key])) {
             --$this->_rowspans[$this->_key];
             if($this->_rowspans[$this->_key] === 1) {
@@ -554,7 +598,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->_table[$this->_row][$this->_key] = compact('tag', 'colspan', 'align', 'rowspan');
         if($rowspan > 1) {
             $this->_rowspans[$this->_key] = $rowspan;
-            $this->_ownspan = true;
+            $this->_ownspan               = true;
         }
         $this->_pos = strlen($this->doc);
     }
@@ -566,7 +610,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     function _cellclose() {
         $this->block();
         $this->_table[$this->_row][$this->_key]['text'] = trim(substr($this->doc, $this->_pos));
-        $this->doc = substr($this->doc, 0, $this->_pos);
+        $this->doc                                      = substr($this->doc, 0, $this->_pos);
         $this->_key += $this->_table[$this->_row][$this->_key]['colspan'];
         while(isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
             --$this->_rowspans[$this->_key];
@@ -622,7 +666,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     private function _table_to_wikitext($_table) {
         // Preprocess table for rowspan, make table 0-based.
         $table = array();
-        $start = array_pop(array_keys($_table));
+        $keys  = array_keys($_table);
+        $start = array_pop($keys);
         foreach($_table as $i => $row) {
             $inorm = $i - $start;
             if(!isset($table[$inorm])) $table[$inorm] = array();
@@ -633,13 +678,13 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
                 }
                 $nextkey += $cell['colspan'] - 1;
                 $table[$inorm][$nextkey] = $cell;
-                $rowspan = $cell['rowspan'];
-                $i2 = $inorm + 1;
+                $rowspan                 = $cell['rowspan'];
+                $i2                      = $inorm + 1;
                 while($rowspan-- > 1) {
                     if(!isset($table[$i2])) $table[$i2] = array();
-                    $nu_cell = $cell;
-                    $nu_cell['text'] = ':::';
-                    $nu_cell['rowspan'] = 1;
+                    $nu_cell                = $cell;
+                    $nu_cell['text']        = ':::';
+                    $nu_cell['rowspan']     = 1;
                     $table[$i2++][$nextkey] = $nu_cell;
                 }
             }
@@ -673,12 +718,12 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
         // Write the table.
         $types = array('th' => '^', 'td' => '|');
-        $str = '';
+        $str   = '';
         foreach($table as $row) {
             $pos = 0;
             foreach($row as $n => $cell) {
                 $pos += utf8_strlen($cell['text']) + 1;
-                $span = $cell['colspan'];
+                $span   = $cell['colspan'];
                 $target = 0;
                 while(--$span >= 0) {
                     if(isset($m_width[$n - $span])) {
@@ -699,11 +744,11 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
                         $lpad = floor($pad / 2);
                         break;
                 }
-                $str .= $types[$cell['tag']] . str_repeat(' ', $lpad) .
-                    $cell['text'] . str_repeat(' ', $pad - $lpad) .
+                $str .= $types[$cell['tag']].str_repeat(' ', $lpad).
+                    $cell['text'].str_repeat(' ', $pad - $lpad).
                     str_repeat($types[$cell['tag']], $cell['colspan'] - 1);
             }
-            $str .= $types[$cell['tag']] . DOKU_LF;
+            $str .= $types[$cell['tag']].DOKU_LF;
         }
         return $str;
     }
