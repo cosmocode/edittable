@@ -119,7 +119,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
         $row = $this->current_row;
         $col = $this->current_col;
 
-        $this->tdata[$row][$col] = trim($this->doc);
+        $this->tdata[$row][$col] = trim(str_replace("\n", ' ', $this->doc)); // no newlines in table cells!
         $this->tmeta[$row][$col] = $this->tmetacell; // as remembered in the open call
 
         // now fill up missing span cells
