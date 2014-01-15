@@ -51,11 +51,11 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
 
     // renderer functions below
 
-    function table_open($maxcols = null, $numrows = null) {
+    function table_open($maxcols = null, $numrows = null, $pos = null) {
         // FIXME: is this needed somewhere? $this->_counter['table_begin_pos'] = strlen($this->doc);
     }
 
-    function table_close() {
+    function table_close($pos = null) {
     }
 
     function tablerow_open() {
