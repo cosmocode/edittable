@@ -7,7 +7,7 @@
  */
 
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
+if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 /**
  * handles all the editor related things
@@ -19,7 +19,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    function register(Doku_Event_Handler &$controller) {
+    function register(Doku_Event_Handler $controller) {
         // register custom edit buttons
         $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'secedit_button');
 
@@ -58,7 +58,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $event->preventDefault();
 
         /** @var renderer_plugin_edittable_json $Renderer our own renderer to convert table to array */
-        $Renderer = plugin_load('renderer', 'edittable_json', true);
+        $Renderer     = plugin_load('renderer', 'edittable_json', true);
         $instructions = p_get_instructions($TEXT);
 
         // Loop through the instructions
@@ -92,24 +92,35 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
     /**
      * Handles a POST from the table editor
      *
-     * This function preprocesses a POST from the table editor. It converts the
-     * table array to plain wiki markup text and stores it in the global $TEXT.
-     * It pads the table so the markup is easy to read
+     * This function preprocesses a POST from the table editor and converts it to plain DokuWiki markup
      *
      * @author Andreas Gohr <gohr@cosmocode,de>
      */
-    function handle_table_post($event) {
+    public function handle_table_post($event) {
         global $TEXT;
         global $INPUT;
         if(!$INPUT->post->has('edittable_data')) return;
-        $TEXT = '';
 
         $json = new JSON(JSON_LOOSE_TYPE);
         $data = $json->decode($INPUT->post->str('edittable_data'));
         $meta = $json->decode($INPUT->post->str('edittable_meta'));
 
-        $rows = count($data);
-        $cols = $rows ? count($data[0]) : 0;
+        $TEXT = $this->build_table($data, $meta);
+    }
+
+    /**
+     * Create a DokuWiki table
+     *
+     * converts the table array to plain wiki markup text. pads the table so the markup is easy to read
+     *
+     * @param array $data table content for each cell
+     * @param array $meta meta data for each cell
+     * @return string
+     */
+    public function build_table($data, $meta) {
+        $table = '';
+        $rows  = count($data);
+        $cols  = $rows ? count($data[0]) : 0;
 
         $colmax = $cols ? array_fill(0, $cols, 0) : array();
 
@@ -132,6 +143,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
             }
         }
 
+        $last = '|'; // used to close the last cell
         for($row = 0; $row < $rows; $row++) {
             for($col = 0; $col < $cols; $col++) {
 
@@ -151,8 +163,15 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
                 $target = $colmax[$col];
 
                 // colspanned columns span all the cells
-                for($i=1; $i<$meta[$row][$col]['colspan']; $i++){
-                    $target += $colmax[$col+$i];
+                for($i = 1; $i < $meta[$row][$col]['colspan']; $i++) {
+                    $target += $colmax[$col + $i];
+                }
+
+                // copy colspans to rowspans below if any
+                if($meta[$row][$col]['colspan'] > 1){
+                    for($i = 1; $i < $meta[$row][$col]['rowspan']; $i++) {
+                        $meta[$row + $i][$col]['colspan'] = $meta[$row][$col]['colspan'];
+                    }
                 }
 
                 // how much padding needs to be added?
@@ -162,26 +181,27 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
                 // decide which side needs padding
                 if($meta[$row][$col]['align'] == 'right') {
                     $lpad += $addpad;
-                }else{
+                } else {
                     $rpad += $addpad;
                 }
-
-                // FIXME padding for colspans in rowspanned hidden fields aren't right yet
 
                 // add the padding
                 $cdata = $data[$row][$col];
                 if(!$meta[$row][$col]['hide'] || $cdata) {
-                    $cdata = str_pad('', $lpad) . $cdata . str_pad('', $rpad);
+                    $cdata = str_pad('', $lpad).$cdata.str_pad('', $rpad);
                 }
 
                 // finally add the cell
-                $TEXT .= ($meta[$row][$col]['tag'] == 'th') ? '^' : '|';
-                $TEXT .= $cdata;
+                $last   =  ($meta[$row][$col]['tag'] == 'th') ? '^' : '|';
+                $table .= $last;
+                $table .= $cdata;
             }
 
             // close the row
-            $TEXT .= "|\n";
+            $table .= "$last\n";
         }
+
+        return $table;
     }
 
 }
