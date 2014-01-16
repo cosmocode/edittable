@@ -130,11 +130,15 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
             for($c = 1; $c < $colspan; $c++) {
                 // hide colspanned cell in same row
                 $this->tmeta[$row][$col + $c]['hide'] = true;
+                $this->tmeta[$row][$col + $c]['rowspan'] = 1;
+                $this->tmeta[$row][$col + $c]['colspan'] = 1;
                 $this->tdata[$row][$col + $c] = '';
 
                 // hide colspanned rows below if rowspan is in effect as well
                 for($r = 1; $r < $rowspan; $r++) {
                     $this->tmeta[$row + $r][$col + $c]['hide'] = true;
+                    $this->tmeta[$row + $r][$col + $c]['rowspan'] = 1;
+                    $this->tmeta[$row + $r][$col + $c]['colspan'] = 1;
                     $this->tdata[$row + $r][$col + $c] = '';
                 }
             }
@@ -142,6 +146,8 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
             // hide rowspanned columns
             for($r = 1; $r < $rowspan; $r++) {
                 $this->tmeta[$row + $r][$col]['hide'] = true;
+                $this->tmeta[$row + $r][$col]['rowspan'] = 1;
+                $this->tmeta[$row + $r][$col]['colspan'] = 1;
                 $this->tdata[$row + $r][$col] = ':::';
             }
         }

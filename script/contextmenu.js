@@ -126,17 +126,17 @@ function getEditTableContextMenu(data, meta) {
                     var col = selection.start.col();
                     var row = selection.start.row();
 
-                    if (meta[row][col].colspan) {
-                        meta[row][col].colspan++;
-                    } else {
-                        meta[row][col].colspan = 2;
-                    }
+
+                    // increase rowspan by the colspan of the cell to the right
+                    meta[row][col].colspan += meta[row][col+1].colspan;
 
                     // copy over any data from the merged cells
                     var colspan = meta[row][col].colspan;
                     var rowspan = meta[row][col].rowspan ? meta[row][col].rowspan : 1;
-                    for(var i=0; i<rowspan; i++){
-                        data[row][col] += ' ' + data[row+i][col + colspan -1 ];
+                    for (var i = 0; i < rowspan; i++) {
+                        if(data[row + i][col + colspan - 1 ] != ':::') {
+                            data[row][col] += ' ' + data[row + i][col + colspan - 1 ];
+                        }
                     }
 
                     this.render();
@@ -150,13 +150,24 @@ function getEditTableContextMenu(data, meta) {
                     var selection = this.getSelected();
                     var row = selection[0];
                     var col = selection[1];
-                    var end = this.countCols();
+                    var end = this.countRows();
 
-                    var span = meta[row][col].colspan ? meta[row][col].colspan : 1;
+                    var rowspan = meta[row][col].rowspan;
+                    var colspan = meta[row][col].colspan;
 
-                    // fixme don't bump into hidden fields
+                    // no cells to merge
+                    if ((col + colspan) >= end) return true;
 
-                    return ((col + span + 1) > end);
+                    // don't merge into hidden or spanned cells
+                    for (var i = 0; i < rowspan; i++) {
+                        if(meta[row + i][col + colspan].hide) return true;
+                        if(meta[row + i][col + colspan].rowspan > 1) {
+                            // we allow merge with same rowspanned cell only
+                            return meta[row + i][col + colspan].rowspan != rowspan;
+                        }
+                    }
+
+                    return false; // merge is fine
                 }
             },
             colspan_del: {
@@ -199,17 +210,16 @@ function getEditTableContextMenu(data, meta) {
                     var col = selection.start.col();
                     var row = selection.start.row();
 
-                    if (meta[row][col].rowspan) {
-                        meta[row][col].rowspan++;
-                    } else {
-                        meta[row][col].rowspan = 2;
-                    }
+                    // increase rowspan by the rowspan of the cell below
+                    meta[row][col].rowspan += meta[row+1][col].rowspan;
 
                     // copy over any data from the merged cells
                     var colspan = meta[row][col].colspan ? meta[row][col].colspan : 1;
                     var rowspan = meta[row][col].rowspan;
-                    for(var i=0; i<colspan; i++){
-                        data[row][col] += ' ' + data[row + rowspan - 1][col + i];
+                    for (var i = 0; i < colspan; i++) {
+                        if(data[row + rowspan - 1][col + i] != ':::'){
+                            data[row][col] += ' ' + data[row + rowspan - 1][col + i];
+                        }
                     }
 
                     this.render();
@@ -225,11 +235,22 @@ function getEditTableContextMenu(data, meta) {
                     var col = selection[1];
                     var end = this.countRows();
 
-                    var span = meta[row][col].rowspan ? meta[row][col].rowspan : 1;
+                    var rowspan = meta[row][col].rowspan;
+                    var colspan = meta[row][col].colspan;
 
-                    // fixme don't bump into hidden fields
+                    // no cells to merge
+                    if ((row + rowspan) >= end) return true;
 
-                    return ((row + span + 1) > end);
+                    // don't merge into hidden or spanned cells
+                    for (var i = 0; i < colspan; i++) {
+                        if(meta[row + rowspan][col + i].hide) return true;
+                        if(meta[row + rowspan][col + i].colspan > 1) {
+                            // we allow merge with same colspanned cell only
+                            return meta[row + rowspan][col + i].colspan != colspan;
+                        }
+                    }
+
+                    return false; // merge is fine
                 }
             },
             rowspan_del: {

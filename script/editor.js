@@ -139,19 +139,21 @@ jQuery(function () {
             // rehide needed cells
             for (row = 0; row < data.length; row++) {
                 for (col = 0; col < data[0].length; col++) {
-                    var colspan = 1;
-                    var rowspan = 1;
-                    if (meta[row][col].colspan) colspan = meta[row][col].colspan;
-                    if (meta[row][col].rowspan) rowspan = meta[row][col].rowspan;
+                    var colspan = meta[row][col].colspan;
+                    var rowspan = meta[row][col].rowspan;
 
                     for (c = 1; c < colspan; c++) {
                         // hide colspanned cell in same row
                         meta[row][col + c].hide = true;
+                        meta[row][col + c].rowspan = 1;
+                        meta[row][col + c].colspan = 1;
                         data[row][col + c] = '';
 
                         // hide colspanned rows below if rowspan is in effect as well
                         for (r = 1; r < rowspan; r++) {
                             meta[row + r][col + c].hide = true;
+                            meta[row + r][col + c].rowspan = 1;
+                            meta[row + r][col + c].colspan = 1;
                             data[row + r][col + c] = '';
                         }
 
@@ -160,6 +162,8 @@ jQuery(function () {
                     // hide rowspanned columns
                     for (r = 1; r < rowspan; r++) {
                         meta[row + r][col].hide = true;
+                        meta[row + r][col].rowspan = 1;
+                        meta[row + r][col].colspan = 1;
                         data[row + r][col] = ':::';
                     }
                 }
