@@ -168,6 +168,10 @@ jQuery(function () {
                     }
                 }
             }
+
+            // Store data and meta back in the form
+            $datafield.val(JSON.stringify(data));
+            $metafield.val(JSON.stringify(meta));
         },
 
         /**
@@ -295,21 +299,7 @@ jQuery(function () {
                 lastselect.row = r;
                 lastselect.col = c;
             }
-        },
-
-        /**
-         * Store data and meta back in the form
-         *
-         * @param changes
-         * @param source
-         */
-        afterChange: function (changes, source) {
-            $datafield.val(JSON.stringify(data));
-            $metafield.val(JSON.stringify(meta));
-        },
-
-
-
+        }
     });
 
 });
