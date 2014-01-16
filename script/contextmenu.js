@@ -132,8 +132,12 @@ function getEditTableContextMenu(data, meta) {
                         meta[row][col].colspan = 2;
                     }
 
-                    // copy over any data from the merged cell   fixme handle colspanned cells
-                    data[row][col] += ' ' + data[row][col + 1];
+                    // copy over any data from the merged cells
+                    var colspan = meta[row][col].colspan;
+                    var rowspan = meta[row][col].rowspan ? meta[row][col].rowspan : 1;
+                    for(var i=0; i<rowspan; i++){
+                        data[row][col] += ' ' + data[row+i][col + colspan -1 ];
+                    }
 
                     this.render();
                 },
@@ -201,8 +205,12 @@ function getEditTableContextMenu(data, meta) {
                         meta[row][col].rowspan = 2;
                     }
 
-                    // copy over any data from the merged cell  fixme handle colspanned cells
-                    data[row][col] += ' ' + data[row + 1][col];
+                    // copy over any data from the merged cells
+                    var colspan = meta[row][col].colspan ? meta[row][col].colspan : 1;
+                    var rowspan = meta[row][col].rowspan;
+                    for(var i=0; i<colspan; i++){
+                        data[row][col] += ' ' + data[row + rowspan - 1][col + i];
+                    }
 
                     this.render();
                 },
