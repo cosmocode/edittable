@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 16 2014 10:56:17 GMT+0100 (CET)
+ * Date: Thu Jan 16 2014 15:29:33 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7710,7 +7710,7 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
-      colWidths: [160],
+      colWidths: [200], // ANDI we need some more space
       readOnly: true,
       copyPaste: false,
       columns: [
