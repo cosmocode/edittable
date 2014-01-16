@@ -20,3 +20,18 @@ $lang['js']['struct_row_plus_before']  = 'Add row above';
 $lang['js']['last_column'] = 'You cannot delete the last column!';
 $lang['js']['last_row'] = 'You cannot delete the last row!';
 $lang['add_table'] = 'Insert a new table';
+
+
+$lang['js']['row_above']  = 'Add row above';
+$lang['js']['remove_row'] = 'Remove row';
+$lang['js']['row_below']  = 'Add row below';
+
+$lang['js']['col_left']   = 'Add column on the left';
+$lang['js']['remove_col'] = 'Remove column';
+$lang['js']['col_right']  = 'Add column on the right';
+
+$lang['js']['colspan_add'] = 'Increase colspan';
+$lang['js']['colspan_del'] = 'Decrease colspan';
+
+$lang['js']['rowspan_add'] = 'Increase rowspan';
+$lang['js']['rowspan_del'] = 'Decrease rowspan';

@@ -1,6 +1,9 @@
+/**
+ * This configures the Handsontable Plugin
+ */
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
-    if(!$container.length) return;
+    if (!$container.length) return;
 
     var $form = jQuery('#dw__editform');
     var $datafield = $form.find('input[name=edittable_data]');
@@ -16,7 +19,6 @@ jQuery(function () {
         startCols: 5,
         colHeaders: true,
         rowHeaders: true,
-        contextMenu: ["row_above", "row_below", "hsep1", "col_left", "col_right", "hsep2", "remove_row", "remove_col"], //fixme add span
         multiSelect: false, // until properly tested with col/row span
         fillHandle: false, // until properly tested with col/row span
         undo: false, // until properly tested with col/row span
@@ -73,10 +75,10 @@ jQuery(function () {
                 $td.show();
             }
 
-            if(cellMeta.align == 'right') {
+            if (cellMeta.align == 'right') {
                 $td.addClass('right');
                 $td.removeClass('center');
-            } else if(cellMeta.align == 'center') {
+            } else if (cellMeta.align == 'center') {
                 $td.addClass('center');
                 $td.removeClass('right');
             } else {
@@ -84,7 +86,7 @@ jQuery(function () {
                 $td.removeClass('right');
             }
 
-            if(cellMeta.tag == 'th'){
+            if (cellMeta.tag == 'th') {
                 $td.addClass('header');
             } else {
                 $td.removeClass('header');
@@ -98,7 +100,7 @@ jQuery(function () {
          */
         afterInit: function () {
             // select first cell
-            this.selectCell(0,0);
+            this.selectCell(0, 0);
 
             // we need an ID on the input field
             this.rootElement.find('textarea.handsontableInput').attr('id', 'handsontable__input');
@@ -108,8 +110,8 @@ jQuery(function () {
 
             // we wrap DokuWiki's pasteText() here to get notified when the toolbar inserted something into our editor
             var original_pasteText = pasteText;
-            pasteText = function(selection,text,opts) {
-                original_pasteText(selection,text,opts); // do what pasteText does
+            pasteText = function (selection, text, opts) {
+                original_pasteText(selection, text, opts); // do what pasteText does
                 // trigger resize
                 jQuery('#handsontable__input').data('AutoResizer').check();
             }
@@ -296,9 +298,145 @@ jQuery(function () {
          * @param changes
          * @param source
          */
-        afterChange: function(changes, source){
+        afterChange: function (changes, source) {
             $datafield.val(JSON.stringify(data));
             $metafield.val(JSON.stringify(meta));
+        },
+
+        /**
+         * Defines our own contextMenu with custom callbacks
+         */
+        contextMenu: {
+            items: {
+                row_above: {
+                    name: LANG.plugins.edittable.row_above
+                },
+                remove_row: {
+                    name: LANG.plugins.edittable.remove_row,
+                    /**
+                     * The same as the default action, but with confirmation
+                     *
+                     * @param key
+                     * @param selection
+                     */
+                    callback: function (key, selection) {
+                        if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
+                            var amount = selection.end.row() - selection.start.row() + 1;
+                            this.alter("remove_row", selection.start.row(), amount);
+                        }
+                    }
+                },
+                row_below: {
+                    name: LANG.plugins.edittable.row_below
+                },
+                hsep1: '---------',
+                col_left: {
+                    name: LANG.plugins.edittable.col_left
+                },
+                remove_col: {
+                    name: LANG.plugins.edittable.remove_col,
+                    /**
+                     * The same as the default action, but with confirmation
+                     *
+                     * @param key
+                     * @param selection
+                     */
+                    callback: function (key, selection) {
+                        if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
+                            var amount = selection.end.col() - selection.start.col() + 1;
+                            this.alter("remove_col", selection.start.col(), amount);
+                        }
+                    }
+                },
+                col_right: {
+                    name: LANG.plugins.edittable.col_right
+                },
+                hsep2: '---------',
+                colspan_add: {
+                    name: LANG.plugins.edittable.colspan_add,
+                    /**
+                     * Increase colspan and rerender the table
+                     *
+                     * @param key
+                     * @param selection
+                     */
+                    callback: function (key, selection) {
+                        var col = selection.start.col();
+                        var row = selection.start.row();
+
+                        if(meta[row][col].colspan){
+                            meta[row][col].colspan++;
+                        } else {
+                            meta[row][col].colspan = 2;
+                        }
+
+                        // copy over any data from the merged cell
+                        data[row][col] += ' '+data[row][col+1];
+
+                        this.render();
+                    },
+                    /**
+                     * don't show when not enough space for colspan
+                     *
+                     * @returns {boolean}
+                     */
+                    disabled: function(){
+                        var selection = this.getSelected();
+                        var row = selection[0];
+                        var col = selection[1];
+                        var end = this.countCols();
+
+                        var span = meta[row][col].colspan ? meta[row][col].colspan : 1;
+
+                        // fixme don't bump into hidden fields
+
+                        return ((col + span + 1) > end);
+                    }
+                },
+                rowspan_add: {
+                    name: LANG.plugins.edittable.rowspan_add,
+                    /**
+                     * Increase rowspan and rerender the table
+                     *
+                     * @param key
+                     * @param selection
+                     */
+                    callback: function (key, selection) {
+                        var col = selection.start.col();
+                        var row = selection.start.row();
+
+                        if(meta[row][col].rowspan){
+                            meta[row][col].rowspan++;
+                        } else {
+                            meta[row][col].rowspan = 2;
+                        }
+
+                        // copy over any data from the merged cell
+                        data[row][col] += ' '+data[row+1][col];
+
+                        this.render();
+                    },
+                    /**
+                     * don't show when not enough space for rowspan
+                     *
+                     * @returns {boolean}
+                     */
+                    disabled: function(){
+                        var selection = this.getSelected();
+                        var row = selection[0];
+                        var col = selection[1];
+                        var end = this.countRows();
+
+                        var span = meta[row][col].rowspan ? meta[row][col].rowspan : 1;
+
+                        // fixme don't bump into hidden fields
+
+                        return ((row + span + 1) > end);
+                    }
+                }
+                //fixme span
+
+            }
         }
 
     });

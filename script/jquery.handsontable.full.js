@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 13 2014 16:14:12 GMT+0100 (CET)
+ * Date: Thu Jan 16 2014 10:56:17 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7748,6 +7748,8 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
     Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
+
+    Handsontable.Dom.addClass(wrapper, item.key); // ANDI add class to menu entries
 
     if(itemIsSeparator(item)){
       Handsontable.Dom.addClass(TD, 'htSeparator');
