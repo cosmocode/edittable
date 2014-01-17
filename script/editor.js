@@ -136,7 +136,6 @@ jQuery(function () {
                     }
             }
 
-
             // rehide needed cells
             for (row = 0; row < data.length; row++) {
                 for (col = 0; col < data[0].length; col++) {
@@ -144,6 +143,12 @@ jQuery(function () {
                     var rowspan = meta[row][col].rowspan;
 
                     for (c = 1; c < colspan; c++) {
+                        // does the colspan reach out of the table? decrease it
+                        if (! meta[row][col + c]) {
+                            meta[row][col].colspan--;
+                            continue;
+                        }
+
                         // hide colspanned cell in same row
                         meta[row][col + c].hide = true;
                         meta[row][col + c].rowspan = 1;
@@ -152,6 +157,12 @@ jQuery(function () {
 
                         // hide colspanned rows below if rowspan is in effect as well
                         for (r = 1; r < rowspan; r++) {
+                            // does the rowspan reach out of the table? decrease it
+                            if (! meta[row + r]) {
+                                meta[row][col].rowspan--;
+                                continue;
+                            }
+
                             meta[row + r][col + c].hide = true;
                             meta[row + r][col + c].rowspan = 1;
                             meta[row + r][col + c].colspan = 1;
@@ -161,7 +172,14 @@ jQuery(function () {
                     }
 
                     // hide rowspanned columns
+                    rowspan = meta[row][col].rowspan; // might have changed above
                     for (r = 1; r < rowspan; r++) {
+                        // does the rowspan reach out of the table? decrease it
+                        if (! meta[row + r]) {
+                            meta[row][col].rowspan--;
+                            continue;
+                        }
+
                         meta[row + r][col].hide = true;
                         meta[row + r][col].rowspan = 1;
                         meta[row + r][col].colspan = 1;
