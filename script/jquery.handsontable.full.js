@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 16 2014 15:29:33 GMT+0100 (CET)
+ * Date: Fri Jan 17 2014 09:43:46 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1960,7 +1960,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
     return datamap.getText({row: startRow, col: startCol}, {row: endRow, col: endCol});
-  }
+  };
 
   /**
    * Update settings
@@ -4012,7 +4012,7 @@ Handsontable.helper.isInput = function (element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return inputs.indexOf(element.nodeName) > -1;
-}
+};
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
@@ -4547,7 +4547,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       this._closeCallback = null;
     }
 
-  }
+  };
 
   BaseEditor.prototype.init = function(){};
 
@@ -6199,7 +6199,7 @@ CopyPasteClass.prototype.init = function () {
         }, 0);
       }
     }
-  }
+  };
 
   this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };
@@ -7710,7 +7710,7 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
-      colWidths: [200], // ANDI we need some more space
+      colWidths: [160],
       readOnly: true,
       copyPaste: false,
       columns: [
@@ -8077,7 +8077,7 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
-  }
+  };
 
   ContextMenu.prototype.filterItems = function(itemsToLeave){
     this.itemsFilter = itemsToLeave;
@@ -13223,7 +13223,7 @@ Dragdealer.prototype =
 		this.wrapper.onselectstart = function()
 		{
 			return false;
-		}
+		};
 		this.handle.onmousedown = this.handle.ontouchstart = function(e)
 		{
 			self.handleDownHandler(e);
@@ -13253,11 +13253,11 @@ Dragdealer.prototype =
 		this.wrapper.onmousemove = function(e)
 		{
 			self.activity = true;
-		}
+		};
 		this.wrapper.onclick = function(e)
 		{
 			return !self.activity;
-		}
+		};
 		
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
