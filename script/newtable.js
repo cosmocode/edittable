@@ -1,7 +1,17 @@
-function addBtnActionInsertTable(btn, param, edid) {
-    addEvent(btn, 'click', function () {
-        var editform = $('dw__editform');
-        var ed = $(edid);
+/**
+ * Add button action for your toolbar button
+ *
+ * @param  {jQuery}   $btn  Button element to add the action to
+ * @param  {Array}    props Associative array of button properties
+ * @param  {string}   edid  ID of the editor textarea
+ * @return {string}   If button should be appended return the id for in aria-controls,
+ *                    otherwise an empty string
+ */
+function addBtnActionNewTable($btn, props, edid) {
+
+    $btn.click(function () {
+        var editform = jQuery('#dw__editform')[0];
+        var ed = jQuery('#'+edid)[0];
 
         function addField(name, val) {
             var pos_field = document.createElement('textarea');
@@ -30,9 +40,9 @@ function addBtnActionInsertTable(btn, param, edid) {
         editbutton.style.display = 'none';
         editform.appendChild(editbutton);
         // Prevent warning
-        textChanged = false;
+        window.textChanged = false;
         editbutton.click();
 
     });
-    return true;
+    return 'click';
 }

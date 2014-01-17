@@ -3,6 +3,4 @@
 
 /* DOKUWIKI:include script/contextmenu.js */
 /* DOKUWIKI:include script/editor.js */
-
-/* DOKUWIKI:FIXMEinclude script/tableeditor.js */
-/* DOKUWIKI:FIXMEinclude script/inserttable.js */
+/* DOKUWIKI:include script/newtable.js */

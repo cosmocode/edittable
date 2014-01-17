@@ -8,7 +8,6 @@ $lang['span_col_plus']    = 'Increase colspan';
 $lang['span_col_minus']   = 'Reduce colspan';
 $lang['span_row_plus']    = 'Increase rowspan';
 $lang['span_row_minus']   = 'Reduce rowspan';
-$lang['secedit_name']     = 'Table';
 $lang['js']['struct_col_plus']  = 'Add column on the right';
 $lang['js']['struct_col_minus'] = 'Remove column';
 $lang['js']['struct_col_plus_before']  = 'Add column on the left';
@@ -17,10 +16,10 @@ $lang['js']['struct_row_minus'] = 'Remove row';
 $lang['js']['struct_row_plus_before']  = 'Add row above';
 $lang['js']['last_column'] = 'You cannot delete the last column!';
 $lang['js']['last_row'] = 'You cannot delete the last row!';
+
+
+$lang['secedit_name']     = 'Table';
 $lang['add_table'] = 'Insert a new table';
-
-
-
 
 $lang['js']['toggle_header']    = 'Toggle header state';
 $lang['js']['align_left']   = 'Left-align cell';

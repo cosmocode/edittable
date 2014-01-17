@@ -110,12 +110,13 @@ jQuery(function () {
             initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
 
             // we wrap DokuWiki's pasteText() here to get notified when the toolbar inserted something into our editor
-            var original_pasteText = pasteText;
-            pasteText = function (selection, text, opts) {
+            var original_pasteText = window.pasteText;
+            window.pasteText = function (selection, text, opts) {
                 original_pasteText(selection, text, opts); // do what pasteText does
                 // trigger resize
                 jQuery('#handsontable__input').data('AutoResizer').check();
-            }
+            };
+            window.pasteText = original_pasteText;
         },
 
         /**
