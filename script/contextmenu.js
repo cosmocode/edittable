@@ -142,7 +142,7 @@ function getEditTableContextMenu(data, meta) {
 
                     // copy over any data from the merged cells
                     var colspan = meta[row][col].colspan;
-                    var rowspan = meta[row][col].rowspan ? meta[row][col].rowspan : 1;
+                    var rowspan = meta[row][col].rowspan;
                     for (var i = 0; i < rowspan; i++) {
                         if(data[row + i][col + colspan - 1 ] != ':::') {
                             data[row][col] += ' ' + data[row + i][col + colspan - 1 ];
@@ -160,7 +160,7 @@ function getEditTableContextMenu(data, meta) {
                     var selection = this.getSelected();
                     var row = selection[0];
                     var col = selection[1];
-                    var end = this.countRows();
+                    var end = this.countCols();
 
                     var rowspan = meta[row][col].rowspan;
                     var colspan = meta[row][col].colspan;
@@ -224,7 +224,7 @@ function getEditTableContextMenu(data, meta) {
                     meta[row][col].rowspan += meta[row+1][col].rowspan;
 
                     // copy over any data from the merged cells
-                    var colspan = meta[row][col].colspan ? meta[row][col].colspan : 1;
+                    var colspan = meta[row][col].colspan;
                     var rowspan = meta[row][col].rowspan;
                     for (var i = 0; i < colspan; i++) {
                         if(data[row + rowspan - 1][col + i] != ':::'){
