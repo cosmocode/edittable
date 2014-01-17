@@ -84,8 +84,13 @@ function getEditTableContextMenu(data, meta) {
                         var amount = selection.end.row() - selection.start.row() + 1;
                         this.alter("remove_row", selection.start.row(), amount);
                     }
+                },
+                /**
+                 * do not show when this is the last row
+                 */
+                disabled: function() {
+                    return (this.countRows() <= 1);
                 }
-                // fixme don't delete last column
             },
             row_below: {
                 name: LANG.plugins.edittable.row_below
@@ -107,8 +112,13 @@ function getEditTableContextMenu(data, meta) {
                         var amount = selection.end.col() - selection.start.col() + 1;
                         this.alter("remove_col", selection.start.col(), amount);
                     }
+                },
+                /**
+                 * do not show when this is the last row
+                 */
+                disabled: function() {
+                    return (this.countCols() <= 1);
                 }
-                // fixme don't delete last row
             },
             col_right: {
                 name: LANG.plugins.edittable.col_right
