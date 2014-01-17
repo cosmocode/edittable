@@ -21,7 +21,12 @@ function addBtnActionNewTable($btn, props, edid) {
             editform.appendChild(pos_field);
         }
 
-        var sel = getSelection(ed);
+        var sel;
+        if(DWgetSelection) {
+            sel = DWgetSelection(ed);
+        } else {
+            sel = getSelection(ed);
+        }
         addField('pre', ed.value.substr(0, sel.start));
         addField('text', ed.value.substr(sel.start, sel.end - sel.start));
         addField('suf', ed.value.substr(sel.end));
