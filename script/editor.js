@@ -23,6 +23,7 @@ jQuery(function () {
         fillHandle: false, // until properly tested with col/row span
         undo: false, // until properly tested with col/row span
         manualColumnResize: true,
+        editTableColumnMove: true, // custom plugin
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
 
@@ -100,6 +101,12 @@ jQuery(function () {
          * Initialization after the Editor loaded
          */
         afterInit: function () {
+            // Give access to our raw data structure
+            this.raw = {
+                data: data,
+                meta: meta
+            };
+
             // select first cell
             this.selectCell(0, 0);
 
