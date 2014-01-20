@@ -24,6 +24,7 @@ jQuery(function () {
         undo: false, // until properly tested with col/row span
         manualColumnResize: true,
         editTableColumnMove: true, // custom plugin
+        editTableRowMove: true, // custom plugin
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
 

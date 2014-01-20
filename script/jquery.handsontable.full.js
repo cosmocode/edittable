@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 17 2014 09:43:46 GMT+0100 (CET)
+ * Date: Mon Jan 20 2014 14:54:42 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3228,16 +3228,23 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param TH
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
-  if (row > -1) {
-    this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
+  var DIV = document.createElement('DIV')
+    , SPAN = document.createElement('SPAN');
+
+  DIV.className = 'relative';
+  SPAN.className = 'colHeader';
+
+  if (row < 0) {
+      this.wt.wtDom.fastInnerText(DIV, '\u00A0');
+  } else {
+      this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
+      DIV.appendChild(SPAN);
   }
-  else {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'relative';
-    this.wt.wtDom.fastInnerText(DIV, '\u00A0');
-    this.wt.wtDom.empty(TH);
-    TH.appendChild(DIV);
-  }
+
+  this.wt.wtDom.empty(TH);
+  TH.appendChild(DIV);
+
+  this.instance.PluginHooks.run('afterGetRowHeader', row, TH);
 };
 
 /**
@@ -6816,6 +6823,7 @@ Handsontable.PluginHookClass = (function () {
       afterValidate: [],
       afterGetCellMeta: [],
       afterGetColHeader: [],
+      afterGetRowHeader: [],
       afterGetColWidth: [],
       afterDestroy: [],
       afterRemoveRow: [],
@@ -7710,7 +7718,7 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
-      colWidths: [160],
+      colWidths: [200], // ANDI we need some more space
       readOnly: true,
       copyPaste: false,
       columns: [
