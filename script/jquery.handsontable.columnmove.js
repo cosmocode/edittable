@@ -64,12 +64,13 @@ function EditTableColumnMove() {
 
                 if (startCol == endCol)  return;
 
-                // for later: this is how you swap rows ;-)
-                //instance.raw.data.splice(endCol, 0, instance.raw.data.splice(startCol, 1));
+                // if this row is part of a row span, do not move
+                if(instance.raw.colinfo[endCol]['colspan']) return;
 
                 // swap cols in each row
-                for (var i = 0; i < instance.raw.data[0].length; i++) {
-                    instance.raw.data[i].splice(endCol, 0, instance.raw.data[i].splice(startCol, 1));
+                for (var i = 0; i < instance.raw.data.length; i++) {
+                    instance.raw.data[i].splice(endCol, 0, instance.raw.data[i].splice(startCol, 1)[0]);
+                    instance.raw.meta[i].splice(endCol, 0, instance.raw.meta[i].splice(startCol, 1)[0]);
                 }
 
                 instance.forceFullRender = true;
@@ -107,6 +108,10 @@ function EditTableColumnMove() {
                     instance.view.wt.wtDom.removeClass(active, 'active');
                 }
                 endCol = instance.view.wt.wtDom.index(this) + instance.colOffset();
+
+                // if this row is part of a row span, do not move
+                if(instance.raw.colinfo[endCol-1]['colspan']) return;
+
                 var THs = instance.view.THEAD.querySelectorAll('th');
                 var mover = THs[endCol].querySelector('.editTableColumnMover');
                 instance.view.wt.wtDom.addClass(mover, 'active');
@@ -151,6 +156,9 @@ function EditTableColumnMove() {
      */
     this.getColHeader = function (col, TH) {
         if (this.getSettings().editTableColumnMove) {
+            // if this row is part of a row span, do not add move handle
+            if(this.raw.colinfo[col]['colspan']) return;
+
             var DIV = document.createElement('DIV');
             DIV.className = 'editTableColumnMover';
             TH.firstChild.appendChild(DIV);

@@ -54,7 +54,7 @@ function EditTableRowMove() {
                 if (startRow < endRow) {
                     endRow--;
                 }
-                if (instance.getSettings().rowHeaders) {
+                if (instance.getSettings().colHeaders) {
                     startRow--;
                     endRow--;
                 }
@@ -62,14 +62,18 @@ function EditTableRowMove() {
                 pressed = false;
                 ghostStyle.display = 'none';
 
-                if (startRow == endRow)  return;
-
                 // rows are off by one
                 startRow += 1;
                 endRow += 1;
 
+                if (startRow == endRow)  return;
+
+                // if this row is part of a row span, do not move
+                if(instance.raw.rowinfo[endRow]['rowspan']) return;
+
                 // swap the rows
                 instance.raw.data.splice(endRow, 0, instance.raw.data.splice(startRow, 1)[0]);
+                instance.raw.meta.splice(endRow, 0, instance.raw.meta.splice(startRow, 1)[0]);
 
                 instance.forceFullRender = true;
                 instance.view.render(); //updates all
@@ -106,6 +110,10 @@ function EditTableRowMove() {
                     instance.view.wt.wtDom.removeClass(active, 'active');
                 }
                 endRow = instance.view.wt.wtDom.index(this.parentNode) + instance.rowOffset();
+
+                // if this row is part of a row span, do not move
+                if(instance.raw.rowinfo[endRow]['rowspan']) return;
+
                 var THs = instance.view.TBODY.querySelectorAll('th');
                 var mover = THs[endRow].querySelector('.editTableRowMover');
                 instance.view.wt.wtDom.addClass(mover, 'active');
@@ -150,6 +158,9 @@ function EditTableRowMove() {
      */
     this.getRowHeader = function (row, TH) {
         if (row > -1 && this.getSettings().editTableRowMove) {
+            // if this row is part of a row span, do not add move handle
+            if(this.raw.rowinfo[row]['rowspan']) return;
+
             var DIV = document.createElement('DIV');
             DIV.className = 'editTableRowMover';
             TH.firstChild.appendChild(DIV);

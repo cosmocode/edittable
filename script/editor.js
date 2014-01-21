@@ -29,6 +29,20 @@ jQuery(function () {
         contextMenu: getEditTableContextMenu(data, meta),
 
         /**
+         * Attach pointers to our raw data structures in the instance
+         */
+        afterLoadData: function () {
+            this.raw = {
+                data: data,
+                meta: meta,
+                colinfo: [],
+                rowinfo: []
+            };
+            for(i = 0; i< data.length; i++) this.raw.rowinfo[i] = {}
+            for(i = 0; i< data[0].length; i++) this.raw.colinfo[i] = {}
+        },
+
+        /**
          * initialize cell properties
          *
          * properties are stored in extra array
@@ -102,12 +116,6 @@ jQuery(function () {
          * Initialization after the Editor loaded
          */
         afterInit: function () {
-            // Give access to our raw data structure
-            this.raw = {
-                data: data,
-                meta: meta
-            };
-
             // select first cell
             this.selectCell(0, 0);
 
@@ -133,7 +141,13 @@ jQuery(function () {
          * @param forced bool
          */
         beforeRender: function (forced) {
-            var row, r, c, col;
+            var row, r, c, col, i;
+
+            // reset row and column infos - we store spanning info there
+            this.raw.rowinfo = [];
+            this.raw.colinfo = [];
+            for(i = 0; i< data.length; i++) this.raw.rowinfo[i] = {}
+            for(i = 0; i< data[0].length; i++) this.raw.colinfo[i] = {}
 
             // unhide all cells
             for (row = 0; row < data.length; row++) {
@@ -152,7 +166,7 @@ jQuery(function () {
 
                     for (c = 1; c < colspan; c++) {
                         // does the colspan reach out of the table? decrease it
-                        if (! meta[row][col + c]) {
+                        if (!meta[row][col + c]) {
                             meta[row][col].colspan--;
                             continue;
                         }
@@ -163,10 +177,13 @@ jQuery(function () {
                         meta[row][col + c].colspan = 1;
                         data[row][col + c] = '';
 
+                        this.raw.colinfo[col]['colspan'] = true;
+                        this.raw.colinfo[col + c]['colspan'] = true;
+
                         // hide colspanned rows below if rowspan is in effect as well
                         for (r = 1; r < rowspan; r++) {
                             // does the rowspan reach out of the table? decrease it
-                            if (! meta[row + r]) {
+                            if (!meta[row + r]) {
                                 meta[row][col].rowspan--;
                                 continue;
                             }
@@ -175,6 +192,8 @@ jQuery(function () {
                             meta[row + r][col + c].rowspan = 1;
                             meta[row + r][col + c].colspan = 1;
                             data[row + r][col + c] = '';
+
+                            this.raw.rowinfo[row + r]['rowspan'] = true;
                         }
 
                     }
@@ -183,7 +202,7 @@ jQuery(function () {
                     rowspan = meta[row][col].rowspan; // might have changed above
                     for (r = 1; r < rowspan; r++) {
                         // does the rowspan reach out of the table? decrease it
-                        if (! meta[row + r]) {
+                        if (!meta[row + r]) {
                             meta[row][col].rowspan--;
                             continue;
                         }
@@ -192,6 +211,9 @@ jQuery(function () {
                         meta[row + r][col].rowspan = 1;
                         meta[row + r][col].colspan = 1;
                         data[row + r][col] = ':::';
+
+                        this.raw.rowinfo[row]['rowspan'] = true;
+                        this.raw.rowinfo[row + r]['rowspan'] = true;
                     }
                 }
             }
