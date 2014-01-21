@@ -1,22 +1,25 @@
 <?php
+$lang['secedit_name']           = 'Tabelle';
+$lang['add_table']              = 'Neue Tabelle einfügen';
 
-$lang['toggle_header']    = 'Von Überschrift zu Text bzw von Text zu Überschrift schalten';
-$lang['val_align_left']   = 'Zelle links ausrichten';
-$lang['val_align_center'] = 'Zelle mitting ausrichten';
-$lang['val_align_right']  = 'Zelle rechts ausrichten';
-$lang['span_col_plus']    = 'Zelle um rechte Zelle erweitern';
-$lang['span_col_minus']   = 'Zelle um rechte Zelle verkleinern';
-$lang['span_row_plus']    = 'Zelle um untere Zelle erweitern';
-$lang['span_row_minus']   = 'Zelle um untere Zelle verkleinern';
-$lang['js']['struct_col_plus']  = 'Spalte rechts hinzufügen';
-$lang['js']['struct_col_minus'] = 'Spalte entfernen';
-$lang['js']['struct_col_plus_before']  = 'Spalte links hinzufügen';
-$lang['js']['struct_row_plus']  = 'Zeile darunter einfügen';
-$lang['js']['struct_row_minus'] = 'Zeile entfernen';
-$lang['js']['struct_row_plus_before']  = 'Zeile darüber einfügen';
-$lang['js']['secedit_name']     = 'Tabelle';
+$lang['js']['toggle_header']    = 'Kopzeile an/aus';
+$lang['js']['align_left']       = 'Links ausrichten';
+$lang['js']['align_center']     = 'Mittig ausrichten';
+$lang['js']['align_right']      = 'Rechts ausrichten';
+
 $lang['js']['confirmdeleterow'] = 'Zeile wirklich löschen?';
 $lang['js']['confirmdeletecol'] = 'Spalte wirklich löschen?';
-$lang['js']['last_column'] = 'Die letzte Spalte darf nicht gelöscht werden!';
-$lang['js']['last_row'] = 'Die letzte Zeile darf nicht gelöscht werden!';
-$lang['add_table'] = 'Eine neue Tabelle einfügen';
+
+$lang['js']['row_above']        = 'Zeile darüber einfügen';
+$lang['js']['remove_row']       = 'Zeile entfernen';
+$lang['js']['row_below']        = 'Zeile darunter einfügen';
+
+$lang['js']['col_left']         = 'Spalte links hinzufügen';
+$lang['js']['remove_col']       = 'Spalte entfernen';
+$lang['js']['col_right']        = 'Spalte rechts hinzufügen';
+
+$lang['js']['colspan_add']      = 'Zelle erweitern →';
+$lang['js']['colspan_del']      = 'Zelle verkleinern ←';
+
+$lang['js']['rowspan_add']      = 'Zelle erweitern ↓';
+$lang['js']['rowspan_del']      = 'Zelle verkleinern ↑';
