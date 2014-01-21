@@ -1,7 +1,7 @@
 base    edittable
 author  Andreas Gohr
 email   gohr@cosmocode.de
-date    2014-01-17
+date    2014-01-21
 name    edittable plugin
 desc    Provide a custom editor for tables
 url     http://www.dokuwiki.org/plugin:edittable
