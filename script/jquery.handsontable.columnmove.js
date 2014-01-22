@@ -156,7 +156,7 @@ function EditTableColumnMove() {
      */
     this.getColHeader = function (col, TH) {
         if (this.getSettings().editTableColumnMove) {
-            // if this row is part of a row span, do not add move handle
+            // if this col is part of a col span, do not add move handle
             if(this.raw.colinfo[col]['colspan']) return;
 
             var DIV = document.createElement('DIV');

@@ -151,11 +151,15 @@ jQuery(function () {
 
             // unhide all cells
             for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++)
+                for (col = 0; col < data[0].length; col++) {
                     if (meta[row][col].hide) {
                         meta[row][col].hide = false;
                         data[row][col] = '';
                     }
+
+                    // make sure no data cell is undefined/null
+                    if(!data[row][col]) data[row][col] = '';
+                }
             }
 
             // rehide needed cells
@@ -230,6 +234,10 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateRow: function (index, amount) {
+            for(var z = 0; z < amount; z++) {
+                this.raw.rowinfo.splice(index, 0, [{}]);
+            }
+
             var i;
             var cols = 1; // minimal number of cells
             if (data[0]) cols = data[0].length;
@@ -237,7 +245,7 @@ jQuery(function () {
             // insert into meta array
             for (i = 0; i < amount; i++) {
                 var newrow = [];
-                for (i = 0; i < cols; i++) newrow.push({});
+                for (i = 0; i < cols; i++) newrow.push({rowspan: 1, colspan: 1});
                 meta.splice(index, 0, newrow);
             }
         },
@@ -259,9 +267,13 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateCol: function (index, amount) {
+            for(var z = 0; z < amount; z++) {
+                this.raw.colinfo.splice(index, 0, [{}]);
+            }
+
             for (var row = 0; row < data.length; row++) {
                 for (var i = 0; i < amount; i++) {
-                    meta[row].splice(index, 0, {});
+                    meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
         },

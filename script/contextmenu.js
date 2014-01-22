@@ -136,7 +136,6 @@ function getEditTableContextMenu(data, meta) {
                     var col = selection.start.col();
                     var row = selection.start.row();
 
-
                     // increase rowspan by the colspan of the cell to the right
                     meta[row][col].colspan += meta[row][col+1].colspan;
 
