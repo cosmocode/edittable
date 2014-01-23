@@ -88,7 +88,7 @@ function getEditTableContextMenu(data, meta) {
                 /**
                  * do not show when this is the last row
                  */
-                disabled: function() {
+                disabled: function () {
                     return (this.countRows() <= 1);
                 }
             },
@@ -116,7 +116,7 @@ function getEditTableContextMenu(data, meta) {
                 /**
                  * do not show when this is the last row
                  */
-                disabled: function() {
+                disabled: function () {
                     return (this.countCols() <= 1);
                 }
             },
@@ -137,13 +137,13 @@ function getEditTableContextMenu(data, meta) {
                     var row = selection.start.row();
 
                     // increase rowspan by the colspan of the cell to the right
-                    meta[row][col].colspan += meta[row][col+1].colspan;
+                    meta[row][col].colspan += meta[row][col + 1].colspan;
 
                     // copy over any data from the merged cells
                     var colspan = meta[row][col].colspan;
                     var rowspan = meta[row][col].rowspan;
                     for (var i = 0; i < rowspan; i++) {
-                        if(data[row + i][col + colspan - 1 ] != ':::') {
+                        if (data[row + i][col + colspan - 1 ] != ':::') {
                             data[row][col] += ' ' + data[row + i][col + colspan - 1 ];
                         }
                     }
@@ -169,8 +169,8 @@ function getEditTableContextMenu(data, meta) {
 
                     // don't merge into hidden or spanned cells
                     for (var i = 0; i < rowspan; i++) {
-                        if(meta[row + i][col + colspan].hide) return true;
-                        if(meta[row + i][col + colspan].rowspan > 1) {
+                        if (meta[row + i][col + colspan].hide) return true;
+                        if (meta[row + i][col + colspan].rowspan > 1) {
                             // we allow merge with same rowspanned cell only
                             return meta[row + i][col + colspan].rowspan != rowspan;
                         }
@@ -220,13 +220,13 @@ function getEditTableContextMenu(data, meta) {
                     var row = selection.start.row();
 
                     // increase rowspan by the rowspan of the cell below
-                    meta[row][col].rowspan += meta[row+1][col].rowspan;
+                    meta[row][col].rowspan += meta[row + 1][col].rowspan;
 
                     // copy over any data from the merged cells
                     var colspan = meta[row][col].colspan;
                     var rowspan = meta[row][col].rowspan;
                     for (var i = 0; i < colspan; i++) {
-                        if(data[row + rowspan - 1][col + i] != ':::'){
+                        if (data[row + rowspan - 1][col + i] != ':::') {
                             data[row][col] += ' ' + data[row + rowspan - 1][col + i];
                         }
                     }
@@ -252,8 +252,8 @@ function getEditTableContextMenu(data, meta) {
 
                     // don't merge into hidden or spanned cells
                     for (var i = 0; i < colspan; i++) {
-                        if(meta[row + rowspan][col + i].hide) return true;
-                        if(meta[row + rowspan][col + i].colspan > 1) {
+                        if (meta[row + rowspan][col + i].hide) return true;
+                        if (meta[row + rowspan][col + i].colspan > 1) {
                             // we allow merge with same colspanned cell only
                             return meta[row + rowspan][col + i].colspan != colspan;
                         }

@@ -32,14 +32,15 @@ jQuery(function () {
          * Attach pointers to our raw data structures in the instance
          */
         afterLoadData: function () {
+            var i;
             this.raw = {
                 data: data,
                 meta: meta,
                 colinfo: [],
                 rowinfo: []
             };
-            for(i = 0; i< data.length; i++) this.raw.rowinfo[i] = {}
-            for(i = 0; i< data[0].length; i++) this.raw.colinfo[i] = {}
+            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
+            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
         },
 
         /**
@@ -146,8 +147,8 @@ jQuery(function () {
             // reset row and column infos - we store spanning info there
             this.raw.rowinfo = [];
             this.raw.colinfo = [];
-            for(i = 0; i< data.length; i++) this.raw.rowinfo[i] = {}
-            for(i = 0; i< data[0].length; i++) this.raw.colinfo[i] = {}
+            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
+            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
 
             // unhide all cells
             for (row = 0; row < data.length; row++) {
@@ -158,7 +159,7 @@ jQuery(function () {
                     }
 
                     // make sure no data cell is undefined/null
-                    if(!data[row][col]) data[row][col] = '';
+                    if (!data[row][col]) data[row][col] = '';
                 }
             }
 
@@ -234,8 +235,10 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateRow: function (index, amount) {
-            for(var z = 0; z < amount; z++) {
-                this.raw.rowinfo.splice(index, 0, [{}]);
+            for (var z = 0; z < amount; z++) {
+                this.raw.rowinfo.splice(index, 0, [
+                    {}
+                ]);
             }
 
             var i;
@@ -267,8 +270,10 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateCol: function (index, amount) {
-            for(var z = 0; z < amount; z++) {
-                this.raw.colinfo.splice(index, 0, [{}]);
+            for (var z = 0; z < amount; z++) {
+                this.raw.colinfo.splice(index, 0, [
+                    {}
+                ]);
             }
 
             for (var row = 0; row < data.length; row++) {
@@ -288,21 +293,6 @@ jQuery(function () {
             for (var row = 0; row < data.length; row++) {
                 meta[row].splice(index, amount);
             }
-        },
-
-        /**
-         * Update meta data array when a column was moved
-         *
-         * @param oldIndex
-         * @param newIndex
-         */
-        afterColumnMove: function (oldIndex, newIndex) {
-            /* FIXME still broken
-             for (var row = 0; row < data.length; row++) {
-             meta[row].splice(newIndex, 0, meta[row].splice(oldIndex, 1)[0]);
-             data[row].splice(newIndex, 0, data[row].splice(oldIndex, 1)[0]);
-             }
-             */
         },
 
         /**

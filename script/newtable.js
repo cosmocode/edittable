@@ -11,7 +11,7 @@ function addBtnActionNewTable($btn, props, edid) {
 
     $btn.click(function () {
         var editform = jQuery('#dw__editform')[0];
-        var ed = jQuery('#'+edid)[0];
+        var ed = jQuery('#' + edid)[0];
 
         function addField(name, val) {
             var pos_field = document.createElement('textarea');
@@ -22,7 +22,7 @@ function addBtnActionNewTable($btn, props, edid) {
         }
 
         var sel;
-        if(DWgetSelection) {
+        if (DWgetSelection) {
             sel = DWgetSelection(ed);
         } else {
             sel = getSelection(ed);

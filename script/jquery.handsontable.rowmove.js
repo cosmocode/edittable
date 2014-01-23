@@ -69,7 +69,7 @@ function EditTableRowMove() {
                 if (startRow == endRow)  return;
 
                 // if this row is part of a row span, do not move
-                if(instance.raw.rowinfo[endRow]['rowspan']) return;
+                if (instance.raw.rowinfo[endRow]['rowspan']) return;
 
                 // swap the rows
                 instance.raw.data.splice(endRow, 0, instance.raw.data.splice(startRow, 1)[0]);
@@ -112,7 +112,7 @@ function EditTableRowMove() {
                 endRow = instance.view.wt.wtDom.index(this.parentNode) + instance.rowOffset();
 
                 // if this row is part of a row span, do not move
-                if(instance.raw.rowinfo[endRow]['rowspan']) return;
+                if (instance.raw.rowinfo[endRow]['rowspan']) return;
 
                 var THs = instance.view.TBODY.querySelectorAll('th');
                 var mover = THs[endRow].querySelector('.editTableRowMover');
@@ -159,7 +159,7 @@ function EditTableRowMove() {
     this.getRowHeader = function (row, TH) {
         if (row > -1 && this.getSettings().editTableRowMove) {
             // if this row is part of a row span, do not add move handle
-            if(this.raw.rowinfo[row]['rowspan']) return;
+            if (this.raw.rowinfo[row]['rowspan']) return;
 
             var DIV = document.createElement('DIV');
             DIV.className = 'editTableRowMover';
