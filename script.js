@@ -1,5 +1,5 @@
 /* DOKUWIKI:include_once script/json2.js */
-/* DOKUWIKI:include script/jquery.handsontable.full.js */
+/* DOKUWIKI:include_once script/jquery.handsontable.full.js */
 /* DOKUWIKI:include script/jquery.handsontable.columnmove.js */
 /* DOKUWIKI:include script/jquery.handsontable.rowmove.js */
 

@@ -54,7 +54,7 @@ jQuery(function () {
          * @returns {*}
          */
         cells: function (row, col, prop) {
-            return meta[row][col]
+            return meta[row][col];
         },
 
         /**
@@ -182,8 +182,8 @@ jQuery(function () {
                         meta[row][col + c].colspan = 1;
                         data[row][col + c] = '';
 
-                        this.raw.colinfo[col]['colspan'] = true;
-                        this.raw.colinfo[col + c]['colspan'] = true;
+                        this.raw.colinfo[col].colspan = true;
+                        this.raw.colinfo[col + c].colspan = true;
 
                         // hide colspanned rows below if rowspan is in effect as well
                         for (r = 1; r < rowspan; r++) {
@@ -198,7 +198,7 @@ jQuery(function () {
                             meta[row + r][col + c].colspan = 1;
                             data[row + r][col + c] = '';
 
-                            this.raw.rowinfo[row + r]['rowspan'] = true;
+                            this.raw.rowinfo[row + r].rowspan = true;
                         }
 
                     }
@@ -217,8 +217,8 @@ jQuery(function () {
                         meta[row + r][col].colspan = 1;
                         data[row + r][col] = ':::';
 
-                        this.raw.rowinfo[row]['rowspan'] = true;
-                        this.raw.rowinfo[row + r]['rowspan'] = true;
+                        this.raw.rowinfo[row].rowspan = true;
+                        this.raw.rowinfo[row + r].rowspan = true;
                     }
                 }
             }
@@ -316,7 +316,7 @@ jQuery(function () {
                 if (h > 0) h = 1;
                 if (h < 0) h = -1;
 
-                if (v != 0) {
+                if (v !== 0) {
                     x = r;
                     // user navigated vertically
                     do {
@@ -330,7 +330,7 @@ jQuery(function () {
                     } while (x > 0 && x < data.length);
                     // found no suitable cell
                     this.deselectCell();
-                } else if (h != 0) {
+                } else if (h !== 0) {
                     x = c;
                     // user navigated horizontally
                     do {

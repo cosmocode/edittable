@@ -292,5 +292,5 @@ function getEditTableContextMenu(data, meta) {
             }
 
         }
-    }
+    };
 }
