@@ -22,7 +22,7 @@ function addBtnActionNewTable($btn, props, edid) {
         }
 
         var sel;
-        if (DWgetSelection) {
+        if (window.DWgetSelection) {
             sel = DWgetSelection(ed);
         } else {
             sel = getSelection(ed);
