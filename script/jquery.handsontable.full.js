@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 20 2014 14:54:42 GMT+0100 (CET)
+ * Date: Mon Jan 27 2014 10:56:21 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7123,7 +7123,13 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
         }
       }
 
-      return width + 10; // added a bit of padding ANDI
+      width += 10;  // added a bit of padding ANDI
+
+      // we limit the size to a third of the table ANDI
+      var widthLimit = Math.floor(instance.view.wt.wtViewport.getViewportWidth() / 3.0);
+      if(width > widthLimit) width = widthLimit;
+
+      return width;
     };
 
     this.determineColumnsWidth = function () {
