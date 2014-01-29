@@ -8,6 +8,9 @@
 if(!defined('DOKU_INC')) die();
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
+/**
+ * Handles the inserting of a new table in a running edit session
+ */
 class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
 
     /**
@@ -16,7 +19,8 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
 
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
+        //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
+        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', 'BEFORE', $this, 'handle_newtable');
     }
 
     /**
