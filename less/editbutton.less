@@ -1,10 +1,8 @@
 /* the section edit button  */
-
-@edittable-button-offset: -1.7em; /* depends on the table margin in template */
-
 .dokuwiki div.editbutton_table {
-    margin-top: @edittable-button-offset;
+    margin-top: -1.7em; // this is correct for dokuwiki template, but we adjust it via JS later
     float: none;
+    display: none; // we make it visible by JavaScript
 
     form div.no input.button {
         margin-left: 0.6em;
