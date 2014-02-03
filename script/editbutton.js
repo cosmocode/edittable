@@ -12,8 +12,8 @@ jQuery(function () {
     var margin = 0;
     var $tablediv = $editbutton.prev('div.table');
     if (!$tablediv.length) return;
-    margin += parseInt($tablediv.css('margin-bottom'));
-    margin += parseInt($tablediv.find('table').css('margin-bottom'));
+    margin += parseFloat($tablediv.css('margin-bottom'));
+    margin += parseFloat($tablediv.find('table').css('margin-bottom'));
     margin += 1; // for the border
 
     $editbutton.css('margin-top', margin * -1);
