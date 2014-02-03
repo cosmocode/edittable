@@ -32,7 +32,8 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
         $event->data[] = array(
             'title' => $this->getLang('add_table'),
             'type'  => 'NewTable',
-            'icon'  => '../../plugins/edittable/images/add_table.png'
+            'icon'  => '../../plugins/edittable/images/add_table.png',
+            'block' => true
         );
     }
 
