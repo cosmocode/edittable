@@ -10,9 +10,9 @@ $lang['js']['align_right']      = '오른쪽 정렬';
 $lang['js']['confirmdeleterow'] = '정말 행을 삭제하시겠습니까?';
 $lang['js']['confirmdeletecol'] = '정말 열을 삭제하시겠습니까?';
 
-$lang['js']['row_above']        = '행을 위에 추가';
+$lang['js']['row_above']        = '위에 행 추가';
 $lang['js']['remove_row']       = '행 삭제';
-$lang['js']['row_below']        = '행을 아래에 추가';
+$lang['js']['row_below']        = '아래에 행 추가';
 
 $lang['js']['col_left']         = '왼쪽에 열 추가';
 $lang['js']['remove_col']       = '열 삭제';
