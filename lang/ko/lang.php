@@ -2,7 +2,7 @@
 $lang['secedit_name']           = '표';
 $lang['add_table']              = '표 추가';
 
-$lang['js']['toggle_header']    = '머리글 토글';
+$lang['js']['toggle_header']    = '머리글 상태 토글';
 $lang['js']['align_left']       = '왼쪽 정렬';
 $lang['js']['align_center']     = '가운데 정렬';
 $lang['js']['align_right']      = '오른쪽 정렬';
