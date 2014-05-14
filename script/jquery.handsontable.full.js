@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 27 2014 10:56:21 GMT+0100 (CET)
+ * Date: Wed May 14 2014 15:53:30 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2977,7 +2977,7 @@ Handsontable.TableView = function (instance) {
         document.getSelection().removeAllRanges();
       }
     } else if (document.selection) {  // IE?
-      document.selection.empty();
+      try { document.selection.empty(); } catch(e) { /* absorb ie8 bug */ }
     }
   };
 
