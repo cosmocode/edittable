@@ -55,6 +55,12 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         global $RANGE;
 
         if($event->data['target'] !== 'table') return;
+        if(!$RANGE){
+            // section editing failed, use default editor instead
+            $event->data['target'] = 'section';
+            return;
+        }
+
         $event->stopPropagation();
         $event->preventDefault();
 
