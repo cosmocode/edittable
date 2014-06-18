@@ -229,6 +229,18 @@ jQuery(function () {
         },
 
         /**
+         * Disable key handling while the link wizard or any other dialog is visible
+         *
+         * @param e
+         */
+        beforeKeyDown: function(e) {
+            if(jQuery('.ui-dialog:visible').length) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+            }
+        },
+
+        /**
          * Update meta data array when rows are added
          *
          * @param index int
