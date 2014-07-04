@@ -223,8 +223,21 @@ jQuery(function () {
                 }
             }
 
-            // Store data and meta back in the form
-            $datafield.val(JSON.stringify(data));
+            // Clone data object
+            // Since we can't use real line breaks (\n) inside table cells, this object is used to store all cell values with DokuWiki's line breaks (\\) instead of actual ones.
+            var dataLBFixed = jQuery.extend(true, {}, data);
+
+            // In dataLBFixed, replace all actual line breaks with DokuWiki line breaks
+            // In data, replace all DokuWiki line breaks with actual ones so the editor displays line breaks properly
+            for (row = 0; row < data.length; row++) {
+                for (col = 0; col < data[0].length; col++) {
+                    dataLBFixed[row][col] = data[row][col].replace(/(\r\n|\n|\r)/g,"\\\\ ");
+                    data[row][col]        = data[row][col].replace(/\\\\\s/g,"\n");
+                }
+            }
+
+            // Store dataFixed and meta back in the form
+            $datafield.val(JSON.stringify(dataLBFixed));
             $metafield.val(JSON.stringify(meta));
         },
 
