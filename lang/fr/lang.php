@@ -7,7 +7,7 @@
  */
 $lang['secedit_name']          = 'Tableau';
 $lang['add_table']             = 'Insérer une nouvelle ligne.';
-$lang['js']['toggle_header']   = 'dés(activer) entêtes';
+$lang['js']['toggle_header']   = '(dés)activer entêtes';
 $lang['js']['align_left']      = 'Alignement à gauche';
 $lang['js']['align_center']    = 'Centrage';
 $lang['js']['align_right']     = 'Alignement à droite';
