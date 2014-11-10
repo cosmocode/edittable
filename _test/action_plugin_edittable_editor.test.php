@@ -48,7 +48,6 @@ class action_plugin_edittable_editor_test extends DokuWikiTest {
 | R 1 C 1  | R 1 C 2            || R 1 Col 4  |
 | R 2 C 1  | :::                || R 2 Col 4  |
 | R 3 C 1  | R 3 C 2  | R 3 C 3  | R 3 Col 4  |
-
 EOF;
 
         $action = new action_plugin_edittable_editor();

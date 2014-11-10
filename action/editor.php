@@ -207,6 +207,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
             // close the row
             $table .= "$last\n";
         }
+        $table = rtrim($table, "\n");
 
         return $table;
     }
