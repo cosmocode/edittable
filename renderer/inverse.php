@@ -236,7 +236,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
     }
 
-    function listitem_open($level) {
+    function listitem_open($level, $node = false) {
         $this->block();
         $this->doc .= str_repeat(' ', $level * 2).end($this->_liststack).' ';
     }
