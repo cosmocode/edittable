@@ -4,6 +4,7 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * 
  * @author Aleksandr Selivanov <alexgearbox@yandex.ru>
+ * @author artem <blast@ukr.net>
  */
 $lang['secedit_name']          = 'Таблица';
 $lang['add_table']             = 'Вставить новую таблицу';
@@ -17,6 +18,6 @@ $lang['js']['remove_row']      = 'Удалить строку';
 $lang['js']['row_below']       = 'Добавить строку ниже';
 $lang['js']['col_left']        = 'Добавить столбец слева';
 $lang['js']['remove_col']      = 'Удалить столбец';
-$lang['js']['col_right']       = 'Объединить ячейку с правой ячейкой';
+$lang['js']['col_right']       = 'Добавить столбец справа';
 $lang['js']['colspan_add']     = 'Объединить ячейку с правой ячейкой';
 $lang['js']['rowspan_add']     = 'Объединить ячейку с нижней ячейкой';
