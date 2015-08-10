@@ -11,8 +11,8 @@ function getEditTableContextMenu(data, meta) {
             toggle_header: {
                 name: LANG.plugins.edittable.toggle_header,
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
 
                     if (meta[row][col].tag && meta[row][col].tag === 'th') {
                         meta[row][col].tag = 'td';
@@ -25,8 +25,8 @@ function getEditTableContextMenu(data, meta) {
             align_left: {
                 name: LANG.plugins.edittable.align_left,
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
                     meta[row][col].align = 'left';
                     this.render();
                 },
@@ -40,8 +40,8 @@ function getEditTableContextMenu(data, meta) {
             align_center: {
                 name: LANG.plugins.edittable.align_center,
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
                     meta[row][col].align = 'center';
                     this.render();
                 },
@@ -55,8 +55,8 @@ function getEditTableContextMenu(data, meta) {
             align_right: {
                 name: LANG.plugins.edittable.align_right,
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
                     meta[row][col].align = 'right';
                     this.render();
                 },
@@ -81,8 +81,8 @@ function getEditTableContextMenu(data, meta) {
                  */
                 callback: function (key, selection) {
                     if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
-                        var amount = selection.end.row() - selection.start.row() + 1;
-                        this.alter("remove_row", selection.start.row(), amount);
+                        var amount = selection.end.row - selection.start.row + 1;
+                        this.alter("remove_row", selection.start.row, amount);
                     }
                 },
                 /**
@@ -109,8 +109,8 @@ function getEditTableContextMenu(data, meta) {
                  */
                 callback: function (key, selection) {
                     if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
-                        var amount = selection.end.col() - selection.start.col() + 1;
-                        this.alter("remove_col", selection.start.col(), amount);
+                        var amount = selection.end.col - selection.start.col + 1;
+                        this.alter("remove_col", selection.start.col, amount);
                     }
                 },
                 /**
@@ -133,8 +133,8 @@ function getEditTableContextMenu(data, meta) {
                  * @param selection
                  */
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
 
                     // increase rowspan by the colspan of the cell to the right
                     meta[row][col].colspan += meta[row][col + 1].colspan;
@@ -188,8 +188,8 @@ function getEditTableContextMenu(data, meta) {
                  * @param selection
                  */
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
 
                     meta[row][col].colspan--;
                     this.render();
@@ -216,8 +216,8 @@ function getEditTableContextMenu(data, meta) {
                  * @param selection
                  */
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
 
                     // increase rowspan by the rowspan of the cell below
                     meta[row][col].rowspan += meta[row + 1][col].rowspan;
@@ -271,8 +271,8 @@ function getEditTableContextMenu(data, meta) {
                  * @param selection
                  */
                 callback: function (key, selection) {
-                    var col = selection.start.col();
-                    var row = selection.start.row();
+                    var col = selection.start.col;
+                    var row = selection.start.row;
 
                     meta[row][col].rowspan--;
                     this.render();
