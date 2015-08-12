@@ -154,7 +154,7 @@ jQuery(function () {
             this.selectCell(0, 0);
 
             // we need an ID on the input field
-            this.rootElement.find('textarea.handsontableInput').attr('id', 'handsontable__input');
+            jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
 
             // we're ready to intialize the toolbar now
             initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
