@@ -14,6 +14,24 @@ var moveCol = function moveCol(startCol,endCol,dmarray) {
     }
 };
 
+var getMerges = function getMerges (meta) {
+    var merges = [];
+    for (var row = 0; row < meta.length; row++) {
+        for (var col = 0; col < meta[0].length; col++) {
+            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col]['rowspan'] > 1 ||
+                meta[row][col].hasOwnProperty('colspan') && meta[row][col]['colspan'] > 1) {
+                var merge = {};
+                merge['row'] = row;
+                merge['col'] = col;
+                merge['rowspan'] = meta[row][col]['rowspan'];
+                merge['colspan'] = meta[row][col]['colspan'];
+                merges.push(merge);
+            }
+        }
+    }
+    return merges;
+};
+
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) return;
@@ -24,6 +42,9 @@ jQuery(function () {
 
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
+    console.log(JSON.stringify(meta,null,2));
+    var merges = getMerges(meta);
+    if (merges === []) merges = true;
     var lastselect = {row: 0, col: 0};
 
     $container.handsontable({
@@ -37,7 +58,7 @@ jQuery(function () {
         contextMenu: getEditTableContextMenu(data, meta),
         manualColumnMove: true,
         manualRowMove: true,
-        mergeCells:true,
+        mergeCells: merges,
 
 
         /**
