@@ -190,68 +190,39 @@ jQuery(function () {
                         meta[row][col].hide = false;
                         data[row][col] = '';
                     }
+                    // unset all row/colspans
+                    meta[row][col].colspan = 1;
+                    meta[row][col].rowspan = 1;
 
                     // make sure no data cell is undefined/null
                     if (!data[row][col]) data[row][col] = '';
                 }
             }
 
-            // rehide needed cells
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
-                    var colspan = meta[row][col].colspan;
-                    var rowspan = meta[row][col].rowspan;
+            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; ++merge) {
+                row = this.mergeCells.mergedCellInfoCollection[merge].row;
+                col = this.mergeCells.mergedCellInfoCollection[merge].col;
+                var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
+                var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
+                meta[row][col]['colspan'] = colspan;
+                meta[row][col]['rowspan'] = rowspan;
 
-                    for (c = 1; c < colspan; c++) {
-                        // does the colspan reach out of the table? decrease it
-                        if (!meta[row][col + c]) {
-                            meta[row][col].colspan--;
-                            continue;
+                // hide the cells hidden by the row/colspan
+
+                for (r = row; r < row + rowspan; ++r) {
+                    for (c = col; c < col + colspan; ++c) {
+                        if (r === row && c === col) continue;
+                        meta[r][c].hide = true;
+                        meta[r][c].rowspan = 1;
+                        meta[r][c].colspan = 1;
+                        if (data[r][c] && data[r][c] !== ':::') {
+                            data[row][col] += ' ' + data[r][c];
                         }
-
-                        // hide colspanned cell in same row
-                        meta[row][col + c].hide = true;
-                        meta[row][col + c].rowspan = 1;
-                        meta[row][col + c].colspan = 1;
-                        data[row][col + c] = '';
-
-                        this.raw.colinfo[col].colspan = true;
-                        this.raw.colinfo[col + c].colspan = true;
-
-                        // hide colspanned rows below if rowspan is in effect as well
-                        for (r = 1; r < rowspan; r++) {
-                            // does the rowspan reach out of the table? decrease it
-                            if (!meta[row + r]) {
-                                meta[row][col].rowspan--;
-                                continue;
-                            }
-
-                            meta[row + r][col + c].hide = true;
-                            meta[row + r][col + c].rowspan = 1;
-                            meta[row + r][col + c].colspan = 1;
-                            data[row + r][col + c] = '';
-
-                            this.raw.rowinfo[row + r].rowspan = true;
+                        if (r === row) {
+                            data[r][c] = '';
+                        } else {
+                            data[r][c] = ':::';
                         }
-
-                    }
-
-                    // hide rowspanned columns
-                    rowspan = meta[row][col].rowspan; // might have changed above
-                    for (r = 1; r < rowspan; r++) {
-                        // does the rowspan reach out of the table? decrease it
-                        if (!meta[row + r]) {
-                            meta[row][col].rowspan--;
-                            continue;
-                        }
-
-                        meta[row + r][col].hide = true;
-                        meta[row + r][col].rowspan = 1;
-                        meta[row + r][col].colspan = 1;
-                        data[row + r][col] = ':::';
-
-                        this.raw.rowinfo[row].rowspan = true;
-                        this.raw.rowinfo[row + r].rowspan = true;
                     }
                 }
             }
