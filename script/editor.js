@@ -19,14 +19,13 @@ jQuery(function () {
         startCols: 5,
         colHeaders: true,
         rowHeaders: true,
-        multiSelect: false, // until properly tested with col/row span
-        fillHandle: false, // until properly tested with col/row span
-        undo: false, // until properly tested with col/row span
         manualColumnResize: true,
-        editTableColumnMove: true, // custom plugin
-        editTableRowMove: true, // custom plugin
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
+        manualColumnMove: true,
+        manualRowMove: true,
+        mergeCells:true,
+
 
         /**
          * Attach pointers to our raw data structures in the instance
