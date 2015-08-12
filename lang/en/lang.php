@@ -18,8 +18,4 @@ $lang['js']['col_left']         = 'Add column on the left';
 $lang['js']['remove_col']       = 'Remove column';
 $lang['js']['col_right']        = 'Add column on the right';
 
-$lang['js']['colspan_add']      = 'Increase colspan';
-$lang['js']['colspan_del']      = 'Decrease colspan';
-
-$lang['js']['rowspan_add']      = 'Increase rowspan';
-$lang['js']['rowspan_del']      = 'Decrease rowspan';
+$lang['js']['merge_cells']      = 'Merge cells';
