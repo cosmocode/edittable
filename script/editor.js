@@ -1,6 +1,19 @@
 /**
  * This configures the Handsontable Plugin
  */
+
+var moveRow = function moveRow(startRow,endRow,dmarray) {
+    var metarow = dmarray.splice(startRow,1)[0];
+    dmarray.splice(endRow, 0, metarow);
+};
+
+var moveCol = function moveCol(startCol,endCol,dmarray) {
+    for (var i = 0; i < dmarray.length; ++i) {
+        var datacol = dmarray[i].splice(startCol, 1)[0];
+        dmarray[i].splice(endCol, 0, datacol);
+    }
+};
+
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) return;
@@ -237,6 +250,24 @@ jQuery(function () {
                 e.stopImmediatePropagation();
                 e.preventDefault();
             }
+        },
+
+        beforeColumnMove: function(startCol, endCol) {
+            moveCol(startCol, endCol, meta);
+            moveCol(startCol, endCol, data);
+        },
+
+        afterColumnMove: function () {
+            this.updateSettings({manualColumnMove: true});
+        },
+
+        beforeRowMove: function(startRow, endRow) {
+            moveRow(startRow, endRow, meta);
+            moveRow(startRow, endRow, data);
+        },
+
+        afterRowMove: function () {
+            this.updateSettings({manualRowMove: true});
         },
 
         /**
