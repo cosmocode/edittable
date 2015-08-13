@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Aug 11 2015 17:19:38 GMT+0200 (CEST)
+ * Date: Thu Aug 13 2015 16:26:31 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Tue Aug 11 2015 17:19:38 GMT+0200 (CEST)'
+  buildDate: 'Thu Aug 13 2015 16:26:31 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -14069,7 +14069,7 @@ function ManualColumnMove() {
     instance = this;
     currentTH = TH;
     var col = this.view.wt.wtTable.getCoords(TH).col;
-    if (col >= 0) {
+    if (col >= 0 && this.disabledColumns.indexOf(col) === -1) {
       currentCol = col;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.left;
@@ -14136,8 +14136,10 @@ function ManualColumnMove() {
           if (pressed) {
             var col = instance.view.wt.wtTable.getCoords(th).col;
             if (col >= 0) {
-              endCol = col;
-              refreshHandlePosition(e.target, endCol - startCol);
+              if (instance.disabledColumns.indexOf(col) === -1 || col == startCol || col < startCol && instance.disabledColumns.indexOf(col - 1) === -1 || col > startCol && instance.disabledColumns.indexOf(col + 1) === -1) {
+                endCol = col;
+                refreshHandlePosition(e.target, endCol - startCol);
+              }
             }
           } else {
             setupHandlePosition.call(instance, th);
@@ -14193,6 +14195,10 @@ function ManualColumnMove() {
     var manualColMoveEnabled = !!(this.getSettings().manualColumnMove);
     if (manualColMoveEnabled) {
       var initialManualColumnPositions = this.getSettings().manualColumnMove;
+      this.disabledColumns = instance.getSettings().manualColumnMoveDisable;
+      if (!Array.isArray(this.disabledColumns)) {
+        this.disabledColumns = [];
+      }
       var loadedManualColumnPositions = loadManualColumnPositions.call(instance);
       if (typeof loadedManualColumnPositions != 'undefined') {
         this.manualColumnPositions = loadedManualColumnPositions;
@@ -14550,7 +14556,7 @@ function ManualRowMove() {
     var instance = this;
     currentTH = TH;
     var row = this.view.wt.wtTable.getCoords(TH).row;
-    if (row >= 0) {
+    if (row >= 0 && this.disabledRows.indexOf(row) === -1) {
       currentRow = row;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.top;
@@ -14615,8 +14621,11 @@ function ManualRowMove() {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
-            endRow = instance.view.wt.wtTable.getCoords(th).row;
-            refreshHandlePosition(th, endRow - startRow);
+            var currentRow = instance.view.wt.wtTable.getCoords(th).row;
+            if (instance.disabledRows.indexOf(currentRow) === -1 || currentRow == startRow || currentRow < startRow && instance.disabledRows.indexOf(currentRow - 1) === -1 || currentRow > startRow && instance.disabledRows.indexOf(currentRow + 1) === -1) {
+              refreshHandlePosition(th, currentRow - startRow);
+              endRow = currentRow;
+            }
           } else {
             setupHandlePosition.call(instance, th);
           }
@@ -14671,6 +14680,10 @@ function ManualRowMove() {
     var manualRowMoveEnabled = !!(instance.getSettings().manualRowMove);
     if (manualRowMoveEnabled) {
       var initialManualRowPositions = instance.getSettings().manualRowMove;
+      this.disabledRows = instance.getSettings().manualRowMoveDisable;
+      if (!Array.isArray(this.disabledRows)) {
+        this.disabledRows = [];
+      }
       var loadedManualRowPostions = loadManualRowPositions.call(instance);
       if (typeof instance.manualRowPositionsPluginUsages != 'undefined') {
         instance.manualRowPositionsPluginUsages.push('manualColumnMove');

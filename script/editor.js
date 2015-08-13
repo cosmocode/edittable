@@ -42,7 +42,6 @@ jQuery(function () {
 
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
-    console.log(JSON.stringify(meta,null,2));
     var merges = getMerges(meta);
     if (merges === []) merges = true;
     var lastselect = {row: 0, col: 0};
@@ -199,11 +198,27 @@ jQuery(function () {
                 }
             }
 
+            var manualRowMoveDisable = [];
+            var manualColumnMoveDisable = [];
             for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; ++merge) {
                 row = this.mergeCells.mergedCellInfoCollection[merge].row;
                 col = this.mergeCells.mergedCellInfoCollection[merge].col;
                 var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
                 var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
+                if (rowspan > 1) {
+                    for (i = row; i < row+rowspan; ++i ) {
+                        if (manualRowMoveDisable.indexOf(i) === -1) {
+                            manualRowMoveDisable.push(i);
+                        }
+                    }
+                }
+                if (colspan > 1) {
+                    for (i = col; i < col+colspan; ++i ) {
+                        if (manualColumnMoveDisable.indexOf(i) === -1) {
+                            manualColumnMoveDisable.push(i);
+                        }
+                    }
+                }
                 meta[row][col]['colspan'] = colspan;
                 meta[row][col]['rowspan'] = rowspan;
 
@@ -225,6 +240,15 @@ jQuery(function () {
                         }
                     }
                 }
+            }
+
+            if (!this.manualRowMoveDisable || JSON.stringify(manualRowMoveDisable.sort()) != JSON.stringify(this.manualRowMoveDisable.sort())) {
+                this.manualRowMoveDisable = manualRowMoveDisable;
+                this.updateSettings({manualRowMoveDisable: manualRowMoveDisable});
+            }
+            if (!this.manualColumnMoveDisable || JSON.stringify(manualColumnMoveDisable.sort()) != JSON.stringify(this.manualColumnMoveDisable.sort())) {
+                this.manualColumnMoveDisable = manualColumnMoveDisable;
+                this.updateSettings({manualColumnMoveDisable: manualColumnMoveDisable});
             }
 
             // Store data and meta back in the form
