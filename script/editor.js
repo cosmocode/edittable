@@ -14,6 +14,40 @@ var moveCol = function moveCol(startCol,endCol,dmarray) {
     }
 };
 
+/**
+ * If the number of rows or columns in front of some merged cells changes, update the mergedCellInfoCollection accordingly.
+ *
+ * @param direction string either col or row
+ * @param type string either create, remove or move
+ * @param start int
+ * @param end int optional, only for moves
+ */
+var updateMergeInfo = function updateMergeInfo(direction, type, start, end) {
+    var mergesNeedUpdate = false;
+    if (type === 'create' || type === 'remove') {
+        end = Infinity;
+    }
+
+    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+        if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && end > this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            if (type === 'create') {
+                this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
+            } else {
+                this.mergeCells.mergedCellInfoCollection[i][direction] -= 1;
+            }
+            mergesNeedUpdate = true;
+        }
+        if (start > this.mergeCells.mergedCellInfoCollection[i][direction] && end <= this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
+            mergesNeedUpdate = true;
+        }
+    }
+
+    if (mergesNeedUpdate) {
+        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
+    }
+};
+
 var getMerges = function getMerges (meta) {
     var merges = [];
     for (var row = 0; row < meta.length; row++) {
@@ -271,6 +305,7 @@ jQuery(function () {
         beforeColumnMove: function(startCol, endCol) {
             moveCol(startCol, endCol, meta);
             moveCol(startCol, endCol, data);
+            updateMergeInfo.call(this, 'col','move',startCol, endCol);
         },
 
         afterColumnMove: function () {
@@ -280,6 +315,7 @@ jQuery(function () {
         beforeRowMove: function(startRow, endRow) {
             moveRow(startRow, endRow, meta);
             moveRow(startRow, endRow, data);
+            updateMergeInfo.call(this, 'row','move',startRow, endRow);
         },
 
         afterRowMove: function () {
@@ -309,6 +345,7 @@ jQuery(function () {
                 for (i = 0; i < cols; i++) newrow.push({rowspan: 1, colspan: 1});
                 meta.splice(index, 0, newrow);
             }
+            updateMergeInfo.call(this, 'row','create',index);
         },
 
         /**
@@ -319,6 +356,7 @@ jQuery(function () {
          */
         afterRemoveRow: function (index, amount) {
             meta.splice(index, amount);
+            updateMergeInfo.call(this, 'row','remove',index);
         },
 
         /**
@@ -339,6 +377,7 @@ jQuery(function () {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
+            updateMergeInfo.call(this, 'col','create',index);
         },
 
         /**
@@ -351,6 +390,7 @@ jQuery(function () {
             for (var row = 0; row < data.length; row++) {
                 meta[row].splice(index, amount);
             }
+            updateMergeInfo.call(this, 'col','remove',index);
         },
 
         /**
