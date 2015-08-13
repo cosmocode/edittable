@@ -19,3 +19,4 @@ $lang['js']['remove_col']       = 'Spalte entfernen';
 $lang['js']['col_right']        = 'Spalte rechts hinzufügen';
 
 $lang['js']['merge_cells']      = 'Zellen verbinden';
+$lang['js']['unmerge_cells']    = 'Zellen trennen';

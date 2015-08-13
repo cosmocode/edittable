@@ -149,7 +149,16 @@ function getEditTableContextMenu(data, meta) {
             },
             hsep3: '---------',
             mergeCells: {
-                name: LANG.plugins.edittable.merge_cells
+                name: function() {
+                    var sel = this.getSelected();
+                    var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
+                    if (info) {
+                        return '<span class="unmerge">' + LANG.plugins.edittable.unmerge_cells + '</span>';
+                    } else {
+                        return '<span class="merge">' + LANG.plugins.edittable.merge_cells + '</span>';
+                    }
+                }
+
             }
         }
     };
