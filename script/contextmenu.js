@@ -157,6 +157,20 @@ function getEditTableContextMenu(data, meta) {
                     } else {
                         return '<div class="merge">' + LANG.plugins.edittable.merge_cells + '</div>';
                     }
+                },
+
+                /**
+                 * disable if only one cell is selected
+                 *
+                 * @returns {boolean}
+                 */
+                disabled: function () {
+                    var selection = this.getSelected();
+                    var startRow = selection[0];
+                    var startCol = selection[1];
+                    var endRow = selection[2];
+                    var endCol = selection[3];
+                    return startRow === endRow && startCol === endCol;
                 }
 
             }

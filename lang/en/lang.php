@@ -19,4 +19,4 @@ $lang['js']['remove_col']       = 'Remove column';
 $lang['js']['col_right']        = 'Add column on the right';
 
 $lang['js']['merge_cells']      = 'Merge cells';
-$lang['js']['unmerge_cells']    = 'Unmerge cells';
+$lang['js']['unmerge_cells']    = 'Split cells';
