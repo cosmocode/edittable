@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 13 2015 16:26:31 GMT+0200 (CEST)
+ * Date: Mon Aug 17 2015 16:30:46 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Thu Aug 13 2015 16:26:31 GMT+0200 (CEST)'
+  buildDate: 'Mon Aug 17 2015 16:30:46 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -10269,15 +10269,27 @@ function Autofill(instance) {
     tableBottom = dom.offset(_this.instance.table).top - (window.pageYOffset || document.documentElement.scrollTop) + dom.outerHeight(_this.instance.table);
     tableRight = dom.offset(_this.instance.table).left - (window.pageXOffset || document.documentElement.scrollLeft) + dom.outerWidth(_this.instance.table);
     if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom && event.clientX <= tableRight) {
-      _this.instance.mouseDragOutside = true;
+      _this.instance.mouseDragOutsideBottom = true;
       _this.addingStarted = true;
     } else {
-      _this.instance.mouseDragOutside = false;
+      _this.instance.mouseDragOutsideBottom = false;
     }
-    if (_this.instance.mouseDragOutside) {
+    if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY <= tableBottom && event.clientX > tableRight) {
+      _this.instance.mouseDragOutsideRight = true;
+      _this.addingStarted = true;
+    } else {
+      _this.instance.mouseDragOutsideRight = false;
+    }
+    if (_this.instance.mouseDragOutsideBottom) {
       setTimeout(function() {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
+      }, 200);
+    }
+    if (_this.instance.mouseDragOutsideRight) {
+      setTimeout(function() {
+        _this.addingStarted = false;
+        _this.instance.alter('insert_col', _this.instance.countCols());
       }, 200);
     }
   }
