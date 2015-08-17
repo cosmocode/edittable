@@ -1,0 +1,10 @@
+images/merge_down.png
+images/merge_right.png
+images/split_down.png
+images/split_right.png
+script/jquery.handsontable.columnmove.js
+script/jquery.handsontable.rowmove.js
+script/jquery.handsontable.full.js
+less/jquery.handsontable.columnmove.less
+less/jquery.handsontable.rowmove.less
+less/jquery.handsontable.full.less
