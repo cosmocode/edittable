@@ -46,6 +46,24 @@
             background-image: url('../plugins/edittable/images/col_right.png');
         }
 
+        &.mergeCells {
+            padding-left: 0px;
+
+            & div {
+                padding-left: 20px;
+                background-position: center left;
+                background-repeat: no-repeat;
+
+                &.merge {
+                    background-image: url('../plugins/edittable/images/merge_cells.png');
+                }
+
+                &.unmerge {
+                    background-image: url('../plugins/edittable/images/split_cells.png');
+                }
+            }
+        }
+
         &.colspan_add {
             background-image: url('../plugins/edittable/images/merge_right.png');
         }

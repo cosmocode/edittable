@@ -153,9 +153,9 @@ function getEditTableContextMenu(data, meta) {
                     var sel = this.getSelected();
                     var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
                     if (info) {
-                        return '<span class="unmerge">' + LANG.plugins.edittable.unmerge_cells + '</span>';
+                        return '<div class="unmerge">' + LANG.plugins.edittable.unmerge_cells + '</div>';
                     } else {
-                        return '<span class="merge">' + LANG.plugins.edittable.merge_cells + '</span>';
+                        return '<div class="merge">' + LANG.plugins.edittable.merge_cells + '</div>';
                     }
                 }
 
