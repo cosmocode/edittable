@@ -66,6 +66,30 @@ var getMerges = function getMerges (meta) {
     return merges;
 };
 
+/**
+ * If the top-left cell of a set of merged cells is removed by an 'remove row'/'remove column' action, then split the merge
+ *
+ * @param index int
+ * @param amount int
+ * @param direction string either 'row' or 'col'
+ */
+var unmergeRemovedMerges = function unmergeRemovedMerges(index, amount, direction) {
+    var mergesToSplit = [];
+    for (var span = 0; span < amount; ++span) {
+        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+            if (this.mergeCells.mergedCellInfoCollection[i][direction] === index + span) {
+                mergesToSplit.push(i);
+            }
+        }
+    }
+    if (mergesToSplit !== []) {
+        for (var merge = mergesToSplit.length - 1; merge >= 0; --merge) {
+            this.mergeCells.mergedCellInfoCollection.splice(mergesToSplit[merge], 1);
+        }
+        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
+    }
+};
+
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) return;
@@ -348,6 +372,18 @@ jQuery(function () {
             updateMergeInfo.call(this, 'row','create',index);
         },
 
+
+        /**
+         * if rows are removed which contain the beginning of a set of merged cells, split the merge
+         *
+         * @param index
+         * @param amount
+         */
+        beforeRemoveRow: function (index, amount) {
+            unmergeRemovedMerges.call(this, index, amount, 'row');
+        },
+
+
         /**
          * Update meta data array when rows are removed
          *
@@ -378,6 +414,16 @@ jQuery(function () {
                 }
             }
             updateMergeInfo.call(this, 'col','create',index);
+        },
+
+        /**
+         * if colmuns are removed which contain the beginning of a set of merged cells, split the merge
+         *
+         * @param index
+         * @param amount
+         */
+        beforeRemoveCol: function (index, amount) {
+            unmergeRemovedMerges.call(this, index, amount, 'col');
         },
 
         /**
