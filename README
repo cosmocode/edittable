@@ -1,7 +1,7 @@
 edittable Plugin for DokuWiki
 
 Simplifies table editing by providing a custom editor based on the
-jQuery Handsontable plugin
+Handsontable plugin
 
 All documentation for this plugin can be found at
 http://www.dokuwiki.org/plugin:edittable
@@ -14,8 +14,7 @@ Please refer to http://www.dokuwiki.org/plugins for additional info
 on how to install plugins in DokuWiki.
 
 ----
-Copyright (C) Andreas Gohr <dokuwiki@cosmocode.de>,
-              Adrian Lang <lang@cosmocode.de>
+Copyright (C) Michael Große, Andreas Gohr, Adrian Lang <dokuwiki@cosmocode.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
