@@ -1,6 +1,95 @@
 /**
  * This configures the Handsontable Plugin
  */
+
+var moveRow = function moveRow(startRow,endRow,dmarray) {
+    var metarow = dmarray.splice(startRow,1)[0];
+    dmarray.splice(endRow, 0, metarow);
+};
+
+var moveCol = function moveCol(startCol,endCol,dmarray) {
+    for (var i = 0; i < dmarray.length; ++i) {
+        var datacol = dmarray[i].splice(startCol, 1)[0];
+        dmarray[i].splice(endCol, 0, datacol);
+    }
+};
+
+/**
+ * If the number of rows or columns in front of some merged cells changes, update the mergedCellInfoCollection accordingly.
+ *
+ * @param direction string either col or row
+ * @param type string either create, remove or move
+ * @param start int
+ * @param end int optional, only for moves
+ */
+var updateMergeInfo = function updateMergeInfo(direction, type, start, end) {
+    var mergesNeedUpdate = false;
+    if (type === 'create' || type === 'remove') {
+        end = Infinity;
+    }
+
+    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+        if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && end > this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            if (type === 'create') {
+                this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
+            } else {
+                this.mergeCells.mergedCellInfoCollection[i][direction] -= 1;
+            }
+            mergesNeedUpdate = true;
+        }
+        if (start > this.mergeCells.mergedCellInfoCollection[i][direction] && end <= this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
+            mergesNeedUpdate = true;
+        }
+    }
+
+    if (mergesNeedUpdate) {
+        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
+    }
+};
+
+var getMerges = function getMerges (meta) {
+    var merges = [];
+    for (var row = 0; row < meta.length; row++) {
+        for (var col = 0; col < meta[0].length; col++) {
+            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col]['rowspan'] > 1 ||
+                meta[row][col].hasOwnProperty('colspan') && meta[row][col]['colspan'] > 1) {
+                var merge = {};
+                merge['row'] = row;
+                merge['col'] = col;
+                merge['rowspan'] = meta[row][col]['rowspan'];
+                merge['colspan'] = meta[row][col]['colspan'];
+                merges.push(merge);
+            }
+        }
+    }
+    return merges;
+};
+
+/**
+ * If the top-left cell of a set of merged cells is removed by an 'remove row'/'remove column' action, then split the merge
+ *
+ * @param index int
+ * @param amount int
+ * @param direction string either 'row' or 'col'
+ */
+var unmergeRemovedMerges = function unmergeRemovedMerges(index, amount, direction) {
+    var mergesToSplit = [];
+    for (var span = 0; span < amount; ++span) {
+        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+            if (this.mergeCells.mergedCellInfoCollection[i][direction] === index + span) {
+                mergesToSplit.push(i);
+            }
+        }
+    }
+    if (mergesToSplit !== []) {
+        for (var merge = mergesToSplit.length - 1; merge >= 0; --merge) {
+            this.mergeCells.mergedCellInfoCollection.splice(mergesToSplit[merge], 1);
+        }
+        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
+    }
+};
+
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) return;
@@ -11,6 +100,8 @@ jQuery(function () {
 
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
+    var merges = getMerges(meta);
+    if (merges === []) merges = true;
     var lastselect = {row: 0, col: 0};
 
     $container.handsontable({
@@ -19,14 +110,13 @@ jQuery(function () {
         startCols: 5,
         colHeaders: true,
         rowHeaders: true,
-        multiSelect: false, // until properly tested with col/row span
-        fillHandle: false, // until properly tested with col/row span
-        undo: false, // until properly tested with col/row span
         manualColumnResize: true,
-        editTableColumnMove: true, // custom plugin
-        editTableRowMove: true, // custom plugin
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
+        manualColumnMove: true,
+        manualRowMove: true,
+        mergeCells: merges,
+
 
         /**
          * Attach pointers to our raw data structures in the instance
@@ -121,7 +211,7 @@ jQuery(function () {
             this.selectCell(0, 0);
 
             // we need an ID on the input field
-            this.rootElement.find('textarea.handsontableInput').attr('id', 'handsontable__input');
+            jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
 
             // we're ready to intialize the toolbar now
             initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
@@ -157,70 +247,66 @@ jQuery(function () {
                         meta[row][col].hide = false;
                         data[row][col] = '';
                     }
+                    // unset all row/colspans
+                    meta[row][col].colspan = 1;
+                    meta[row][col].rowspan = 1;
 
                     // make sure no data cell is undefined/null
                     if (!data[row][col]) data[row][col] = '';
                 }
             }
 
-            // rehide needed cells
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
-                    var colspan = meta[row][col].colspan;
-                    var rowspan = meta[row][col].rowspan;
-
-                    for (c = 1; c < colspan; c++) {
-                        // does the colspan reach out of the table? decrease it
-                        if (!meta[row][col + c]) {
-                            meta[row][col].colspan--;
-                            continue;
+            var manualRowMoveDisable = [];
+            var manualColumnMoveDisable = [];
+            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; ++merge) {
+                row = this.mergeCells.mergedCellInfoCollection[merge].row;
+                col = this.mergeCells.mergedCellInfoCollection[merge].col;
+                var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
+                var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
+                if (rowspan > 1) {
+                    for (i = row; i < row+rowspan; ++i ) {
+                        if (manualRowMoveDisable.indexOf(i) === -1) {
+                            manualRowMoveDisable.push(i);
                         }
-
-                        // hide colspanned cell in same row
-                        meta[row][col + c].hide = true;
-                        meta[row][col + c].rowspan = 1;
-                        meta[row][col + c].colspan = 1;
-                        data[row][col + c] = '';
-
-                        this.raw.colinfo[col].colspan = true;
-                        this.raw.colinfo[col + c].colspan = true;
-
-                        // hide colspanned rows below if rowspan is in effect as well
-                        for (r = 1; r < rowspan; r++) {
-                            // does the rowspan reach out of the table? decrease it
-                            if (!meta[row + r]) {
-                                meta[row][col].rowspan--;
-                                continue;
-                            }
-
-                            meta[row + r][col + c].hide = true;
-                            meta[row + r][col + c].rowspan = 1;
-                            meta[row + r][col + c].colspan = 1;
-                            data[row + r][col + c] = '';
-
-                            this.raw.rowinfo[row + r].rowspan = true;
-                        }
-
-                    }
-
-                    // hide rowspanned columns
-                    rowspan = meta[row][col].rowspan; // might have changed above
-                    for (r = 1; r < rowspan; r++) {
-                        // does the rowspan reach out of the table? decrease it
-                        if (!meta[row + r]) {
-                            meta[row][col].rowspan--;
-                            continue;
-                        }
-
-                        meta[row + r][col].hide = true;
-                        meta[row + r][col].rowspan = 1;
-                        meta[row + r][col].colspan = 1;
-                        data[row + r][col] = ':::';
-
-                        this.raw.rowinfo[row].rowspan = true;
-                        this.raw.rowinfo[row + r].rowspan = true;
                     }
                 }
+                if (colspan > 1) {
+                    for (i = col; i < col+colspan; ++i ) {
+                        if (manualColumnMoveDisable.indexOf(i) === -1) {
+                            manualColumnMoveDisable.push(i);
+                        }
+                    }
+                }
+                meta[row][col]['colspan'] = colspan;
+                meta[row][col]['rowspan'] = rowspan;
+
+                // hide the cells hidden by the row/colspan
+
+                for (r = row; r < row + rowspan; ++r) {
+                    for (c = col; c < col + colspan; ++c) {
+                        if (r === row && c === col) continue;
+                        meta[r][c].hide = true;
+                        meta[r][c].rowspan = 1;
+                        meta[r][c].colspan = 1;
+                        if (data[r][c] && data[r][c] !== ':::') {
+                            data[row][col] += ' ' + data[r][c];
+                        }
+                        if (r === row) {
+                            data[r][c] = '';
+                        } else {
+                            data[r][c] = ':::';
+                        }
+                    }
+                }
+            }
+
+            if (!this.manualRowMoveDisable || JSON.stringify(manualRowMoveDisable.sort()) != JSON.stringify(this.manualRowMoveDisable.sort())) {
+                this.manualRowMoveDisable = manualRowMoveDisable;
+                this.updateSettings({manualRowMoveDisable: manualRowMoveDisable});
+            }
+            if (!this.manualColumnMoveDisable || JSON.stringify(manualColumnMoveDisable.sort()) != JSON.stringify(this.manualColumnMoveDisable.sort())) {
+                this.manualColumnMoveDisable = manualColumnMoveDisable;
+                this.updateSettings({manualColumnMoveDisable: manualColumnMoveDisable});
             }
 
             // Store data and meta back in the form
@@ -238,6 +324,26 @@ jQuery(function () {
                 e.stopImmediatePropagation();
                 e.preventDefault();
             }
+        },
+
+        beforeColumnMove: function(startCol, endCol) {
+            moveCol(startCol, endCol, meta);
+            moveCol(startCol, endCol, data);
+            updateMergeInfo.call(this, 'col','move',startCol, endCol);
+        },
+
+        afterColumnMove: function () {
+            this.updateSettings({manualColumnMove: true});
+        },
+
+        beforeRowMove: function(startRow, endRow) {
+            moveRow(startRow, endRow, meta);
+            moveRow(startRow, endRow, data);
+            updateMergeInfo.call(this, 'row','move',startRow, endRow);
+        },
+
+        afterRowMove: function () {
+            this.updateSettings({manualRowMove: true});
         },
 
         /**
@@ -263,7 +369,20 @@ jQuery(function () {
                 for (i = 0; i < cols; i++) newrow.push({rowspan: 1, colspan: 1});
                 meta.splice(index, 0, newrow);
             }
+            updateMergeInfo.call(this, 'row','create',index);
         },
+
+
+        /**
+         * if rows are removed which contain the beginning of a set of merged cells, split the merge
+         *
+         * @param index
+         * @param amount
+         */
+        beforeRemoveRow: function (index, amount) {
+            unmergeRemovedMerges.call(this, index, amount, 'row');
+        },
+
 
         /**
          * Update meta data array when rows are removed
@@ -273,6 +392,7 @@ jQuery(function () {
          */
         afterRemoveRow: function (index, amount) {
             meta.splice(index, amount);
+            updateMergeInfo.call(this, 'row','remove',index);
         },
 
         /**
@@ -293,6 +413,17 @@ jQuery(function () {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
+            updateMergeInfo.call(this, 'col','create',index);
+        },
+
+        /**
+         * if colmuns are removed which contain the beginning of a set of merged cells, split the merge
+         *
+         * @param index
+         * @param amount
+         */
+        beforeRemoveCol: function (index, amount) {
+            unmergeRemovedMerges.call(this, index, amount, 'col');
         },
 
         /**
@@ -305,6 +436,7 @@ jQuery(function () {
             for (var row = 0; row < data.length; row++) {
                 meta[row].splice(index, amount);
             }
+            updateMergeInfo.call(this, 'col','remove',index);
         },
 
         /**

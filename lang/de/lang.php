@@ -18,8 +18,5 @@ $lang['js']['col_left']         = 'Spalte links hinzufügen';
 $lang['js']['remove_col']       = 'Spalte entfernen';
 $lang['js']['col_right']        = 'Spalte rechts hinzufügen';
 
-$lang['js']['colspan_add']      = 'Zelle erweitern →';
-$lang['js']['colspan_del']      = 'Zelle verkleinern ←';
-
-$lang['js']['rowspan_add']      = 'Zelle erweitern ↓';
-$lang['js']['rowspan_del']      = 'Zelle verkleinern ↑';
+$lang['js']['merge_cells']      = 'Zellen verbinden';
+$lang['js']['unmerge_cells']    = 'Zellen trennen';
