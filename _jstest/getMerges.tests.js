@@ -1,4 +1,4 @@
-QUnit.module( "Tests for getMerges" );
+QUnit.module( "Tests for edittable_getMerges" );
 QUnit.test("merge 2x2", function(assert) {
     var meta = [
         [
@@ -104,7 +104,7 @@ QUnit.test("merge 2x2", function(assert) {
         ]
     ];
 
-    var actual_merges = getMerges(meta);
+    var actual_merges = edittable_getMerges(meta);
     var expected_merges = [{row:2, col:0, rowspan: 2, colspan: 2}];
     assert.deepEqual(actual_merges, expected_merges);
 });
