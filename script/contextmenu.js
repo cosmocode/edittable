@@ -4,7 +4,7 @@
  * @param selection object
  * @returns {Array}
  */
-var cellArray = function (selection) {
+var edittable_cellArray = function (selection) {
     var selectionArray = [];
     for (var currentRow = selection.start.row; currentRow <= selection.end.row; ++currentRow) {
         for (var currentCol = selection.start.col; currentCol <= selection.end.col; ++currentCol) {
@@ -27,7 +27,7 @@ function getEditTableContextMenu(data, meta) {
             toggle_header: {
                 name: LANG.plugins.edittable.toggle_header,
                 callback: function (key, selection) {
-                    jQuery.each(cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
 
@@ -43,7 +43,7 @@ function getEditTableContextMenu(data, meta) {
             align_left: {
                 name: LANG.plugins.edittable.align_left,
                 callback: function (key, selection) {
-                    jQuery.each(cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'left';
@@ -60,7 +60,7 @@ function getEditTableContextMenu(data, meta) {
             align_center: {
                 name: LANG.plugins.edittable.align_center,
                 callback: function (key, selection) {
-                    jQuery.each(cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'center';
@@ -77,7 +77,7 @@ function getEditTableContextMenu(data, meta) {
             align_right: {
                 name: LANG.plugins.edittable.align_right,
                 callback: function (key, selection) {
-                    jQuery.each(cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'right';
