@@ -8,7 +8,6 @@ php:
 env:
   - DOKUWIKI=master
   - DOKUWIKI=stable
-  - DOKUWIKI=old-stable
 before_install:
   - wget https://raw.github.com/splitbrain/dokuwiki-travis/master/travis.sh
   - npm install
