@@ -2,8 +2,9 @@
 
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * 
+ *
  * @author lioujheyu <lioujheyu@gmail.com>
+ * @author kerry <kerry.eva@gmail.com>
  */
 $lang['secedit_name']          = '表格';
 $lang['add_table']             = '插入新表格';
@@ -19,7 +20,5 @@ $lang['js']['row_below']       = '從下方插入整行';
 $lang['js']['col_left']        = '從左方插入整列';
 $lang['js']['remove_col']      = '移除整列';
 $lang['js']['col_right']       = '從右方插入整列';
-$lang['js']['colspan_add']     = '向右合併一欄';
-$lang['js']['colspan_del']     = '取消右欄合併';
-$lang['js']['rowspan_add']     = '向下合併一欄';
-$lang['js']['rowspan_del']     = '取消下欄合併';
+$lang['js']['merge_cells']     = '合並單元格';
+$lang['js']['unmerge_cells']   = '拆分單元格';
