@@ -472,6 +472,19 @@ jQuery(function () {
         },
 
         /**
+         *
+         *
+         * @param col   int the id of the column
+         * @param width int the width in px
+         */
+        afterColumnResize: function (col, width) {
+            if ($layoutfield) {
+                tablelayout.colwidth[col] = width + 'px';
+                $layoutfield.val(JSON.stringify(tablelayout));
+            }
+        },
+
+        /**
          * Skip hidden cells for selection
          *
          * @param r int
