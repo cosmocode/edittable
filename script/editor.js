@@ -98,7 +98,8 @@ jQuery(function () {
     var $datafield = $form.find('input[name=edittable_data]');
     var $metafield = $form.find('input[name=edittable_meta]');
 
-    var tablelayout = $form.find('input[name=tablelayout]').val();
+    var $layoutfield = $form.find('input[name=tablelayout]');
+    var tablelayout = $layoutfield.val();
     if (tablelayout) {
         tablelayout = JSON.parse(tablelayout);
 

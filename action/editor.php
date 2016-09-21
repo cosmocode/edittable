@@ -95,8 +95,10 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $form->addHidden('target', 'table');
         $form->addHidden('range', $RANGE);
 
-        global $INPUT;
-        $form->addHidden('tablelayout', $INPUT->str('tablelayout'));
+        if (plugin_load('syntax', 'tablelayout')) {
+            global $INPUT;
+            $form->addHidden('tablelayout', $INPUT->str('tablelayout'));
+        }
     }
 
     /**
