@@ -94,6 +94,9 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         // set target and range to keep track during previews
         $form->addHidden('target', 'table');
         $form->addHidden('range', $RANGE);
+
+        global $INPUT;
+        $form->addHidden('tablelayout', $INPUT->str('tablelayout'));
     }
 
     /**

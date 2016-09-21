@@ -98,6 +98,23 @@ jQuery(function () {
     var $datafield = $form.find('input[name=edittable_data]');
     var $metafield = $form.find('input[name=edittable_meta]');
 
+    var tablelayout = $form.find('input[name=tablelayout]').val();
+    if (tablelayout) {
+        tablelayout = JSON.parse(tablelayout);
+
+        var colWidths = [];
+        tablelayout.colwidth.forEach(function (currentValue, index, array) {
+            var undefinedValue;
+            if (currentValue.substr(-2) != 'px') {
+                colWidths.push(undefinedValue);
+                return;
+            }
+            console.log('Set size of col ' + index + ' to ' + currentValue);
+            colWidths[index] = parseInt(currentValue);
+        });
+    }
+
+
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
     var merges = edittable_getMerges(meta);
@@ -111,6 +128,7 @@ jQuery(function () {
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true,
+        colWidths: colWidths,
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
         manualColumnMove: true,
