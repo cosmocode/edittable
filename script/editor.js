@@ -99,20 +99,26 @@ jQuery(function () {
     var $metafield = $form.find('input[name=edittable_meta]');
 
     var $layoutfield = $form.find('input[name=tablelayout]');
-    var tablelayout = $layoutfield.val();
-    if (tablelayout) {
-        tablelayout = JSON.parse(tablelayout);
+    if ($layoutfield.length) {
+        var tablelayout = $layoutfield.val();
+        if (tablelayout) {
+            tablelayout = JSON.parse(tablelayout);
 
-        var colWidths = [];
-        tablelayout.colwidth.forEach(function (currentValue, index, array) {
-            var undefinedValue;
-            if (currentValue.substr(-2) != 'px') {
-                colWidths.push(undefinedValue);
-                return;
+            var colWidths = [];
+            tablelayout.colwidth.forEach(function (currentValue, index, array) {
+                var undefinedValue;
+                if (currentValue.substr(-2) != 'px') {
+                    colWidths.push(undefinedValue);
+                    return;
+                }
+                console.log('Set size of col ' + index + ' to ' + currentValue);
+                colWidths[index] = parseInt(currentValue);
+            });
+        } else {
+            tablelayout = {
+                colwidth: []
             }
-            console.log('Set size of col ' + index + ' to ' + currentValue);
-            colWidths[index] = parseInt(currentValue);
-        });
+        }
     }
 
 
