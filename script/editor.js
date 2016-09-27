@@ -52,13 +52,13 @@ var edittable_getMerges = function edittable_getMerges (meta) {
     var merges = [];
     for (var row = 0; row < meta.length; row += 1) {
         for (var col = 0; col < meta[0].length; col += 1) {
-            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col]['rowspan'] > 1 ||
-                meta[row][col].hasOwnProperty('colspan') && meta[row][col]['colspan'] > 1) {
+            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col].rowspan > 1 ||
+                meta[row][col].hasOwnProperty('colspan') && meta[row][col].colspan > 1) {
                 var merge = {};
-                merge['row'] = row;
-                merge['col'] = col;
-                merge['rowspan'] = meta[row][col]['rowspan'];
-                merge['colspan'] = meta[row][col]['colspan'];
+                merge.row = row;
+                merge.col = col;
+                merge.rowspan = meta[row][col].rowspan;
+                merge.colspan = meta[row][col].colspan;
                 merges.push(merge);
             }
         }
@@ -316,8 +316,8 @@ jQuery(function () {
                         }
                     }
                 }
-                meta[row][col]['colspan'] = colspan;
-                meta[row][col]['rowspan'] = rowspan;
+                meta[row][col].colspan = colspan;
+                meta[row][col].rowspan = rowspan;
 
                 // hide the cells hidden by the row/colspan
 
