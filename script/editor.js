@@ -8,7 +8,7 @@ var edittable_moveRow = function edittable_moveRow(startRow,endRow,dmarray) {
 };
 
 var edittable_moveCol = function edittable_moveCol(startCol,endCol,dmarray) {
-    for (var i = 0; i < dmarray.length; ++i) {
+    for (var i = 0; i < dmarray.length; i += 1) {
         var datacol = dmarray[i].splice(startCol, 1)[0];
         dmarray[i].splice(endCol, 0, datacol);
     }
@@ -28,7 +28,7 @@ var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, ty
         end = Infinity;
     }
 
-    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
         if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && end > this.mergeCells.mergedCellInfoCollection[i][direction]) {
             if (type === 'create') {
                 this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
@@ -50,8 +50,8 @@ var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, ty
 
 var edittable_getMerges = function edittable_getMerges (meta) {
     var merges = [];
-    for (var row = 0; row < meta.length; row++) {
-        for (var col = 0; col < meta[0].length; col++) {
+    for (var row = 0; row < meta.length; row += 1) {
+        for (var col = 0; col < meta[0].length; col += 1) {
             if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col]['rowspan'] > 1 ||
                 meta[row][col].hasOwnProperty('colspan') && meta[row][col]['colspan'] > 1) {
                 var merge = {};
@@ -75,15 +75,15 @@ var edittable_getMerges = function edittable_getMerges (meta) {
  */
 var edittable_unmergeRemovedMerges = function edittable_unmergeRemovedMerges(index, amount, direction) {
     var mergesToSplit = [];
-    for (var span = 0; span < amount; ++span) {
-        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+    for (var span = 0; span < amount; span += 1) {
+        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
             if (this.mergeCells.mergedCellInfoCollection[i][direction] === index + span) {
                 mergesToSplit.push(i);
             }
         }
     }
     if (mergesToSplit !== []) {
-        for (var merge = mergesToSplit.length - 1; merge >= 0; --merge) {
+        for (var merge = mergesToSplit.length - 1; merge >= 0; merge -= 1) {
             this.mergeCells.mergedCellInfoCollection.splice(mergesToSplit[merge], 1);
         }
         this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
@@ -154,8 +154,8 @@ jQuery(function () {
                 colinfo: [],
                 rowinfo: []
             };
-            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) this.raw.rowinfo[i] = {};
+            for (i = 0; i < data[0].length; i += 1) this.raw.colinfo[i] = {};
         },
 
         /**
@@ -262,12 +262,12 @@ jQuery(function () {
             // reset row and column infos - we store spanning info there
             this.raw.rowinfo = [];
             this.raw.colinfo = [];
-            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) this.raw.rowinfo[i] = {};
+            for (i = 0; i < data[0].length; i += 1) this.raw.colinfo[i] = {};
 
             // unhide all cells
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
+            for (row = 0; row < data.length; row += 1) {
+                for (col = 0; col < data[0].length; col += 1) {
                     if (meta[row][col].hide) {
                         meta[row][col].hide = false;
                         data[row][col] = '';
@@ -283,20 +283,20 @@ jQuery(function () {
 
             var manualRowMoveDisable = [];
             var manualColumnMoveDisable = [];
-            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; ++merge) {
+            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; merge += 1) {
                 row = this.mergeCells.mergedCellInfoCollection[merge].row;
                 col = this.mergeCells.mergedCellInfoCollection[merge].col;
                 var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
                 var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
                 if (rowspan > 1) {
-                    for (i = row; i < row+rowspan; ++i ) {
+                    for (i = row; i < row+rowspan; i += 1 ) {
                         if (manualRowMoveDisable.indexOf(i) === -1) {
                             manualRowMoveDisable.push(i);
                         }
                     }
                 }
                 if (colspan > 1) {
-                    for (i = col; i < col+colspan; ++i ) {
+                    for (i = col; i < col+colspan; i += 1 ) {
                         if (manualColumnMoveDisable.indexOf(i) === -1) {
                             manualColumnMoveDisable.push(i);
                         }
@@ -307,8 +307,8 @@ jQuery(function () {
 
                 // hide the cells hidden by the row/colspan
 
-                for (r = row; r < row + rowspan; ++r) {
-                    for (c = col; c < col + colspan; ++c) {
+                for (r = row; r < row + rowspan; r += 1) {
+                    for (c = col; c < col + colspan; c += 1) {
                         if (r === row && c === col) continue;
                         meta[r][c].hide = true;
                         meta[r][c].rowspan = 1;
@@ -340,8 +340,8 @@ jQuery(function () {
 
             // In dataLBFixed, replace all actual line breaks with DokuWiki line breaks
             // In data, replace all DokuWiki line breaks with actual ones so the editor displays line breaks properly
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
+            for (row = 0; row < data.length; row += 1) {
+                for (col = 0; col < data[0].length; col += 1) {
                     dataLBFixed[row][col] = data[row][col].replace(/(\r\n|\n|\r)/g,"\\\\ ");
                     data[row][col]        = data[row][col].replace(/\\\\\s/g,"\n");
                 }
@@ -391,7 +391,7 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateRow: function (index, amount) {
-            for (var z = 0; z < amount; z++) {
+            for (var z = 0; z < amount; z += 1) {
                 this.raw.rowinfo.splice(index, 0, [
                     {}
                 ]);
@@ -402,9 +402,9 @@ jQuery(function () {
             if (data[0]) cols = data[0].length;
 
             // insert into meta array
-            for (i = 0; i < amount; i++) {
+            for (i = 0; i < amount; i += 1) {
                 var newrow = [];
-                for (i = 0; i < cols; i++) newrow.push({rowspan: 1, colspan: 1});
+                for (i = 0; i < cols; i += 1) newrow.push({rowspan: 1, colspan: 1});
                 meta.splice(index, 0, newrow);
             }
             edittable_updateMergeInfo.call(this, 'row','create',index);
@@ -440,14 +440,14 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateCol: function (index, amount) {
-            for (var z = 0; z < amount; z++) {
+            for (var z = 0; z < amount; z += 1) {
                 this.raw.colinfo.splice(index, 0, [
                     {}
                 ]);
             }
 
-            for (var row = 0; row < data.length; row++) {
-                for (var i = 0; i < amount; i++) {
+            for (var row = 0; row < data.length; row += 1) {
+                for (var i = 0; i < amount; i += 1) {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
@@ -471,7 +471,7 @@ jQuery(function () {
          * @param amount int
          */
         afterRemoveCol: function (index, amount) {
-            for (var row = 0; row < data.length; row++) {
+            for (var row = 0; row < data.length; row += 1) {
                 meta[row].splice(index, amount);
             }
             edittable_updateMergeInfo.call(this, 'col','remove',index);

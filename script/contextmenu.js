@@ -6,8 +6,8 @@
  */
 var edittable_cellArray = function (selection) {
     var selectionArray = [];
-    for (var currentRow = selection.start.row; currentRow <= selection.end.row; ++currentRow) {
-        for (var currentCol = selection.start.col; currentCol <= selection.end.col; ++currentCol) {
+    for (var currentRow = selection.start.row; currentRow <= selection.end.row; currentRow += 1) {
+        for (var currentCol = selection.start.col; currentCol <= selection.end.col; currentCol += 1) {
             selectionArray.push({row:currentRow, col: currentCol});
         }
     }
