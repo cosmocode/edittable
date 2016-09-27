@@ -107,7 +107,7 @@ jQuery(function () {
             tablelayout = JSON.parse(tablelayout);
 
             var colWidths = [];
-            tablelayout.colwidth.forEach(function (currentValue, index, array) {
+            tablelayout.colwidth.forEach(function (currentValue, index) {
                 var undefinedValue;
                 if (currentValue.substr(-2) != 'px') {
                     colWidths.push(undefinedValue);
@@ -173,10 +173,9 @@ jQuery(function () {
          *
          * @param row int
          * @param col int
-         * @param prop string
          * @returns {*}
          */
-        cells: function (row, col, prop) {
+        cells: function (row, col) {
             return meta[row][col];
         },
 
@@ -189,11 +188,8 @@ jQuery(function () {
          * @param td
          * @param row
          * @param col
-         * @param prop
-         * @param value
-         * @param cellProperties
          */
-        renderer: function (instance, td, row, col, prop, value, cellProperties) {
+        renderer: function (instance, td, row, col) {
             // for some reason, neither cellProperties nor instance.getCellMeta() give the right data
             var cellMeta = meta[row][col];
             var $td = jQuery(td);
@@ -262,9 +258,8 @@ jQuery(function () {
         /**
          * This recalculates the col and row spans and makes sure all correct cells are hidden
          *
-         * @param forced bool
          */
-        beforeRender: function (forced) {
+        beforeRender: function () {
             var row, r, c, col, i;
 
             // reset row and column infos - we store spanning info there
@@ -515,10 +510,8 @@ jQuery(function () {
          *
          * @param r int
          * @param c int
-         * @param r2 int
-         * @param c2 int
          */
-        afterSelection: function (r, c, r2, c2) {
+        afterSelection: function (r, c) {
             if (meta[r][c].hide) {
                 // user navigated into a hidden cell! we need to find the next selectable cell
                 var x = 0;
