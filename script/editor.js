@@ -1,13 +1,17 @@
+var edittable = edittable || {};
+
+(function (edittable) {
+    "use strict";
+
 /**
  * This configures the Handsontable Plugin
  */
-
-var edittable_moveRow = function edittable_moveRow(startRow,endRow,dmarray) {
+edittable.moveRow = function (startRow,endRow,dmarray) {
     var metarow = dmarray.splice(startRow,1)[0];
     dmarray.splice(endRow, 0, metarow);
 };
 
-var edittable_moveCol = function edittable_moveCol(startCol,endCol,dmarray) {
+edittable.moveCol = function (startCol,endCol,dmarray) {
     for (var i = 0; i < dmarray.length; i += 1) {
         var datacol = dmarray[i].splice(startCol, 1)[0];
         dmarray[i].splice(endCol, 0, datacol);
@@ -22,7 +26,7 @@ var edittable_moveCol = function edittable_moveCol(startCol,endCol,dmarray) {
  * @param start int
  * @param end int optional, only for moves
  */
-var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, type, start, end) {
+edittable.updateMergeInfo = function (direction, type, start, end) {
     var mergesNeedUpdate = false;
     if (type === 'create' || type === 'remove') {
         end = Infinity;
@@ -48,7 +52,7 @@ var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, ty
     }
 };
 
-var edittable_getMerges = function edittable_getMerges (meta) {
+edittable.getMerges = function (meta) {
     var merges = [];
     for (var row = 0; row < meta.length; row += 1) {
         for (var col = 0; col < meta[0].length; col += 1) {
@@ -73,7 +77,7 @@ var edittable_getMerges = function edittable_getMerges (meta) {
  * @param amount int
  * @param direction string either 'row' or 'col'
  */
-var edittable_unmergeRemovedMerges = function edittable_unmergeRemovedMerges(index, amount, direction) {
+edittable.unmergeRemovedMerges = function (index, amount, direction) {
     var mergesToSplit = [];
     for (var span = 0; span < amount; span += 1) {
         for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
@@ -102,7 +106,7 @@ jQuery(function () {
 
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
-    var merges = edittable_getMerges(meta);
+    var merges = edittable.getMerges(meta);
     if (merges === []) {
         merges = true;
     }
@@ -116,7 +120,7 @@ jQuery(function () {
         rowHeaders: true,
         manualColumnResize: true,
         outsideClickDeselects: false,
-        contextMenu: getEditTableContextMenu(data, meta),
+        contextMenu: edittable.getEditTableContextMenu(data, meta),
         manualColumnMove: true,
         manualRowMove: true,
         mergeCells: merges,
@@ -351,9 +355,9 @@ jQuery(function () {
         },
 
         beforeColumnMove: function(startCol, endCol) {
-            edittable_moveCol(startCol, endCol, meta);
-            edittable_moveCol(startCol, endCol, data);
-            edittable_updateMergeInfo.call(this, 'col','move',startCol, endCol);
+            edittable.moveCol(startCol, endCol, meta);
+            edittable.moveCol(startCol, endCol, data);
+            edittable.updateMergeInfo.call(this, 'col','move',startCol, endCol);
         },
 
         afterColumnMove: function () {
@@ -361,9 +365,9 @@ jQuery(function () {
         },
 
         beforeRowMove: function(startRow, endRow) {
-            edittable_moveRow(startRow, endRow, meta);
-            edittable_moveRow(startRow, endRow, data);
-            edittable_updateMergeInfo.call(this, 'row','move',startRow, endRow);
+            edittable.moveRow(startRow, endRow, meta);
+            edittable.moveRow(startRow, endRow, data);
+            edittable.updateMergeInfo.call(this, 'row','move',startRow, endRow);
         },
 
         afterRowMove: function () {
@@ -397,7 +401,7 @@ jQuery(function () {
                 }
                 meta.splice(index, 0, newrow);
             }
-            edittable_updateMergeInfo.call(this, 'row','create',index);
+            edittable.updateMergeInfo.call(this, 'row','create',index);
         },
 
 
@@ -408,7 +412,7 @@ jQuery(function () {
          * @param amount
          */
         beforeRemoveRow: function (index, amount) {
-            edittable_unmergeRemovedMerges.call(this, index, amount, 'row');
+            edittable.unmergeRemovedMerges.call(this, index, amount, 'row');
         },
 
 
@@ -420,7 +424,7 @@ jQuery(function () {
          */
         afterRemoveRow: function (index, amount) {
             meta.splice(index, amount);
-            edittable_updateMergeInfo.call(this, 'row','remove',index);
+            edittable.updateMergeInfo.call(this, 'row','remove',index);
         },
 
         /**
@@ -441,7 +445,7 @@ jQuery(function () {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
-            edittable_updateMergeInfo.call(this, 'col','create',index);
+            edittable.updateMergeInfo.call(this, 'col','create',index);
         },
 
         /**
@@ -451,7 +455,7 @@ jQuery(function () {
          * @param amount
          */
         beforeRemoveCol: function (index, amount) {
-            edittable_unmergeRemovedMerges.call(this, index, amount, 'col');
+            edittable.unmergeRemovedMerges.call(this, index, amount, 'col');
         },
 
         /**
@@ -464,7 +468,7 @@ jQuery(function () {
             for (var row = 0; row < data.length; row += 1) {
                 meta[row].splice(index, amount);
             }
-            edittable_updateMergeInfo.call(this, 'col','remove',index);
+            edittable.updateMergeInfo.call(this, 'col','remove',index);
         },
 
         /**
@@ -569,3 +573,4 @@ jQuery(function () {
     $container.handsontable(handsontable_config);
 
 });
+}(edittable));

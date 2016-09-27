@@ -2,6 +2,7 @@
  * Adjust the top margin and make buttons visible
  */
 jQuery(function () {
+    "use strict";
     var $editbutton = jQuery('.dokuwiki div.editbutton_table');
     if (!$editbutton.length) {
         return;
