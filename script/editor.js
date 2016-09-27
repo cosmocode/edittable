@@ -208,6 +208,7 @@ jQuery(function () {
                 $td.removeClass('header');
             }
 
+            /* globals Handsontable */
             Handsontable.renderers.TextRenderer.apply(this, arguments);
         },
 
