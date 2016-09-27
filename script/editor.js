@@ -100,30 +100,6 @@ jQuery(function () {
     var $datafield = $form.find('input[name=edittable_data]');
     var $metafield = $form.find('input[name=edittable_meta]');
 
-    var $layoutfield = $form.find('input[name=tablelayout]');
-    if ($layoutfield.length) {
-        var tablelayout = $layoutfield.val();
-        if (tablelayout) {
-            tablelayout = JSON.parse(tablelayout);
-
-            var colWidths = [];
-            tablelayout.colwidth.forEach(function (currentValue, index) {
-                var undefinedValue;
-                if (currentValue.substr(-2) != 'px') {
-                    colWidths.push(undefinedValue);
-                    return;
-                }
-                console.log('Set size of col ' + index + ' to ' + currentValue);
-                colWidths[index] = parseInt(currentValue);
-            });
-        } else {
-            tablelayout = {
-                colwidth: []
-            }
-        }
-    }
-
-
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
     var merges = edittable_getMerges(meta);
@@ -132,14 +108,13 @@ jQuery(function () {
     }
     var lastselect = {row: 0, col: 0};
 
-    $container.handsontable({
+    var handsontable_config = {
         data: data,
         startRows: 5,
         startCols: 5,
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true,
-        colWidths: colWidths,
         outsideClickDeselects: false,
         contextMenu: getEditTableContextMenu(data, meta),
         manualColumnMove: true,
@@ -493,19 +468,6 @@ jQuery(function () {
         },
 
         /**
-         *
-         *
-         * @param col   int the id of the column
-         * @param width int the width in px
-         */
-        afterColumnResize: function (col, width) {
-            if ($layoutfield) {
-                tablelayout.colwidth[col] = width + 'px';
-                $layoutfield.val(JSON.stringify(tablelayout));
-            }
-        },
-
-        /**
          * Skip hidden cells for selection
          *
          * @param r int
@@ -567,6 +529,43 @@ jQuery(function () {
                 lastselect.col = c;
             }
         }
-    });
+    };
+
+
+    var $layoutfield = $form.find('input[name=tablelayout]');
+    if ($layoutfield.length) {
+        var colWidths = [];
+        var tablelayout = $layoutfield.val();
+        if (tablelayout) {
+            tablelayout = JSON.parse(tablelayout);
+
+
+            tablelayout.colwidth.forEach(function (currentValue, index) {
+                var undefinedValue;
+                if (currentValue.substr(-2) != 'px') {
+                    colWidths.push(undefinedValue);
+                    return;
+                }
+                console.log('Set size of col ' + index + ' to ' + currentValue);
+                colWidths[index] = parseInt(currentValue);
+            });
+        } else {
+            tablelayout = {
+                colwidth: []
+            };
+        }
+
+        handsontable_config.colWidths = colWidths;
+        handsontable_config.afterColumnResize = function (col, width) {
+            if ($layoutfield) {
+                tablelayout.colwidth[col] = width + 'px';
+                $layoutfield.val(JSON.stringify(tablelayout));
+            }
+        };
+    }
+
+
+
+    $container.handsontable(handsontable_config);
 
 });
