@@ -21,7 +21,7 @@ module.exports = function(grunt) {
               jquery: true,
               qunit: true
           },
-	  all: ['_jstest/*.js', 'script/*.js', '!script/handsontable.full.js', '!script/json2.js']
+	  all: ['_jstest/*.js', 'script/*.js', '!script/handsontable.full.js']
     },
     qunit: {
       all: ['_jstest/*.html']
