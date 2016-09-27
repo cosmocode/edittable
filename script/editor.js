@@ -92,7 +92,9 @@ var edittable_unmergeRemovedMerges = function edittable_unmergeRemovedMerges(ind
 
 jQuery(function () {
     var $container = jQuery('#edittable__editor');
-    if (!$container.length) return;
+    if (!$container.length) {
+        return;
+    }
 
     var $form = jQuery('#dw__editform');
     var $datafield = $form.find('input[name=edittable_data]');
@@ -125,7 +127,9 @@ jQuery(function () {
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
     var merges = edittable_getMerges(meta);
-    if (merges === []) merges = true;
+    if (merges === []) {
+        merges = true;
+    }
     var lastselect = {row: 0, col: 0};
 
     $container.handsontable({
@@ -154,8 +158,12 @@ jQuery(function () {
                 colinfo: [],
                 rowinfo: []
             };
-            for (i = 0; i < data.length; i += 1) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i += 1) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) {
+                this.raw.rowinfo[i] = {};
+            }
+            for (i = 0; i < data[0].length; i += 1) {
+                this.raw.colinfo[i] = {};
+            }
         },
 
         /**
@@ -262,8 +270,12 @@ jQuery(function () {
             // reset row and column infos - we store spanning info there
             this.raw.rowinfo = [];
             this.raw.colinfo = [];
-            for (i = 0; i < data.length; i += 1) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i += 1) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) {
+                this.raw.rowinfo[i] = {};
+            }
+            for (i = 0; i < data[0].length; i += 1) {
+                this.raw.colinfo[i] = {};
+            }
 
             // unhide all cells
             for (row = 0; row < data.length; row += 1) {
@@ -277,7 +289,9 @@ jQuery(function () {
                     meta[row][col].rowspan = 1;
 
                     // make sure no data cell is undefined/null
-                    if (!data[row][col]) data[row][col] = '';
+                    if (!data[row][col]) {
+                        data[row][col] = '';
+                    }
                 }
             }
 
@@ -309,7 +323,9 @@ jQuery(function () {
 
                 for (r = row; r < row + rowspan; r += 1) {
                     for (c = col; c < col + colspan; c += 1) {
-                        if (r === row && c === col) continue;
+                        if (r === row && c === col) {
+                            continue;
+                        }
                         meta[r][c].hide = true;
                         meta[r][c].rowspan = 1;
                         meta[r][c].colspan = 1;
@@ -399,12 +415,16 @@ jQuery(function () {
 
             var i;
             var cols = 1; // minimal number of cells
-            if (data[0]) cols = data[0].length;
+            if (data[0]) {
+                cols = data[0].length;
+            }
 
             // insert into meta array
             for (i = 0; i < amount; i += 1) {
                 var newrow = [];
-                for (i = 0; i < cols; i += 1) newrow.push({rowspan: 1, colspan: 1});
+                for (i = 0; i < cols; i += 1) {
+                    newrow.push({rowspan: 1, colspan: 1});
+                }
                 meta.splice(index, 0, newrow);
             }
             edittable_updateMergeInfo.call(this, 'row','create',index);
@@ -504,12 +524,20 @@ jQuery(function () {
                 var x = 0;
 
                 var v = r - lastselect.row;
-                if (v > 0) v = 1;
-                if (v < 0) v = -1;
+                if (v > 0) {
+                    v = 1;
+                }
+                if (v < 0) {
+                    v = -1;
+                }
 
                 var h = c - lastselect.col;
-                if (h > 0) h = 1;
-                if (h < 0) h = -1;
+                if (h > 0) {
+                    h = 1;
+                }
+                if (h < 0) {
+                    h = -1;
+                }
 
                 if (v !== 0) {
                     x = r;
