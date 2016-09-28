@@ -94,7 +94,7 @@ edittable.unmergeRemovedMerges = function (index, amount, direction) {
     }
 };
 
-jQuery(function () {
+edittable.loadEditor = function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) {
         return;
@@ -567,11 +567,33 @@ jQuery(function () {
                 $layoutfield.val(JSON.stringify(tablelayout));
             }
         };
+
+        var forcePreview = false;
+        var originalBeforeRemoveCol = handsontable_config.beforeRemoveCol;
+        handsontable_config.beforeRemoveCol = function (index, amount) {
+            originalBeforeRemoveCol.call(this, index, amount);
+            tablelayout.colwidth.splice(index, amount);
+            $layoutfield.val(JSON.stringify(tablelayout));
+        };
+
+        var originalAfterRemoveCol = handsontable_config.afterRemoveCol;
+        handsontable_config.afterRemoveCol = function (index, amount) {
+            originalAfterRemoveCol.call(this, index, amount);
+            forcePreview = true;
+        };
+
+        handsontable_config.afterRender = function () {
+            if (forcePreview) {
+                forcePreview = false;
+                $form.find('button[name="do[preview]"]').click();
+            }
+        };
     }
-
-
 
     $container.handsontable(handsontable_config);
 
-});
+};
+
+    jQuery(document).ready(edittable.loadEditor);
+
 }(edittable));
