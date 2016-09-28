@@ -583,6 +583,14 @@ edittable.loadEditor = function () {
             forcePreview = true;
         };
 
+        var originalAfterCreateCol = handsontable_config.afterCreateCol;
+        handsontable_config.afterCreateCol = function (index, amount) {
+            originalAfterCreateCol.call(this, index, amount);
+            tablelayout.colwidth.splice(index, 0, null);
+            $layoutfield.val(JSON.stringify(tablelayout));
+            forcePreview = true;
+        };
+
         handsontable_config.afterRender = function () {
             if (forcePreview) {
                 forcePreview = false;
