@@ -547,7 +547,7 @@ edittable.loadEditor = function () {
 
             tablelayout.colwidth.forEach(function (currentValue, index) {
                 var undefinedValue;
-                if (currentValue.substr(-2) != 'px') {
+                if (!currentValue || currentValue.substr(-2) != 'px') {
                     colWidths.push(undefinedValue);
                     return;
                 }
@@ -559,8 +559,9 @@ edittable.loadEditor = function () {
                 colwidth: []
             };
         }
-
-        handsontable_config.colWidths = colWidths;
+        if (colWidths.length) {
+            handsontable_config.colWidths = colWidths;
+        }
         handsontable_config.afterColumnResize = function (col, width) {
             if ($layoutfield) {
                 tablelayout.colwidth[col] = width + 'px';
