@@ -560,7 +560,7 @@ edittable.loadEditor = function () {
             };
         }
         if (colWidths.length) {
-            handsontable_config.colWidths = colWidths;
+            handsontable_config.manualColumnResize = colWidths;
         }
         handsontable_config.afterColumnResize = function (col, width) {
             if ($layoutfield) {
