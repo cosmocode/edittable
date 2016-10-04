@@ -234,6 +234,20 @@ edittable.loadEditor = function () {
                 jQuery('#handsontable__input').data('AutoResizer').check();
             };
             window.pasteText = original_pasteText;
+
+            /*
+             This is a workaround to rerender the table. It serves two functions:
+             1: On wide tables with linebreaks in columns with no pre-defined table widths (via the tablelayout plugin)
+                reset the width of the table columns to what is needed by its no narrower content
+             2: On table with some rows fixed at the top, ensure that the content of these rows stays at the top as well,
+                not only the lefthand rownumbers
+             Attaching this to the event 'afterRenderer' did not have the desired results, as it seemed not to work for
+             usecase 1 at all and for usecase 2 only with a delay.
+            */
+            var _this = this;
+            this.addHookOnce('afterOnCellMouseOver', function () {
+                _this.updateSettings({});
+            });
         },
 
         /**
