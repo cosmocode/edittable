@@ -1,5 +1,11 @@
+
+
 #edittable__editor {
     margin-bottom: 1.4em;
+    height: 400px;
+    width: 100%;
+    display: block;
+    overflow: hidden;
 
     table {
 
@@ -21,30 +27,14 @@
     }
 }
 
+.a() when (@ini_site_width) {
+    #edittable__editor {
+        width: @ini_site_width;
+    }
+}
+
 // add a z-index to DokuWiki's toolbar pickers
 div.picker {
     z-index: 500;
 }
 
-
-.handsontable th,
-.handsontable table,
-.handsontable tbody,
-.handsontable thead,
-.handsontable td,
-.handsontable div,
-.handsontable textarea {
-    box-sizing: border-box;
-}
-
-div.wtHolder {
-    height: auto !important;
-    padding-bottom: 5px;
-}
-div.wtHider {
-    padding-bottom: 5px;
-}
-
-div.ht_clone_left.handsontable, div.ht_clone_top.handsontable, div.ht_clone_corner.handsontable {
-    display: none;
-}

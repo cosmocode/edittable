@@ -1,3 +1,4 @@
+/* exported addBtnActionNewTable */
 /**
  * Add button action for your toolbar button
  *
@@ -8,6 +9,7 @@
  *                    otherwise an empty string
  */
 function addBtnActionNewTable($btn, props, edid) {
+    "use strict";
 
     $btn.click(function () {
         var editform = jQuery('#dw__editform')[0];
@@ -23,9 +25,9 @@ function addBtnActionNewTable($btn, props, edid) {
 
         var sel;
         if (window.DWgetSelection) {
-            sel = DWgetSelection(ed);
+            sel = window.DWgetSelection(ed);
         } else {
-            sel = getSelection(ed);
+            sel = window.getSelection(ed);
         }
         addField('pre', ed.value.substr(0, sel.start));
         addField('text', ed.value.substr(sel.start, sel.end - sel.start));

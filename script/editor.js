@@ -1,14 +1,19 @@
+var edittable = edittable || {};
+var edittable_plugins = edittable_plugins || {};
+
+(function (edittable) {
+    "use strict";
+
 /**
  * This configures the Handsontable Plugin
  */
-
-var edittable_moveRow = function edittable_moveRow(startRow,endRow,dmarray) {
+edittable.moveRow = function (startRow,endRow,dmarray) {
     var metarow = dmarray.splice(startRow,1)[0];
     dmarray.splice(endRow, 0, metarow);
 };
 
-var edittable_moveCol = function edittable_moveCol(startCol,endCol,dmarray) {
-    for (var i = 0; i < dmarray.length; ++i) {
+edittable.moveCol = function (startCol,endCol,dmarray) {
+    for (var i = 0; i < dmarray.length; i += 1) {
         var datacol = dmarray[i].splice(startCol, 1)[0];
         dmarray[i].splice(endCol, 0, datacol);
     }
@@ -22,13 +27,13 @@ var edittable_moveCol = function edittable_moveCol(startCol,endCol,dmarray) {
  * @param start int
  * @param end int optional, only for moves
  */
-var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, type, start, end) {
+edittable.updateMergeInfo = function (direction, type, start, end) {
     var mergesNeedUpdate = false;
     if (type === 'create' || type === 'remove') {
         end = Infinity;
     }
 
-    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
         if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && end > this.mergeCells.mergedCellInfoCollection[i][direction]) {
             if (type === 'create') {
                 this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
@@ -48,17 +53,17 @@ var edittable_updateMergeInfo = function edittable_updateMergeInfo(direction, ty
     }
 };
 
-var edittable_getMerges = function edittable_getMerges (meta) {
+edittable.getMerges = function (meta) {
     var merges = [];
-    for (var row = 0; row < meta.length; row++) {
-        for (var col = 0; col < meta[0].length; col++) {
-            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col]['rowspan'] > 1 ||
-                meta[row][col].hasOwnProperty('colspan') && meta[row][col]['colspan'] > 1) {
+    for (var row = 0; row < meta.length; row += 1) {
+        for (var col = 0; col < meta[0].length; col += 1) {
+            if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col].rowspan > 1 ||
+                meta[row][col].hasOwnProperty('colspan') && meta[row][col].colspan > 1) {
                 var merge = {};
-                merge['row'] = row;
-                merge['col'] = col;
-                merge['rowspan'] = meta[row][col]['rowspan'];
-                merge['colspan'] = meta[row][col]['colspan'];
+                merge.row = row;
+                merge.col = col;
+                merge.rowspan = meta[row][col].rowspan;
+                merge.colspan = meta[row][col].colspan;
                 merges.push(merge);
             }
         }
@@ -73,26 +78,28 @@ var edittable_getMerges = function edittable_getMerges (meta) {
  * @param amount int
  * @param direction string either 'row' or 'col'
  */
-var edittable_unmergeRemovedMerges = function edittable_unmergeRemovedMerges(index, amount, direction) {
+edittable.unmergeRemovedMerges = function (index, amount, direction) {
     var mergesToSplit = [];
-    for (var span = 0; span < amount; ++span) {
-        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; ++i) {
+    for (var span = 0; span < amount; span += 1) {
+        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
             if (this.mergeCells.mergedCellInfoCollection[i][direction] === index + span) {
                 mergesToSplit.push(i);
             }
         }
     }
     if (mergesToSplit !== []) {
-        for (var merge = mergesToSplit.length - 1; merge >= 0; --merge) {
+        for (var merge = mergesToSplit.length - 1; merge >= 0; merge -= 1) {
             this.mergeCells.mergedCellInfoCollection.splice(mergesToSplit[merge], 1);
         }
         this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
     }
 };
 
-jQuery(function () {
+edittable.loadEditor = function () {
     var $container = jQuery('#edittable__editor');
-    if (!$container.length) return;
+    if (!$container.length) {
+        return;
+    }
 
     var $form = jQuery('#dw__editform');
     var $datafield = $form.find('input[name=edittable_data]');
@@ -100,11 +107,13 @@ jQuery(function () {
 
     var data = JSON.parse($datafield.val());
     var meta = JSON.parse($metafield.val());
-    var merges = edittable_getMerges(meta);
-    if (merges === []) merges = true;
+    var merges = edittable.getMerges(meta);
+    if (merges === []) {
+        merges = true;
+    }
     var lastselect = {row: 0, col: 0};
 
-    $container.handsontable({
+    var handsontable_config = {
         data: data,
         startRows: 5,
         startCols: 5,
@@ -112,7 +121,7 @@ jQuery(function () {
         rowHeaders: true,
         manualColumnResize: true,
         outsideClickDeselects: false,
-        contextMenu: getEditTableContextMenu(data, meta),
+        contextMenu: edittable.getEditTableContextMenu(data, meta),
         manualColumnMove: true,
         manualRowMove: true,
         mergeCells: merges,
@@ -129,8 +138,12 @@ jQuery(function () {
                 colinfo: [],
                 rowinfo: []
             };
-            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) {
+                this.raw.rowinfo[i] = {};
+            }
+            for (i = 0; i < data[0].length; i += 1) {
+                this.raw.colinfo[i] = {};
+            }
         },
 
         /**
@@ -140,10 +153,9 @@ jQuery(function () {
          *
          * @param row int
          * @param col int
-         * @param prop string
          * @returns {*}
          */
-        cells: function (row, col, prop) {
+        cells: function (row, col) {
             return meta[row][col];
         },
 
@@ -156,11 +168,8 @@ jQuery(function () {
          * @param td
          * @param row
          * @param col
-         * @param prop
-         * @param value
-         * @param cellProperties
          */
-        renderer: function (instance, td, row, col, prop, value, cellProperties) {
+        renderer: function (instance, td, row, col) {
             // for some reason, neither cellProperties nor instance.getCellMeta() give the right data
             var cellMeta = meta[row][col];
             var $td = jQuery(td);
@@ -200,6 +209,7 @@ jQuery(function () {
                 $td.removeClass('header');
             }
 
+            /* globals Handsontable */
             Handsontable.renderers.TextRenderer.apply(this, arguments);
         },
 
@@ -224,25 +234,42 @@ jQuery(function () {
                 jQuery('#handsontable__input').data('AutoResizer').check();
             };
             window.pasteText = original_pasteText;
+
+            /*
+             This is a workaround to rerender the table. It serves two functions:
+             1: On wide tables with linebreaks in columns with no pre-defined table widths (via the tablelayout plugin)
+                reset the width of the table columns to what is needed by its no narrower content
+             2: On table with some rows fixed at the top, ensure that the content of these rows stays at the top as well,
+                not only the lefthand rownumbers
+             Attaching this to the event 'afterRenderer' did not have the desired results, as it seemed not to work for
+             usecase 1 at all and for usecase 2 only with a delay.
+            */
+            var _this = this;
+            this.addHookOnce('afterOnCellMouseOver', function () {
+                _this.updateSettings({});
+            });
         },
 
         /**
          * This recalculates the col and row spans and makes sure all correct cells are hidden
          *
-         * @param forced bool
          */
-        beforeRender: function (forced) {
+        beforeRender: function () {
             var row, r, c, col, i;
 
             // reset row and column infos - we store spanning info there
             this.raw.rowinfo = [];
             this.raw.colinfo = [];
-            for (i = 0; i < data.length; i++) this.raw.rowinfo[i] = {};
-            for (i = 0; i < data[0].length; i++) this.raw.colinfo[i] = {};
+            for (i = 0; i < data.length; i += 1) {
+                this.raw.rowinfo[i] = {};
+            }
+            for (i = 0; i < data[0].length; i += 1) {
+                this.raw.colinfo[i] = {};
+            }
 
             // unhide all cells
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
+            for (row = 0; row < data.length; row += 1) {
+                for (col = 0; col < data[0].length; col += 1) {
                     if (meta[row][col].hide) {
                         meta[row][col].hide = false;
                         data[row][col] = '';
@@ -252,39 +279,43 @@ jQuery(function () {
                     meta[row][col].rowspan = 1;
 
                     // make sure no data cell is undefined/null
-                    if (!data[row][col]) data[row][col] = '';
+                    if (!data[row][col]) {
+                        data[row][col] = '';
+                    }
                 }
             }
 
             var manualRowMoveDisable = [];
             var manualColumnMoveDisable = [];
-            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; ++merge) {
+            for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; merge += 1) {
                 row = this.mergeCells.mergedCellInfoCollection[merge].row;
                 col = this.mergeCells.mergedCellInfoCollection[merge].col;
                 var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
                 var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
                 if (rowspan > 1) {
-                    for (i = row; i < row+rowspan; ++i ) {
+                    for (i = row; i < row+rowspan; i += 1 ) {
                         if (manualRowMoveDisable.indexOf(i) === -1) {
                             manualRowMoveDisable.push(i);
                         }
                     }
                 }
                 if (colspan > 1) {
-                    for (i = col; i < col+colspan; ++i ) {
+                    for (i = col; i < col+colspan; i += 1 ) {
                         if (manualColumnMoveDisable.indexOf(i) === -1) {
                             manualColumnMoveDisable.push(i);
                         }
                     }
                 }
-                meta[row][col]['colspan'] = colspan;
-                meta[row][col]['rowspan'] = rowspan;
+                meta[row][col].colspan = colspan;
+                meta[row][col].rowspan = rowspan;
 
                 // hide the cells hidden by the row/colspan
 
-                for (r = row; r < row + rowspan; ++r) {
-                    for (c = col; c < col + colspan; ++c) {
-                        if (r === row && c === col) continue;
+                for (r = row; r < row + rowspan; r += 1) {
+                    for (c = col; c < col + colspan; c += 1) {
+                        if (r === row && c === col) {
+                            continue;
+                        }
                         meta[r][c].hide = true;
                         meta[r][c].rowspan = 1;
                         meta[r][c].colspan = 1;
@@ -315,8 +346,8 @@ jQuery(function () {
 
             // In dataLBFixed, replace all actual line breaks with DokuWiki line breaks
             // In data, replace all DokuWiki line breaks with actual ones so the editor displays line breaks properly
-            for (row = 0; row < data.length; row++) {
-                for (col = 0; col < data[0].length; col++) {
+            for (row = 0; row < data.length; row += 1) {
+                for (col = 0; col < data[0].length; col += 1) {
                     dataLBFixed[row][col] = data[row][col].replace(/(\r\n|\n|\r)/g,"\\\\ ");
                     data[row][col]        = data[row][col].replace(/\\\\\s/g,"\n");
                 }
@@ -340,9 +371,9 @@ jQuery(function () {
         },
 
         beforeColumnMove: function(startCol, endCol) {
-            edittable_moveCol(startCol, endCol, meta);
-            edittable_moveCol(startCol, endCol, data);
-            edittable_updateMergeInfo.call(this, 'col','move',startCol, endCol);
+            edittable.moveCol(startCol, endCol, meta);
+            edittable.moveCol(startCol, endCol, data);
+            edittable.updateMergeInfo.call(this, 'col','move',startCol, endCol);
         },
 
         afterColumnMove: function () {
@@ -350,9 +381,9 @@ jQuery(function () {
         },
 
         beforeRowMove: function(startRow, endRow) {
-            edittable_moveRow(startRow, endRow, meta);
-            edittable_moveRow(startRow, endRow, data);
-            edittable_updateMergeInfo.call(this, 'row','move',startRow, endRow);
+            edittable.moveRow(startRow, endRow, meta);
+            edittable.moveRow(startRow, endRow, data);
+            edittable.updateMergeInfo.call(this, 'row','move',startRow, endRow);
         },
 
         afterRowMove: function () {
@@ -366,7 +397,7 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateRow: function (index, amount) {
-            for (var z = 0; z < amount; z++) {
+            for (var z = 0; z < amount; z += 1) {
                 this.raw.rowinfo.splice(index, 0, [
                     {}
                 ]);
@@ -374,15 +405,19 @@ jQuery(function () {
 
             var i;
             var cols = 1; // minimal number of cells
-            if (data[0]) cols = data[0].length;
+            if (data[0]) {
+                cols = data[0].length;
+            }
 
             // insert into meta array
-            for (i = 0; i < amount; i++) {
+            for (i = 0; i < amount; i += 1) {
                 var newrow = [];
-                for (i = 0; i < cols; i++) newrow.push({rowspan: 1, colspan: 1});
+                for (i = 0; i < cols; i += 1) {
+                    newrow.push({rowspan: 1, colspan: 1});
+                }
                 meta.splice(index, 0, newrow);
             }
-            edittable_updateMergeInfo.call(this, 'row','create',index);
+            edittable.updateMergeInfo.call(this, 'row','create',index);
         },
 
 
@@ -393,7 +428,7 @@ jQuery(function () {
          * @param amount
          */
         beforeRemoveRow: function (index, amount) {
-            edittable_unmergeRemovedMerges.call(this, index, amount, 'row');
+            edittable.unmergeRemovedMerges.call(this, index, amount, 'row');
         },
 
 
@@ -405,7 +440,7 @@ jQuery(function () {
          */
         afterRemoveRow: function (index, amount) {
             meta.splice(index, amount);
-            edittable_updateMergeInfo.call(this, 'row','remove',index);
+            edittable.updateMergeInfo.call(this, 'row','remove',index);
         },
 
         /**
@@ -415,18 +450,18 @@ jQuery(function () {
          * @param amount int
          */
         afterCreateCol: function (index, amount) {
-            for (var z = 0; z < amount; z++) {
+            for (var z = 0; z < amount; z += 1) {
                 this.raw.colinfo.splice(index, 0, [
                     {}
                 ]);
             }
 
-            for (var row = 0; row < data.length; row++) {
-                for (var i = 0; i < amount; i++) {
+            for (var row = 0; row < data.length; row += 1) {
+                for (var i = 0; i < amount; i += 1) {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
-            edittable_updateMergeInfo.call(this, 'col','create',index);
+            edittable.updateMergeInfo.call(this, 'col','create',index);
         },
 
         /**
@@ -436,7 +471,7 @@ jQuery(function () {
          * @param amount
          */
         beforeRemoveCol: function (index, amount) {
-            edittable_unmergeRemovedMerges.call(this, index, amount, 'col');
+            edittable.unmergeRemovedMerges.call(this, index, amount, 'col');
         },
 
         /**
@@ -446,10 +481,10 @@ jQuery(function () {
          * @param amount int
          */
         afterRemoveCol: function (index, amount) {
-            for (var row = 0; row < data.length; row++) {
+            for (var row = 0; row < data.length; row += 1) {
                 meta[row].splice(index, amount);
             }
-            edittable_updateMergeInfo.call(this, 'col','remove',index);
+            edittable.updateMergeInfo.call(this, 'col','remove',index);
         },
 
         /**
@@ -457,21 +492,27 @@ jQuery(function () {
          *
          * @param r int
          * @param c int
-         * @param r2 int
-         * @param c2 int
          */
-        afterSelection: function (r, c, r2, c2) {
+        afterSelection: function (r, c) {
             if (meta[r][c].hide) {
                 // user navigated into a hidden cell! we need to find the next selectable cell
                 var x = 0;
 
                 var v = r - lastselect.row;
-                if (v > 0) v = 1;
-                if (v < 0) v = -1;
+                if (v > 0) {
+                    v = 1;
+                }
+                if (v < 0) {
+                    v = -1;
+                }
 
                 var h = c - lastselect.col;
-                if (h > 0) h = 1;
-                if (h < 0) h = -1;
+                if (h > 0) {
+                    h = 1;
+                }
+                if (h < 0) {
+                    h = -1;
+                }
 
                 if (v !== 0) {
                     x = r;
@@ -508,6 +549,24 @@ jQuery(function () {
                 lastselect.col = c;
             }
         }
-    });
+    };
 
-});
+
+    for (var plugin in edittable_plugins) {
+        if (edittable_plugins.hasOwnProperty(plugin)) {
+            if (typeof edittable_plugins[plugin].modifyHandsontableConfig == "function") {
+                edittable_plugins[plugin].modifyHandsontableConfig(handsontable_config, $form);
+            }
+        }
+    }
+
+
+
+
+    $container.handsontable(handsontable_config);
+
+};
+
+    jQuery(document).ready(edittable.loadEditor);
+
+}(edittable));
