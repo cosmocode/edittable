@@ -1,13 +1,17 @@
+var edittable = edittable || {};
+
+(function (edittable) {
+    "use strict";
 /**
  * create an iterable array of selected cells from the selection object
  *
  * @param selection object
  * @returns {Array}
  */
-var edittable_cellArray = function (selection) {
+edittable.cellArray = function (selection) {
     var selectionArray = [];
-    for (var currentRow = selection.start.row; currentRow <= selection.end.row; ++currentRow) {
-        for (var currentCol = selection.start.col; currentCol <= selection.end.col; ++currentCol) {
+    for (var currentRow = selection.start.row; currentRow <= selection.end.row; currentRow += 1) {
+        for (var currentCol = selection.start.col; currentCol <= selection.end.col; currentCol += 1) {
             selectionArray.push({row:currentRow, col: currentCol});
         }
     }
@@ -21,13 +25,13 @@ var edittable_cellArray = function (selection) {
  * @param meta array
  * @returns object
  */
-function getEditTableContextMenu(data, meta) {
+edittable.getEditTableContextMenu = function (data, meta) {
     return {
         items: {
             toggle_header: {
                 name: LANG.plugins.edittable.toggle_header,
                 callback: function (key, selection) {
-                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable.cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
 
@@ -43,7 +47,7 @@ function getEditTableContextMenu(data, meta) {
             align_left: {
                 name: LANG.plugins.edittable.align_left,
                 callback: function (key, selection) {
-                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable.cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'left';
@@ -60,7 +64,7 @@ function getEditTableContextMenu(data, meta) {
             align_center: {
                 name: LANG.plugins.edittable.align_center,
                 callback: function (key, selection) {
-                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable.cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'center';
@@ -77,7 +81,7 @@ function getEditTableContextMenu(data, meta) {
             align_right: {
                 name: LANG.plugins.edittable.align_right,
                 callback: function (key, selection) {
-                    jQuery.each(edittable_cellArray(selection), function (index, cell) {
+                    jQuery.each(edittable.cellArray(selection), function (index, cell) {
                         var col = cell.col;
                         var row = cell.row;
                         meta[row][col].align = 'right';
@@ -176,4 +180,5 @@ function getEditTableContextMenu(data, meta) {
             }
         }
     };
-}
+};
+}(edittable));
