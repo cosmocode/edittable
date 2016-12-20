@@ -551,6 +551,10 @@ edittable.loadEditor = function () {
         }
     };
 
+    if (window.JSINFO.plugins.edittable['default columnwidth']) {
+        handsontable_config.colWidths = window.JSINFO.plugins.edittable['default columnwidth'];
+    }
+
 
     for (var plugin in edittable_plugins) {
         if (edittable_plugins.hasOwnProperty(plugin)) {
