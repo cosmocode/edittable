@@ -2,7 +2,7 @@
 
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * 
+ *
  * @author Hideaki SAWADA <chuno@live.jp>
  */
 $lang['secedit_name']          = 'テーブル';
@@ -19,7 +19,5 @@ $lang['js']['row_below']       = '下に行を追加する';
 $lang['js']['col_left']        = '左に列を追加する';
 $lang['js']['remove_col']      = '列を削除する';
 $lang['js']['col_right']       = '右列を追加する';
-$lang['js']['colspan_add']     = '横のセル結合を増やす';
-$lang['js']['colspan_del']     = '横のセル結合を減らす';
-$lang['js']['rowspan_add']     = '縦のセル結合を増やす';
-$lang['js']['rowspan_del']     = '縦のセル結合を減らす';
+$lang['js']['merge_cells']     = 'セルを結合する';
+$lang['js']['unmerge_cells']   = 'セルを分割する';
