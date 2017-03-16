@@ -1231,7 +1231,14 @@ thead .htCollapseButton:after {
   position: absolute;
   left: 4px;
 }
-@charset "UTF-8";
+/**
+* DOKUWIKI: Removing this erroneous charset notation here, since it caused a bug in safari
+* This may already be fixed upstream, so this is only temporary until we update handsontable again
+* see https://github.com/cosmocode/edittable/issues/91
+*
+* @charset "UTF-8";
+*/
+
 
 /*!
  * Pikaday
