@@ -17379,7 +17379,10 @@ function TableView(instance) {
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      // COSMOCODE
+      if(!jQuery('#link__wiz').is(':visible')) {
+        instance.destroyEditor();
+      }
     }
   });
   this.eventManager.addEventListener(table, 'selectstart', function(event) {
