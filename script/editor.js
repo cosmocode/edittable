@@ -39,27 +39,24 @@ var edittable_plugins = edittable_plugins || {};
  * If the number of rows or columns in front of some merged cells changes, update the mergedCellInfoCollection accordingly.
  *
  * @param direction string either col or row
- * @param type string either create, remove or move
- * @param start int
- * @param end int optional, only for moves
+ * @param movedIndexes int[]
+ * @param target int optional, only for moves
  */
-edittable.updateMergeInfo = function (direction, type, start, end) {
+edittable.updateMergeInfo = function (direction, movedIndexes, target) {
+    // FIXME: handle moving a merged section
+
     var mergesNeedUpdate = false;
-    if (type === 'create' || type === 'remove') {
-        end = Infinity;
-    }
+
+    var start = movedIndexes[0];
+    var amount = movedIndexes.length;
 
     for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
-        if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && end > this.mergeCells.mergedCellInfoCollection[i][direction]) {
-            if (type === 'create') {
-                this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
-            } else {
-                this.mergeCells.mergedCellInfoCollection[i][direction] -= 1;
-            }
+        if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && target > this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            this.mergeCells.mergedCellInfoCollection[i][direction] -= amount;
             mergesNeedUpdate = true;
         }
-        if (start > this.mergeCells.mergedCellInfoCollection[i][direction] && end <= this.mergeCells.mergedCellInfoCollection[i][direction]) {
-            this.mergeCells.mergedCellInfoCollection[i][direction] += 1;
+        if (start > this.mergeCells.mergedCellInfoCollection[i][direction] && target <= this.mergeCells.mergedCellInfoCollection[i][direction]) {
+            this.mergeCells.mergedCellInfoCollection[i][direction] += amount;
             mergesNeedUpdate = true;
         }
     }
@@ -389,7 +386,7 @@ edittable.loadEditor = function () {
         beforeColumnMove: function (movingCols, target) {
             meta = edittable.moveCol(movingCols, target, meta);
             data = edittable.moveCol(movingCols, target, data);
-            edittable.updateMergeInfo.call(this, 'col', 'move', movingCols, target);
+            edittable.updateMergeInfo.call(this, 'col', movingCols, target);
         },
 
         afterColumnMove: function () {
@@ -399,7 +396,7 @@ edittable.loadEditor = function () {
         beforeRowMove: function (movingRows, target) {
             meta = edittable.moveRow(movingRows, target, meta);
             data = edittable.moveRow(movingRows, target, data);
-            edittable.updateMergeInfo.call(this, 'row', 'move', movingRows, target);
+            edittable.updateMergeInfo.call(this, 'row', movingRows, target);
         },
 
         afterRowMove: function () {
@@ -433,7 +430,6 @@ edittable.loadEditor = function () {
                 }
                 meta.splice(index, 0, newrow);
             }
-            edittable.updateMergeInfo.call(this, 'row','create',index);
         },
 
 
@@ -456,7 +452,6 @@ edittable.loadEditor = function () {
          */
         afterRemoveRow: function (index, amount) {
             meta.splice(index, amount);
-            edittable.updateMergeInfo.call(this, 'row','remove',index);
         },
 
         /**
@@ -477,7 +472,6 @@ edittable.loadEditor = function () {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
-            edittable.updateMergeInfo.call(this, 'col','create',index);
         },
 
         /**
