@@ -2,22 +2,38 @@ var edittable = edittable || {};
 var edittable_plugins = edittable_plugins || {};
 
 (function (edittable) {
-    "use strict";
+    'use strict';
 
-/**
- * This configures the Handsontable Plugin
- */
-edittable.moveRow = function (startRow,endRow,dmarray) {
-    var metarow = dmarray.splice(startRow,1)[0];
-    dmarray.splice(endRow, 0, metarow);
-};
+    edittable.moveRow = function moveRow(movingRowIndexes, target, dmarray) {
+        var startIndex = movingRowIndexes[0];
+        var endIndex = movingRowIndexes[movingRowIndexes.length - 1];
+        var moveForward = target < startIndex;
+        if (!moveForward) {
+            target += 1;
+        }
 
-edittable.moveCol = function (startCol,endCol,dmarray) {
-    for (var i = 0; i < dmarray.length; i += 1) {
-        var datacol = dmarray[i].splice(startCol, 1)[0];
-        dmarray[i].splice(endCol, 0, datacol);
-    }
-};
+        var first = dmarray.slice(0, Math.min(startIndex, target));
+        var moving = dmarray.slice(startIndex, endIndex + 1);
+        var between;
+        if (moveForward) {
+            between = dmarray.slice(target, startIndex);
+        } else {
+            between = dmarray.slice(endIndex + 1, target);
+        }
+        var last = dmarray.slice(Math.max(endIndex + 1, target));
+        if (moveForward) {
+            return [].concat(first, moving, between, last);
+        }
+        return [].concat(first, between, moving, last);
+    };
+
+
+    edittable.moveCol = function moveCol(movingColIndexes, target, dmarray) {
+        return dmarray.map(function (row) {
+            return edittable.moveRow(movingColIndexes, target, row);
+        });
+    };
+
 
 /**
  * If the number of rows or columns in front of some merged cells changes, update the mergedCellInfoCollection accordingly.
@@ -370,20 +386,20 @@ edittable.loadEditor = function () {
             }
         },
 
-        beforeColumnMove: function(startCol, endCol) {
-            edittable.moveCol(startCol, endCol, meta);
-            edittable.moveCol(startCol, endCol, data);
-            edittable.updateMergeInfo.call(this, 'col','move',startCol, endCol);
+        beforeColumnMove: function (movingCols, target) {
+            meta = edittable.moveCol(movingCols, target, meta);
+            data = edittable.moveCol(movingCols, target, data);
+            edittable.updateMergeInfo.call(this, 'col', 'move', movingCols, target);
         },
 
         afterColumnMove: function () {
             this.updateSettings({manualColumnMove: true});
         },
 
-        beforeRowMove: function(startRow, endRow) {
-            edittable.moveRow(startRow, endRow, meta);
-            edittable.moveRow(startRow, endRow, data);
-            edittable.updateMergeInfo.call(this, 'row','move',startRow, endRow);
+        beforeRowMove: function (movingRows, target) {
+            meta = edittable.moveRow(movingRows, target, meta);
+            data = edittable.moveRow(movingRows, target, data);
+            edittable.updateMergeInfo.call(this, 'row', 'move', movingRows, target);
         },
 
         afterRowMove: function () {
