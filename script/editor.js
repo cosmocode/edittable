@@ -108,6 +108,12 @@ edittable.unmergeRemovedMerges = function (index, amount, direction) {
     }
 };
 
+    edittable.isTargetInMerge = function isTargetInMerge(merges, target, direction) {
+        return merges.some(function (merge) {
+            return (merge[direction] < target && target < merge[direction] + merge[direction + 'span']);
+        });
+    };
+
 edittable.loadEditor = function () {
     var $container = jQuery('#edittable__editor');
     if (!$container.length) {
@@ -384,9 +390,14 @@ edittable.loadEditor = function () {
         },
 
         beforeColumnMove: function (movingCols, target) {
+            var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'col');
+            if (disallowMove) {
+                return false;
+            }
             meta = edittable.moveCol(movingCols, target, meta);
             data = edittable.moveCol(movingCols, target, data);
             edittable.updateMergeInfo.call(this, 'col', movingCols, target);
+            return true;
         },
 
         afterColumnMove: function () {
@@ -394,9 +405,14 @@ edittable.loadEditor = function () {
         },
 
         beforeRowMove: function (movingRows, target) {
+            var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'row');
+            if (disallowMove) {
+                return false;
+            }
             meta = edittable.moveRow(movingRows, target, meta);
             data = edittable.moveRow(movingRows, target, data);
             edittable.updateMergeInfo.call(this, 'row', movingRows, target);
+            return true;
         },
 
         afterRowMove: function () {
