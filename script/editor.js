@@ -34,38 +34,6 @@ var edittable_plugins = edittable_plugins || {};
         });
     };
 
-
-/**
- * If the number of rows or columns in front of some merged cells changes, update the mergedCellInfoCollection accordingly.
- *
- * @param direction string either col or row
- * @param movedIndexes int[]
- * @param target int optional, only for moves
- */
-edittable.updateMergeInfo = function (direction, movedIndexes, target) {
-    // FIXME: handle moving a merged section
-
-    var mergesNeedUpdate = false;
-
-    var start = movedIndexes[0];
-    var amount = movedIndexes.length;
-
-    for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
-        if (start <= this.mergeCells.mergedCellInfoCollection[i][direction] && target > this.mergeCells.mergedCellInfoCollection[i][direction]) {
-            this.mergeCells.mergedCellInfoCollection[i][direction] -= amount;
-            mergesNeedUpdate = true;
-        }
-        if (start > this.mergeCells.mergedCellInfoCollection[i][direction] && target <= this.mergeCells.mergedCellInfoCollection[i][direction]) {
-            this.mergeCells.mergedCellInfoCollection[i][direction] += amount;
-            mergesNeedUpdate = true;
-        }
-    }
-
-    if (mergesNeedUpdate) {
-        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
-    }
-};
-
 edittable.getMerges = function (meta) {
     var merges = [];
     for (var row = 0; row < meta.length; row += 1) {
@@ -396,7 +364,7 @@ edittable.loadEditor = function () {
             }
             meta = edittable.moveCol(movingCols, target, meta);
             data = edittable.moveCol(movingCols, target, data);
-            edittable.updateMergeInfo.call(this, 'col', movingCols, target);
+            this.updateSettings({mergeCells: edittable.getMerges(meta)});
             return true;
         },
 
@@ -411,7 +379,7 @@ edittable.loadEditor = function () {
             }
             meta = edittable.moveRow(movingRows, target, meta);
             data = edittable.moveRow(movingRows, target, data);
-            edittable.updateMergeInfo.call(this, 'row', movingRows, target);
+            this.updateSettings({mergeCells: edittable.getMerges(meta)});
             return true;
         },
 
@@ -510,7 +478,6 @@ edittable.loadEditor = function () {
             for (var row = 0; row < data.length; row += 1) {
                 meta[row].splice(index, amount);
             }
-            edittable.updateMergeInfo.call(this, 'col','remove',index);
         },
 
         /**
