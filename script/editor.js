@@ -529,7 +529,30 @@ edittable.loadEditor = function () {
                 lastselect.row = r;
                 lastselect.col = c;
             }
-        }
+        },
+
+        /**
+         *
+         * @param pasteData An array of arrays which contains data to paste.
+         * @param coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
+         that correspond to the previously selected area.
+         */
+        beforePaste: function (pasteData, coords) {
+            var startRow = coords[0].startRow;
+            var startCol = coords[0].startCol;
+            var totalRows = this.countRows();
+            var totalCols = this.countCols();
+
+            var missingRows = (startRow + pasteData.length) - totalRows;
+            var missingCols = (startCol + pasteData[0].length) - totalCols;
+            if (missingRows > 0) {
+                this.alter('insert_row', undefined, missingRows, 'paste');
+            }
+            if (missingCols > 0) {
+                this.alter('insert_col', undefined, missingCols, 'paste');
+            }
+            return true;
+        },
     };
 
     if (window.JSINFO.plugins.edittable['default columnwidth']) {
@@ -539,7 +562,7 @@ edittable.loadEditor = function () {
 
     for (var plugin in edittable_plugins) {
         if (edittable_plugins.hasOwnProperty(plugin)) {
-            if (typeof edittable_plugins[plugin].modifyHandsontableConfig == "function") {
+            if (typeof edittable_plugins[plugin].modifyHandsontableConfig === "function") {
                 edittable_plugins[plugin].modifyHandsontableConfig(handsontable_config, $form);
             }
         }
