@@ -249,27 +249,11 @@ edittable.loadEditor = function () {
                 }
             }
 
-            var manualRowMoveDisable = [];
-            var manualColumnMoveDisable = [];
             for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; merge += 1) {
                 row = this.mergeCells.mergedCellInfoCollection[merge].row;
                 col = this.mergeCells.mergedCellInfoCollection[merge].col;
                 var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
                 var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
-                if (rowspan > 1) {
-                    for (i = row; i < row+rowspan; i += 1 ) {
-                        if (manualRowMoveDisable.indexOf(i) === -1) {
-                            manualRowMoveDisable.push(i);
-                        }
-                    }
-                }
-                if (colspan > 1) {
-                    for (i = col; i < col+colspan; i += 1 ) {
-                        if (manualColumnMoveDisable.indexOf(i) === -1) {
-                            manualColumnMoveDisable.push(i);
-                        }
-                    }
-                }
                 meta[row][col].colspan = colspan;
                 meta[row][col].rowspan = rowspan;
 
@@ -293,15 +277,6 @@ edittable.loadEditor = function () {
                         }
                     }
                 }
-            }
-
-            if (!this.manualRowMoveDisable || JSON.stringify(manualRowMoveDisable.sort()) != JSON.stringify(this.manualRowMoveDisable.sort())) {
-                this.manualRowMoveDisable = manualRowMoveDisable;
-                this.updateSettings({manualRowMoveDisable: manualRowMoveDisable});
-            }
-            if (!this.manualColumnMoveDisable || JSON.stringify(manualColumnMoveDisable.sort()) != JSON.stringify(this.manualColumnMoveDisable.sort())) {
-                this.manualColumnMoveDisable = manualColumnMoveDisable;
-                this.updateSettings({manualColumnMoveDisable: manualColumnMoveDisable});
             }
 
             // Clone data object
@@ -345,10 +320,6 @@ edittable.loadEditor = function () {
             return true;
         },
 
-        afterColumnMove: function () {
-            this.updateSettings({manualColumnMove: true});
-        },
-
         beforeRowMove: function (movingRows, target) {
             var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'row');
             if (disallowMove) {
@@ -358,10 +329,6 @@ edittable.loadEditor = function () {
             data = edittable.moveRow(movingRows, target, data);
             this.updateSettings({mergeCells: edittable.getMerges(meta)});
             return true;
-        },
-
-        afterRowMove: function () {
-            this.updateSettings({manualRowMove: true});
         },
 
         /**
