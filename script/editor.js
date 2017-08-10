@@ -394,12 +394,6 @@ edittable.loadEditor = function () {
          * @param amount int
          */
         afterCreateRow: function (index, amount) {
-            for (var z = 0; z < amount; z += 1) {
-                this.raw.rowinfo.splice(index, 0, [
-                    {}
-                ]);
-            }
-
             var i;
             var cols = 1; // minimal number of cells
             if (data[0]) {
@@ -445,12 +439,6 @@ edittable.loadEditor = function () {
          * @param amount int
          */
         afterCreateCol: function (index, amount) {
-            for (var z = 0; z < amount; z += 1) {
-                this.raw.colinfo.splice(index, 0, [
-                    {}
-                ]);
-            }
-
             for (var row = 0; row < data.length; row += 1) {
                 for (var i = 0; i < amount; i += 1) {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
