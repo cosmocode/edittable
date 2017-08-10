@@ -52,29 +52,6 @@ edittable.getMerges = function (meta) {
     return merges;
 };
 
-/**
- * If the top-left cell of a set of merged cells is removed by an 'remove row'/'remove column' action, then split the merge
- *
- * @param index int
- * @param amount int
- * @param direction string either 'row' or 'col'
- */
-edittable.unmergeRemovedMerges = function (index, amount, direction) {
-    var mergesToSplit = [];
-    for (var span = 0; span < amount; span += 1) {
-        for (var i = 0; i < this.mergeCells.mergedCellInfoCollection.length; i += 1) {
-            if (this.mergeCells.mergedCellInfoCollection[i][direction] === index + span) {
-                mergesToSplit.push(i);
-            }
-        }
-    }
-    if (mergesToSplit !== []) {
-        for (var merge = mergesToSplit.length - 1; merge >= 0; merge -= 1) {
-            this.mergeCells.mergedCellInfoCollection.splice(mergesToSplit[merge], 1);
-        }
-        this.updateSettings({mergeCells: this.mergeCells.mergedCellInfoCollection});
-    }
-};
 
     edittable.isTargetInMerge = function isTargetInMerge(merges, target, direction) {
         return merges.some(function (merge) {
@@ -410,18 +387,6 @@ edittable.loadEditor = function () {
             }
         },
 
-
-        /**
-         * if rows are removed which contain the beginning of a set of merged cells, split the merge
-         *
-         * @param index
-         * @param amount
-         */
-        beforeRemoveRow: function (index, amount) {
-            edittable.unmergeRemovedMerges.call(this, index, amount, 'row');
-        },
-
-
         /**
          * Update meta data array when rows are removed
          *
@@ -444,16 +409,6 @@ edittable.loadEditor = function () {
                     meta[row].splice(index, 0, {rowspan: 1, colspan: 1});
                 }
             }
-        },
-
-        /**
-         * if colmuns are removed which contain the beginning of a set of merged cells, split the merge
-         *
-         * @param index
-         * @param amount
-         */
-        beforeRemoveCol: function (index, amount) {
-            edittable.unmergeRemovedMerges.call(this, index, amount, 'col');
         },
 
         /**
