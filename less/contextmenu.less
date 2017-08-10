@@ -1,6 +1,11 @@
 .htContextMenu table tbody {
 
-    tr td div {
+    tr td {
+        padding-left: 0;
+        padding-right: 0;
+
+        div.htItemWrapper {
+            margin-left: 4px;
         padding-left: 20px;
         background-position: center left;
         background-repeat: no-repeat;
@@ -33,7 +38,6 @@
             background-image: url('../plugins/edittable/images/row_below.png');
         }
 
-
         &.col_left {
             background-image: url('../plugins/edittable/images/col_left.png');
         }
@@ -63,6 +67,7 @@
                 }
             }
         }
+    }
     }
 
     td.htSeparator div {
