@@ -117,8 +117,12 @@ edittable.getEditTableContextMenu = function (data, meta) {
                  * do not show when this is the last row
                  */
                 disabled: function () {
-                    return (this.countRows() <= 1);
-                }
+                    var rowsInTable = this.countRows();
+                    var firstSelectedRow = this.getSelected()[0];
+                    var lastSelectedRow = this.getSelected()[2]; // fix magic number with destructuring once we drop IE11
+                    var allRowsSelected = firstSelectedRow === 0 && lastSelectedRow === rowsInTable - 1;
+                    return (rowsInTable <= 1 || allRowsSelected);
+                },
             },
             row_below: {
                 name: LANG.plugins.edittable.row_below
@@ -145,8 +149,12 @@ edittable.getEditTableContextMenu = function (data, meta) {
                  * do not show when this is the last row
                  */
                 disabled: function () {
-                    return (this.countCols() <= 1);
-                }
+                    var colsInTable = this.countCols();
+                    var firstSelectedColumn = this.getSelected()[1];
+                    var lastSelectedColumn = this.getSelected()[3]; // fix magic number with destructuring once we drop IE11
+                    var allColsSelected = firstSelectedColumn === 0 && lastSelectedColumn === colsInTable - 1;
+                    return (colsInTable <= 1 || allColsSelected);
+                },
             },
             col_right: {
                 name: LANG.plugins.edittable.col_right
