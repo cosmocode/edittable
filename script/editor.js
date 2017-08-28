@@ -1,3 +1,5 @@
+/* global initToolbar */
+
 var edittable = edittable || {};
 var edittable_plugins = edittable_plugins || {};
 
@@ -156,10 +158,10 @@ edittable.loadEditor = function () {
                 $td.show();
             }
 
-            if (cellMeta.align == 'right') {
+            if (cellMeta.align === 'right') {
                 $td.addClass('right');
                 $td.removeClass('center');
-            } else if (cellMeta.align == 'center') {
+            } else if (cellMeta.align === 'center') {
                 $td.addClass('center');
                 $td.removeClass('right');
             } else {
@@ -167,7 +169,7 @@ edittable.loadEditor = function () {
                 $td.removeClass('right');
             }
 
-            if (cellMeta.tag == 'th') {
+            if (cellMeta.tag === 'th') {
                 $td.addClass('header');
             } else {
                 $td.removeClass('header');
@@ -457,7 +459,8 @@ edittable.loadEditor = function () {
          *
          * @param pasteData An array of arrays which contains data to paste.
          * @param coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
-         that correspond to the previously selected area.
+         *        that correspond to the previously selected area.
+         * @return {bool}
          */
         beforePaste: function (pasteData, coords) {
             var startRow = coords[0].startRow;
@@ -474,7 +477,7 @@ edittable.loadEditor = function () {
                 this.alter('insert_col', undefined, missingCols, 'paste');
             }
             return true;
-        },
+        }
     };
 
     if (window.JSINFO.plugins.edittable['default columnwidth']) {
