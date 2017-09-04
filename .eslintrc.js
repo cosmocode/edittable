@@ -31,7 +31,25 @@ module.exports = {
         ],
         'comma-dangle': [
             'error',
-            'never'
-        ]
-    }
+            'never',
+        ],
+        "indent": [
+            "error",
+            4,
+        ],
+        "quotes": [
+            "error",
+            "single",
+        ],
+        "dot-notation": ["warn"],
+        "object-shorthand": ["error", "never"],
+        "linebreak-style": [
+            "error",
+            "unix",
+        ],
+        "no-implicit-globals": "error",
+        "no-return-assign": "error",
+        "no-throw-literal": "error",
+        "strict": ["error", "function"],
+    },
 };
