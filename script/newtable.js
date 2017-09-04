@@ -9,7 +9,7 @@
  *                    otherwise an empty string
  */
 function addBtnActionNewTable($btn, props, edid) {
-    "use strict";
+    'use strict';
 
     $btn.click(function () {
         var editform = jQuery('#dw__editform')[0];

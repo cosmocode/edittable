@@ -1,3 +1,6 @@
+/* eslint-env qunit */
+/*eslint no-magic-numbers: 0*/
+
 var edittable = edittable || {};
 
 (function (edittable) {
@@ -61,56 +64,56 @@ var edittable = edittable || {};
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 0 to 1", function (assert) {
+    QUnit.test('edittable.moveCol 0 to 1', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([0], 1, meta);
         var expected_meta = [['b', 'a', 'c'], ['e', 'd', 'f'], ['h', 'g', 'i']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 0 to 2", function (assert) {
+    QUnit.test('edittable.moveCol 0 to 2', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([0], 2, meta);
         var expected_meta = [['b', 'c', 'a'], ['e', 'f', 'd'], ['h', 'i', 'g']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 1 to 2", function (assert) {
+    QUnit.test('edittable.moveCol 1 to 2', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([1], 2, meta);
         var expected_meta = [['a', 'c', 'b'], ['d', 'f', 'e'], ['g', 'i', 'h']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 1 to 0", function (assert) {
+    QUnit.test('edittable.moveCol 1 to 0', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([1], 0, meta);
         var expected_meta = [['b', 'a', 'c'], ['e', 'd', 'f'], ['h', 'g', 'i']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 2 to 0", function (assert) {
+    QUnit.test('edittable.moveCol 2 to 0', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([2], 0, meta);
         var expected_meta = [['c', 'a', 'b'], ['f', 'd', 'e'], ['i', 'g', 'h']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol 2 to 1", function (assert) {
+    QUnit.test('edittable.moveCol 2 to 1', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([2], 1, meta);
         var expected_meta = [['a', 'c', 'b'], ['d', 'f', 'e'], ['g', 'i', 'h']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol [0, 1] to 2", function (assert) {
+    QUnit.test('edittable.moveCol [0, 1] to 2', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([0, 1], 2, meta);
         var expected_meta = [['c', 'a', 'b'], ['f', 'd', 'e'], ['i', 'g', 'h']];
         assert.deepEqual(actual_meta, expected_meta);
     });
 
-    QUnit.test("edittable.moveCol [1, 2] to 0", function (assert) {
+    QUnit.test('edittable.moveCol [1, 2] to 0', function (assert) {
         var meta = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
         var actual_meta = edittable.moveCol([1, 2], 0, meta);
         var expected_meta = [['b', 'c', 'a'], ['e', 'f', 'd'], ['h', 'i', 'g']];

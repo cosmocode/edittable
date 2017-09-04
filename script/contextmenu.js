@@ -3,7 +3,7 @@
 var edittable = edittable || {};
 
 (function (edittable) {
-    "use strict";
+    'use strict';
     /**
      * create an iterable array of selected cells from the selection object
      *
@@ -112,7 +112,7 @@ var edittable = edittable || {};
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
                             var amount = selection.end.row - selection.start.row + 1;
-                            this.alter("remove_row", selection.start.row, amount);
+                            this.alter('remove_row', selection.start.row, amount);
                         }
                     },
                     /**
@@ -144,7 +144,7 @@ var edittable = edittable || {};
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
                             var amount = selection.end.col - selection.start.col + 1;
-                            this.alter("remove_col", selection.start.col, amount);
+                            this.alter('remove_col', selection.start.col, amount);
                         }
                     },
                     /**
