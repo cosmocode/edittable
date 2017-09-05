@@ -8,7 +8,7 @@
  * @return {string}   If button should be appended return the id for in aria-controls,
  *                    otherwise an empty string
  */
-function addBtnActionNewTable($btn, props, edid) {
+window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
     'use strict';
 
     $btn.click(function () {
@@ -52,4 +52,4 @@ function addBtnActionNewTable($btn, props, edid) {
 
     });
     return 'click';
-}
+};

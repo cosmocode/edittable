@@ -1,6 +1,6 @@
 /* global LANG */
 
-var edittable = edittable || {};
+window.edittable = window.edittable || {};
 
 (function (edittable) {
     'use strict';
@@ -191,4 +191,4 @@ var edittable = edittable || {};
             }
         };
     };
-}(edittable));
+}(window.edittable));

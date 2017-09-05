@@ -1,6 +1,6 @@
 /* eslint-env qunit */
 
-var edittable = edittable || {};
+window.edittable = window.edittable || {};
 
 (function (edittable) {
     'use strict';
@@ -70,4 +70,4 @@ var edittable = edittable || {};
         assert.deepEqual(actual_result, expected_result);
     });
 
-}(edittable));
+}(window.edittable));

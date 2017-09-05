@@ -1,7 +1,7 @@
 /* eslint-env qunit */
 /*eslint no-magic-numbers: 0*/
 
-var edittable = edittable || {};
+window.edittable = window.edittable || {};
 
 (function (edittable) {
     'use strict';
@@ -119,4 +119,4 @@ var edittable = edittable || {};
         var expected_meta = [['b', 'c', 'a'], ['e', 'f', 'd'], ['h', 'i', 'g']];
         assert.deepEqual(actual_meta, expected_meta);
     });
-}(edittable));
+}(window.edittable));

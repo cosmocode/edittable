@@ -1,9 +1,9 @@
 /* global initToolbar */
 
-var edittable = edittable || {};
-var edittable_plugins = edittable_plugins || {};
+window.edittable = window.edittable || {};
+window.edittable_plugins = window.edittable_plugins || {};
 
-(function (edittable) {
+(function (edittable, edittable_plugins) {
     'use strict';
 
     edittable.moveRow = function moveRow(movingRowIndexes, target, dmarray) {
@@ -500,4 +500,4 @@ var edittable_plugins = edittable_plugins || {};
 
     jQuery(document).ready(edittable.loadEditor);
 
-}(edittable));
+}(window.edittable, window.edittable_plugins));
