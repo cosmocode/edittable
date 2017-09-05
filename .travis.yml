@@ -12,3 +12,4 @@ install: sh travis.sh
 script:
   - cd _test && phpunit --stderr --group plugin_edittable
   - cd ../lib/plugins/edittable && grunt
+  - grunt eslint

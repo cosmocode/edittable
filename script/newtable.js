@@ -8,13 +8,21 @@
  * @return {string}   If button should be appended return the id for in aria-controls,
  *                    otherwise an empty string
  */
-function addBtnActionNewTable($btn, props, edid) {
-    "use strict";
+window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
+    'use strict';
 
     $btn.click(function () {
         var editform = jQuery('#dw__editform')[0];
         var ed = jQuery('#' + edid)[0];
 
+        /**
+         * Add new textarea to the form
+         *
+         * @param {string} name the name attribute of the new field
+         * @param {string} val the value attribute of the new field
+         *
+         * @return {void}
+         */
         function addField(name, val) {
             var pos_field = document.createElement('textarea');
             pos_field.name = 'edittable__new[' + name + ']';
@@ -52,4 +60,4 @@ function addBtnActionNewTable($btn, props, edid) {
 
     });
     return 'click';
-}
+};
