@@ -51,5 +51,13 @@ module.exports = {
         "no-return-assign": "error",
         "no-throw-literal": "error",
         "strict": ["error", "function"],
+        "require-jsdoc": ["error", {
+        "require": {
+            "FunctionDeclaration": true,
+            "MethodDefinition": true,
+            "ClassDeclaration": false,
+            "ArrowFunctionExpression": false
+        }
+    }]
     },
 };

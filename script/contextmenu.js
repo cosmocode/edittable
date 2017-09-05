@@ -7,8 +7,9 @@ window.edittable = window.edittable || {};
     /**
      * create an iterable array of selected cells from the selection object
      *
-     * @param selection object
-     * @returns {Array}
+     * @param {object} selection the selection object
+     *
+     * @returns {Array} an array of the rows/columns of the cells in the selection
      */
     edittable.cellArray = function (selection) {
         var selectionArray = [];
@@ -23,9 +24,9 @@ window.edittable = window.edittable || {};
     /**
      * Defines our own contextMenu with custom callbacks
      *
-     * @param data array
-     * @param meta array
-     * @returns object
+     * @param {array} data the data array
+     * @param {array} meta the meta array
+     * @returns {object} the context menu object
      */
     edittable.getEditTableContextMenu = function (data, meta) {
         return {
@@ -106,8 +107,10 @@ window.edittable = window.edittable || {};
                     /**
                      * The same as the default action, but with confirmation
                      *
-                     * @param key
-                     * @param selection
+                     * @param {string} key key of the menu item
+                     * @param {object} selection the selection object
+                     *
+                     * @return {void}
                      */
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
@@ -117,6 +120,8 @@ window.edittable = window.edittable || {};
                     },
                     /**
                      * do not show when this is the last row
+                     *
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
                     disabled: function () {
                         var rowsInTable = this.countRows();
@@ -138,8 +143,10 @@ window.edittable = window.edittable || {};
                     /**
                      * The same as the default action, but with confirmation
                      *
-                     * @param key
-                     * @param selection
+                     * @param {string} key key of the menu item
+                     * @param {object} selection the selection object
+                     *
+                     * @return {void}
                      */
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
@@ -149,6 +156,8 @@ window.edittable = window.edittable || {};
                     },
                     /**
                      * do not show when this is the last row
+                     *
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
                     disabled: function () {
                         var colsInTable = this.countCols();
@@ -176,7 +185,7 @@ window.edittable = window.edittable || {};
                     /**
                      * disable if only one cell is selected
                      *
-                     * @returns {boolean}
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
                     disabled: function () {
                         var selection = this.getSelected();

@@ -15,6 +15,14 @@ window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
         var editform = jQuery('#dw__editform')[0];
         var ed = jQuery('#' + edid)[0];
 
+        /**
+         * Add new textarea to the form
+         *
+         * @param {string} name the name attribute of the new field
+         * @param {string} val the value attribute of the new field
+         *
+         * @return {void}
+         */
         function addField(name, val) {
             var pos_field = document.createElement('textarea');
             pos_field.name = 'edittable__new[' + name + ']';

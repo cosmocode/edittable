@@ -6,6 +6,15 @@ window.edittable_plugins = window.edittable_plugins || {};
 (function (edittable, edittable_plugins) {
     'use strict';
 
+    /**
+     *
+     *
+     * @param {Array} movingRowIndexes the indices of the rows to be moved
+     * @param {int} target the row where the rows will be inserted
+     * @param {Array} dmarray the data or meta array
+     *
+     * @return {Array} the new data or meta array
+     */
     edittable.moveRow = function moveRow(movingRowIndexes, target, dmarray) {
         var startIndex = movingRowIndexes[0];
         var endIndex = movingRowIndexes[movingRowIndexes.length - 1];
@@ -30,12 +39,25 @@ window.edittable_plugins = window.edittable_plugins || {};
     };
 
 
+    /**
+     *
+     * @param {Array} movingColIndexes the indices of the columns to be moved
+     * @param {int} target the column where the columns will be inserted
+     * @param {Array} dmarray the data or meta array
+     *
+     * @return {Array} the new data or meta array
+     */
     edittable.moveCol = function moveCol(movingColIndexes, target, dmarray) {
         return dmarray.map(function (row) {
             return edittable.moveRow(movingColIndexes, target, row);
         });
     };
 
+    /**
+     *
+     * @param {Array} meta the meta array
+     * @returns {Array} an array of the cells with a rowspan or colspan larger than 1
+     */
     edittable.getMerges = function (meta) {
         var merges = [];
         for (var row = 0; row < meta.length; row += 1) {
@@ -55,6 +77,14 @@ window.edittable_plugins = window.edittable_plugins || {};
     };
 
 
+    /**
+     *
+     * @param {Array} merges an array of the cells that are part of a merge
+     * @param {int} target the target column or row
+     * @param {string} direction whether we're trying to move a col or row
+     *
+     * @return {bool} wether the target col/row is part of a merge
+     */
     edittable.isTargetInMerge = function isTargetInMerge(merges, target, direction) {
         return merges.some(function (merge) {
             return (merge[direction] < target && target < merge[direction] + merge[direction + 'span']);
@@ -95,6 +125,8 @@ window.edittable_plugins = window.edittable_plugins || {};
 
             /**
              * Attach pointers to our raw data structures in the instance
+             *
+             * @return {void}
              */
             afterLoadData: function () {
                 var i;
@@ -117,9 +149,9 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * properties are stored in extra array
              *
-             * @param row int
-             * @param col int
-             * @returns {*}
+             * @param {int} row the row of the desired column
+             * @param {int} col the col of the desired column
+             * @returns {Array} the respective cell from the meta array
              */
             cells: function (row, col) {
                 return meta[row][col];
@@ -130,10 +162,12 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * It handles all our custom meta attributes like alignments and rowspans
              *
-             * @param instance
-             * @param td
-             * @param row
-             * @param col
+             * @param {object} instance the handsontable instance
+             * @param {HTMLTableCellElement} td the dom node of the cell
+             * @param {int} row the row of the cell to be rendered
+             * @param {int} col the column of the cell to be rendered
+             *
+             * @return {void}
              */
             renderer: function (instance, td, row, col) {
                 // for some reason, neither cellProperties nor instance.getCellMeta() give the right data
@@ -181,6 +215,8 @@ window.edittable_plugins = window.edittable_plugins || {};
 
             /**
              * Initialization after the Editor loaded
+             *
+             * @return {void}
              */
             afterInit: function () {
                 // select first cell
@@ -219,6 +255,7 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * This recalculates the col and row spans and makes sure all correct cells are hidden
              *
+             * @return {void}
              */
             beforeRender: function () {
                 var row, r, c, col, i;
@@ -302,7 +339,9 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Disable key handling while the link wizard or any other dialog is visible
              *
-             * @param e
+             * @param {event} e the keydown event object
+             *
+             * @return {void}
              */
             beforeKeyDown: function (e) {
                 if (jQuery('.ui-dialog:visible').length) {
@@ -336,8 +375,10 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Update meta data array when rows are added
              *
-             * @param index int
-             * @param amount int
+             * @param {int} index the index where the new rows are created
+             * @param {int} amount the number of new rows that are created
+             *
+             * @return {void}
              */
             afterCreateRow: function (index, amount) {
                 var i;
@@ -359,8 +400,10 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Update meta data array when rows are removed
              *
-             * @param index int
-             * @param amount int
+             * @param {int} index the index where the rows are removed
+             * @param {int} amount the number of rows that are removed
+             *
+             * @return {void}
              */
             afterRemoveRow: function (index, amount) {
                 meta.splice(index, amount);
@@ -369,8 +412,10 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Update meta data array when columns are added
              *
-             * @param index int
-             * @param amount int
+             * @param {int} index the index where the new columns are created
+             * @param {int} amount the number of new columns that are created
+             *
+             * @return {void}
              */
             afterCreateCol: function (index, amount) {
                 for (var row = 0; row < data.length; row += 1) {
@@ -383,8 +428,10 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Update meta data array when columns are removed
              *
-             * @param index int
-             * @param amount int
+             * @param {int} index the index where the columns are removed
+             * @param {int} amount the number of columns that are removed
+             *
+             * @return {void}
              */
             afterRemoveCol: function (index, amount) {
                 for (var row = 0; row < data.length; row += 1) {
@@ -395,8 +442,10 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Skip hidden cells for selection
              *
-             * @param r int
-             * @param c int
+             * @param {int} r the row of the selected cell
+             * @param {int} c the column of the selected cell
+             *
+             * @return {void}
              */
             afterSelection: function (r, c) {
                 if (meta[r][c].hide) {
@@ -457,10 +506,10 @@ window.edittable_plugins = window.edittable_plugins || {};
 
             /**
              *
-             * @param pasteData An array of arrays which contains data to paste.
-             * @param coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
+             * @param {Array} pasteData An array of arrays which contains data to paste.
+             * @param {Array} coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
              *        that correspond to the previously selected area.
-             * @return {bool}
+             * @return {true} always allowing the pasting
              */
             beforePaste: function (pasteData, coords) {
                 var startRow = coords[0].startRow;
