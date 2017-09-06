@@ -388,11 +388,10 @@ window.edittable_plugins = window.edittable_plugins || {};
                 }
 
                 // insert into meta array
-                for (i = 0; i < amount; i += 1) {
-                    var newrow = [];
-                    for (i = 0; i < cols; i += 1) {
-                        newrow.push({ rowspan: 1, colspan: 1 });
-                    }
+                for (i = 0; i <= amount; i += 1) {
+                    var newrow = Array.apply(null, new Array(cols)).map(function initializeRowMeta() {
+                        return { rowspan: 1, colspan: 1 };
+                    });
                     meta.splice(index, 0, newrow);
                 }
             },
