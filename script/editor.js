@@ -38,6 +38,24 @@ window.edittable_plugins = window.edittable_plugins || {};
         return [].concat(first, between, moving, last);
     };
 
+    edittable.addRowToMeta = function (index, amount, metaArray) {
+        var i;
+        var cols = 1; // minimal number of cells
+        if (metaArray[0]) {
+            cols = metaArray[0].length;
+        }
+
+        // insert into meta array
+        for (i = 0; i < amount; i += 1) {
+            var newrow = Array.apply(null, new Array(cols)).map(function initializeRowMeta() {
+                return { rowspan: 1, colspan: 1 };
+            });
+            metaArray.splice(index, 0, newrow);
+        }
+
+        return metaArray;
+    };
+
 
     /**
      *
@@ -381,19 +399,7 @@ window.edittable_plugins = window.edittable_plugins || {};
              * @return {void}
              */
             afterCreateRow: function (index, amount) {
-                var i;
-                var cols = 1; // minimal number of cells
-                if (data[0]) {
-                    cols = data[0].length;
-                }
-
-                // insert into meta array
-                for (i = 0; i <= amount; i += 1) {
-                    var newrow = Array.apply(null, new Array(cols)).map(function initializeRowMeta() {
-                        return { rowspan: 1, colspan: 1 };
-                    });
-                    meta.splice(index, 0, newrow);
-                }
+                meta = edittable.addRowToMeta(index, amount, meta);
             },
 
             /**
