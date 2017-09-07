@@ -8,3 +8,5 @@ script/jquery.handsontable.full.js
 less/jquery.handsontable.columnmove.less
 less/jquery.handsontable.rowmove.less
 less/jquery.handsontable.full.less
+script/handsontable.full.js
+less/handsontable.full.less
