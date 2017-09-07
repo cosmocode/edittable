@@ -45,7 +45,6 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
     function handle_newtable($event) {
         global $INPUT;
         global $TEXT;
-        global $ACT;
 
         if(!$INPUT->post->has('edittable__new')) return;
 
@@ -64,8 +63,8 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
         $INPUT->post->set('edittable__new', $fields);
 
 
-        $ACT = act_clean($ACT);
-        switch($ACT){
+        $event->data = act_clean($event->data);
+        switch($event->data){
             case 'preview':
                 // preview view of a table edit
                 $INPUT->post->set('target', 'table');
@@ -82,13 +81,13 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
                 // not sure if/how this would happen, we restore all data and hand over to section edit
                 $INPUT->post->set('target', 'section');
                 $TEXT = $fields['pre'].$fields['text'].$fields['suf'];
-                $ACT  = 'edit';
+                $event->data = 'edit';
                 break;
             case 'save':
                 // return to edit page
                 $INPUT->post->set('target', 'section');
                 $TEXT = $fields['pre'].$TEXT.$fields['suf'];
-                $ACT  = 'edit';
+                $event->data = 'edit';
                 break;
         }
     }
