@@ -121,7 +121,19 @@ window.edittable_plugins = window.edittable_plugins || {};
 
         var data = JSON.parse($datafield.val());
         var meta = JSON.parse($metafield.val());
+
+        /**
+         * Get the current meta array
+         *
+         * @return {array} the current meta array
+         */
         function getMeta() {return meta;}
+
+        /**
+         * Get the current data array
+         *
+         * @return {array} the current data array
+         */
         function getData() {return data;}
 
         var merges = edittable.getMerges(meta);
