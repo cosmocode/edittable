@@ -121,6 +121,9 @@ window.edittable_plugins = window.edittable_plugins || {};
 
         var data = JSON.parse($datafield.val());
         var meta = JSON.parse($metafield.val());
+        function getMeta() {return meta;}
+        function getData() {return data;}
+
         var merges = edittable.getMerges(meta);
         if (merges === []) {
             merges = true;
@@ -135,7 +138,7 @@ window.edittable_plugins = window.edittable_plugins || {};
             rowHeaders: true,
             manualColumnResize: true,
             outsideClickDeselects: false,
-            contextMenu: edittable.getEditTableContextMenu(data, meta),
+            contextMenu: edittable.getEditTableContextMenu(getData, getMeta),
             manualColumnMove: true,
             manualRowMove: true,
             mergeCells: merges,

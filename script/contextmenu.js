@@ -24,16 +24,17 @@ window.edittable = window.edittable || {};
     /**
      * Defines our own contextMenu with custom callbacks
      *
-     * @param {array} data the data array
-     * @param {array} meta the meta array
+     * @param {function} getData get the current data array
+     * @param {function} getMeta get the current meta array
      * @returns {object} the context menu object
      */
-    edittable.getEditTableContextMenu = function (data, meta) {
+    edittable.getEditTableContextMenu = function (getData, getMeta) {
         return {
             items: {
                 toggle_header: {
                     name: LANG.plugins.edittable.toggle_header,
                     callback: function (key, selection) {
+                        var meta = getMeta();
                         jQuery.each(edittable.cellArray(selection), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
@@ -50,6 +51,7 @@ window.edittable = window.edittable || {};
                 align_left: {
                     name: LANG.plugins.edittable.align_left,
                     callback: function (key, selection) {
+                        var meta = getMeta();
                         jQuery.each(edittable.cellArray(selection), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
@@ -58,6 +60,7 @@ window.edittable = window.edittable || {};
                         this.render();
                     },
                     disabled: function () {
+                        var meta = getMeta();
                         var selection = this.getSelected();
                         var row = selection[0];
                         var col = selection[1];
@@ -67,6 +70,7 @@ window.edittable = window.edittable || {};
                 align_center: {
                     name: LANG.plugins.edittable.align_center,
                     callback: function (key, selection) {
+                        var meta = getMeta();
                         jQuery.each(edittable.cellArray(selection), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
@@ -75,6 +79,7 @@ window.edittable = window.edittable || {};
                         this.render();
                     },
                     disabled: function () {
+                        var meta = getMeta();
                         var selection = this.getSelected();
                         var row = selection[0];
                         var col = selection[1];
@@ -84,6 +89,7 @@ window.edittable = window.edittable || {};
                 align_right: {
                     name: LANG.plugins.edittable.align_right,
                     callback: function (key, selection) {
+                        var meta = getMeta();
                         jQuery.each(edittable.cellArray(selection), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
@@ -92,6 +98,7 @@ window.edittable = window.edittable || {};
                         this.render();
                     },
                     disabled: function () {
+                        var meta = getMeta();
                         var selection = this.getSelected();
                         var row = selection[0];
                         var col = selection[1];
