@@ -375,7 +375,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 }
                 meta = edittable.moveCol(movingCols, target, meta);
                 data = edittable.moveCol(movingCols, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta) });
+                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
                 return true;
             },
 
@@ -386,7 +386,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 }
                 meta = edittable.moveRow(movingRows, target, meta);
                 data = edittable.moveRow(movingRows, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta) });
+                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
                 return true;
             },
 
