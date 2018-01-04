@@ -19,9 +19,6 @@ window.edittable_plugins = window.edittable_plugins || {};
         var startIndex = movingRowIndexes[0];
         var endIndex = movingRowIndexes[movingRowIndexes.length - 1];
         var moveForward = target < startIndex;
-        if (!moveForward) {
-            target += 1;
-        }
 
         var first = dmarray.slice(0, Math.min(startIndex, target));
         var moving = dmarray.slice(startIndex, endIndex + 1);
@@ -379,7 +376,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 meta = edittable.moveCol(movingCols, target, meta);
                 data = edittable.moveCol(movingCols, target, data);
                 this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
-                return true;
+                return false;
             },
 
             beforeRowMove: function (movingRows, target) {
@@ -390,7 +387,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 meta = edittable.moveRow(movingRows, target, meta);
                 data = edittable.moveRow(movingRows, target, data);
                 this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
-                return true;
+                return false;
             },
 
             /**
