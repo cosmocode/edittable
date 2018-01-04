@@ -118,7 +118,19 @@ window.edittable_plugins = window.edittable_plugins || {};
 
         var data = JSON.parse($datafield.val());
         var meta = JSON.parse($metafield.val());
+
+        /**
+         * Get the current meta array
+         *
+         * @return {array} the current meta array as array of rows with arrays of columns with objects
+         */
         function getMeta() {return meta;}
+
+        /**
+         * Get the current data array
+         *
+         * @return {array} the current data array as array of rows with arrays of columns with strings
+         */
         function getData() {return data;}
 
         var merges = edittable.getMerges(meta);
@@ -409,10 +421,9 @@ window.edittable_plugins = window.edittable_plugins || {};
              * ignores the old one. For the toolbar to keep working we need make sure the currently used textarea has
              * also the id `handsontable__input`.
              *
-             * @param row ignored
-             * @param column ignored
+             * @return {void}
              */
-            afterBeginEditing: function (row, column) {
+            afterBeginEditing: function () {
                 if (jQuery('textarea.handsontableInput').length > 1) {
                     jQuery('textarea.handsontableInput:not(:last)').remove();
                     jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
