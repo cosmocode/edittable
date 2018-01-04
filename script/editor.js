@@ -19,9 +19,6 @@ window.edittable_plugins = window.edittable_plugins || {};
         var startIndex = movingRowIndexes[0];
         var endIndex = movingRowIndexes[movingRowIndexes.length - 1];
         var moveForward = target < startIndex;
-        if (!moveForward) {
-            target += 1;
-        }
 
         var first = dmarray.slice(0, Math.min(startIndex, target));
         var moving = dmarray.slice(startIndex, endIndex + 1);
@@ -125,14 +122,14 @@ window.edittable_plugins = window.edittable_plugins || {};
         /**
          * Get the current meta array
          *
-         * @return {array} the current meta array
+         * @return {array} the current meta array as array of rows with arrays of columns with objects
          */
         function getMeta() {return meta;}
 
         /**
          * Get the current data array
          *
-         * @return {array} the current data array
+         * @return {array} the current data array as array of rows with arrays of columns with strings
          */
         function getData() {return data;}
 
@@ -391,7 +388,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 meta = edittable.moveCol(movingCols, target, meta);
                 data = edittable.moveCol(movingCols, target, data);
                 this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
-                return true;
+                return false;
             },
 
             beforeRowMove: function (movingRows, target) {
@@ -402,7 +399,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 meta = edittable.moveRow(movingRows, target, meta);
                 data = edittable.moveRow(movingRows, target, data);
                 this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
-                return true;
+                return false;
             },
 
             /**
@@ -415,6 +412,22 @@ window.edittable_plugins = window.edittable_plugins || {};
              */
             afterCreateRow: function (index, amount) {
                 meta = edittable.addRowToMeta(index, amount, meta);
+            },
+
+            /**
+             * Set id for toolbar to current handsontable input textarea
+             *
+             * For some reason (bug?), handsontable creates a new div.handsontableInputHolder with a new textarea and
+             * ignores the old one. For the toolbar to keep working we need make sure the currently used textarea has
+             * also the id `handsontable__input`.
+             *
+             * @return {void}
+             */
+            afterBeginEditing: function () {
+                if (jQuery('textarea.handsontableInput').length > 1) {
+                    jQuery('textarea.handsontableInput:not(:last)').remove();
+                    jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
+                }
             },
 
             /**
