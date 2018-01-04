@@ -403,6 +403,23 @@ window.edittable_plugins = window.edittable_plugins || {};
             },
 
             /**
+             * Set id for toolbar to current handsontable input textarea
+             *
+             * For some reason (bug?), handsontable creates a new div.handsontableInputHolder with a new textarea and
+             * ignores the old one. For the toolbar to keep working we need make sure the currently used textarea has
+             * also the id `handsontable__input`.
+             *
+             * @param row ignored
+             * @param column ignored
+             */
+            afterBeginEditing: function (row, column) {
+                if (jQuery('textarea.handsontableInput').length > 1) {
+                    jQuery('textarea.handsontableInput:not(:last)').remove();
+                    jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
+                }
+            },
+
+            /**
              * Update meta data array when rows are removed
              *
              * @param {int} index the index where the rows are removed
