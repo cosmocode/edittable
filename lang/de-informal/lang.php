@@ -7,7 +7,7 @@
  */
 $lang['secedit_name']          = 'Tabelle';
 $lang['add_table']             = 'Neue Tabelle einfügen';
-$lang['js']['toggle_header']   = 'Kopzeile an/aus';
+$lang['js']['toggle_header']   = 'Kopfzeile an/aus';
 $lang['js']['align_left']      = 'Links ausrichten';
 $lang['js']['align_center']    = 'Mittig ausrichten';
 $lang['js']['align_right']     = 'Rechts ausrichten';
