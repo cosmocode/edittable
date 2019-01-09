@@ -1,0 +1,7 @@
+# exclude files from git export
+/.eslintrc.js export-ignore
+/.gitattributes export-ignore
+/Gruntfile.js export-ignore
+/_jstest/ export-ignore
+/_test/ export-ignore
+/package.json export-ignore
