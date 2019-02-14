@@ -2,6 +2,10 @@ images/merge_down.png
 images/merge_right.png
 images/split_down.png
 images/split_right.png
+images/column_add.png
+images/column_delete.png
+images/row_delete.png
+images/row_insert.png
 script/jquery.handsontable.columnmove.js
 script/jquery.handsontable.rowmove.js
 script/jquery.handsontable.full.js
@@ -10,3 +14,10 @@ less/jquery.handsontable.rowmove.less
 less/jquery.handsontable.full.less
 script/handsontable.full.js
 less/handsontable.full.less
+script/inserttable.js
+script/tableeditor.js
+action.php
+common.php
+inverse.php
+renderer_table_edit.php
+style.css
