@@ -25,7 +25,6 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     private $_table = array();
     private $_liststack = array();
     private $quotelvl = 0;
-    private $_extlinkparser = null;
 
     function getFormat() {
         return 'wiki';
@@ -408,42 +407,19 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     function externallink($url, $name = null) {
         $this->not_block();
 
-        /*
-         * When $name is null it might have been a match of an URL that was in the text without
-         * any link syntax. These are recognized by a bunch of patterns in Doku_Parser_Mode_externallink.
-         * We simply reuse these patterns here. However, since we don't parse the pattern through the Lexer,
-         * no escaping is done on the patterns - this means we need a non-conflicting delimiter. I decided for
-         * a single tick >>'<< which seems to work. Since the patterns contain wordboundaries they are matched
-         * against the URL surrounded by spaces.
-         */
         if($name === null) {
-            // get the patterns from the parser
-            if(is_null($this->_extlinkparser)) {
-                $this->_extlinkparser = new Doku_Parser_Mode_externallink();
-                $this->_extlinkparser->preConnect();
-            }
-
-            // check if URL matches pattern
-            foreach($this->_extlinkparser->patterns as $pattern) {
-                if(preg_match("'$pattern'", " $url ")) {
-                    $this->doc .= $url; // gotcha!
-                    return;
-                }
-            }
+            // FIXME there is no way of knowing if we are inside link syntax or not
+            $this->doc .= $url;
+            return;
         }
 
-        // still here?
         if($url === "http://$name" || $url === "ftp://$name") {
             // special case - www.* or ftp.* matching
             $this->doc .= $name;
         } else {
-            // link syntax! definitively link syntax
             $this->doc .= "[[$url";
-            if(!is_null($name)) {
-                // we do have a name!
-                $this->doc .= '|';
-                $this->_echoLinkTitle($name);
-            }
+            $this->doc .= '|';
+            $this->_echoLinkTitle($name);
             $this->doc .= ']]';
         }
     }
