@@ -25,7 +25,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     private $_table = array();
     private $_liststack = array();
     private $quotelvl = 0;
-    private $_extlinkparser = null;
+    private $extlinkparser = null;
+    protected $extlinkPatterns = [];
 
     function getFormat() {
         return 'wiki';
@@ -250,7 +251,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->not_block();
         if(strpos($text, '%%') !== false) {
             $this->doc .= "<nowiki>$text</nowiki>";
-        } elseif($text{0} == "\n") {
+        } elseif($text[0] == "\n") {
             $this->doc .= "<nowiki>$text</nowiki>";
         } else {
             $this->doc .= "%%$text%%";
@@ -322,7 +323,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
         $this->doc .= ">";
         $this->doc .= $text;
-        if($text{0} == "\n") $this->doc .= "\n";
+        if($text[0] == "\n") $this->doc .= "\n";
         $this->doc .= "</$type>";
     }
 
@@ -417,14 +418,34 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
          * against the URL surrounded by spaces.
          */
         if($name === null) {
-            // get the patterns from the parser
-            if(is_null($this->_extlinkparser)) {
-                $this->_extlinkparser = new Doku_Parser_Mode_externallink();
-                $this->_extlinkparser->preConnect();
+            // get the patterns from the parser if available, otherwise use a duplicate
+            if(is_null($this->extlinkparser)) {
+                if (
+                    class_exists('\dokuwiki\Parsing\ParserMode\Externallink') &&
+                    method_exists('\dokuwiki\Parsing\ParserMode\Externallink', 'getPatterns')
+                ) {
+                    $this->extlinkparser = new \dokuwiki\Parsing\ParserMode\Externallink();
+                    $this->extlinkparser->preConnect();
+                    $this->extlinkPatterns = $this->extlinkparser->getPatterns();
+                } else {
+                    $ltrs = '\w';
+                    $gunk = '/\#~:.?+=&%@!\-\[\]';
+                    $punc = '.:?\-;,';
+                    $host = $ltrs . $punc;
+                    $any  = $ltrs . $gunk . $punc;
+
+                    $schemes = getSchemes();
+                    foreach ($schemes as $scheme) {
+                        $this->extlinkPatterns[] = '\b(?i)'.$scheme.'(?-i)://['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                    }
+
+                    $this->extlinkPatterns[] = '(?<=\s)(?i)www?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                    $this->extlinkPatterns[] = '(?<=\s)(?i)ftp?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                }
             }
 
             // check if URL matches pattern
-            foreach($this->_extlinkparser->patterns as $pattern) {
+            foreach($this->extlinkPatterns as $pattern) {
                 if(preg_match("'$pattern'", " $url ")) {
                     $this->doc .= $url; // gotcha!
                     return;
