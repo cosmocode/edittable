@@ -19,11 +19,13 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    function register(Doku_Event_Handler $controller) {
+    public function register(Doku_Event_Handler $controller)
+    {
         // register custom edit buttons
         $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'secedit_button');
 
         // register our editor
+        $controller->register_hook('EDIT_FORM_ADDTEXTAREA', 'BEFORE', $this, 'editform');
         $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'editform');
 
         // register preprocessing for accepting editor data
@@ -50,12 +52,14 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
      *
      * @param Doku_Event $event
      */
-    function editform(Doku_Event $event) {
+    public function editform(Doku_Event $event)
+    {
         global $TEXT;
         global $RANGE;
+        global $INPUT;
 
-        if($event->data['target'] !== 'table') return;
-        if(!$RANGE){
+        if ($event->data['target'] !== 'table') return;
+        if (!$RANGE){
             // section editing failed, use default editor instead
             $event->data['target'] = 'section';
             return;
@@ -69,7 +73,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $instructions = p_get_instructions($TEXT);
 
         // Loop through the instructions
-        foreach($instructions as $instruction) {
+        foreach ($instructions as $instruction) {
             // Execute the callback against the Renderer
             call_user_func_array(array(&$Renderer, $instruction[0]), $instruction[1]);
         }
@@ -79,21 +83,36 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         /** @var Doku_Form $form */
         $form =& $event->data['form'];
 
-        // data for handsontable
-        $form->addHidden('edittable_data', $Renderer->getDataJSON());
-        $form->addHidden('edittable_meta', $Renderer->getMetaJSON());
-        $form->addElement('<div id="edittable__editor"></div>');
+        if (is_a($form, dokuwiki\Form\Form::class)) { // $event->name is EDIT_FORM_ADDTEXTAREA
+            // data for handsontable
+            $form->setHiddenField('edittable_data', $Renderer->getDataJSON());
+            $form->setHiddenField('edittable_meta', $Renderer->getMetaJSON());
+            $form->addHTML('<div id="edittable__editor"></div>');
 
-        // FIXME add explanation here
-        if(isset($_POST['edittable__new'])) {
-            foreach($_POST['edittable__new'] as $k => $v) {
+            // set data from action asigned to "New Table" button in the toolbar
+            foreach ($INPUT->post->arr('edittable__new', []) as $k => $v) {
+                $form->setHiddenField("edittable__new[$k]", $v);
+            }
+
+            // set target and range to keep track during previews
+            $form->setHiddenField('target', 'table');
+            $form->setHiddenField('range', $RANGE);
+
+        } else { // $event->name is HTML_EDIT_FORMSELECTION
+            // data for handsontable
+            $form->addHidden('edittable_data', $Renderer->getDataJSON());
+            $form->addHidden('edittable_meta', $Renderer->getMetaJSON());
+            $form->addElement('<div id="edittable__editor"></div>');
+
+            // set data from action asigned to "New Table" button in the toolbar
+            foreach ($INPUT->post->arr('edittable__new', []) as $k => $v) {
                 $form->addHidden("edittable__new[$k]", $v);
             }
-        }
 
-        // set target and range to keep track during previews
-        $form->addHidden('target', 'table');
-        $form->addHidden('range', $RANGE);
+            // set target and range to keep track during previews
+            $form->addHidden('target', 'table');
+            $form->addHidden('range', $RANGE);
+        }
     }
 
     /**
