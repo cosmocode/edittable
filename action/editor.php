@@ -14,8 +14,8 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
  *
  * like displaying the editor and adding custom edit buttons
  */
-class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
-
+class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
+{
     /**
      * Register its handlers with the DokuWiki's event controller
      */
@@ -40,10 +40,10 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
      *
      * @param Doku_Event $event
      */
-    function secedit_button(Doku_Event $event) {
-        if($event->data['target'] !== 'table') {
-            return;
-        }
+    public function secedit_button(Doku_Event $event)
+    {
+        if ($event->data['target'] !== 'table') return;
+
         $event->data['name'] = $this->getLang('secedit_name');
     }
 
@@ -151,12 +151,12 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         $colmax = $cols ? array_fill(0, $cols, 0) : array();
 
         // find maximum column widths
-        for($row = 0; $row < $rows; $row++) {
-            for($col = 0; $col < $cols; $col++) {
+        for ($row = 0; $row < $rows; $row++) {
+            for ($col = 0; $col < $cols; $col++) {
                 $len = dokuwiki\Utf8\PhpString::strlen($data[$row][$col]);
 
                 // alignment adds padding
-                if($meta[$row][$col]['align'] == 'center') {
+                if ($meta[$row][$col]['align'] == 'center') {
                     $len += 4;
                 } else {
                     $len += 3;
@@ -165,19 +165,19 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
                 // remember lenght
                 $meta[$row][$col]['length'] = $len;
 
-                if($len > $colmax[$col]) $colmax[$col] = $len;
+                if ($len > $colmax[$col]) $colmax[$col] = $len;
             }
         }
 
         $last = '|'; // used to close the last cell
-        for($row = 0; $row < $rows; $row++) {
-            for($col = 0; $col < $cols; $col++) {
+        for ($row = 0; $row < $rows; $row++) {
+            for ($col = 0; $col < $cols; $col++) {
 
                 // minimum padding according to alignment
-                if($meta[$row][$col]['align'] == 'center') {
+                if ($meta[$row][$col]['align'] == 'center') {
                     $lpad = 2;
                     $rpad = 2;
-                } elseif($meta[$row][$col]['align'] == 'right') {
+                } elseif ($meta[$row][$col]['align'] == 'right') {
                     $lpad = 2;
                     $rpad = 1;
                 } else {
@@ -189,13 +189,13 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
                 $target = $colmax[$col];
 
                 // colspanned columns span all the cells
-                for($i = 1; $i < $meta[$row][$col]['colspan']; $i++) {
+                for ($i = 1; $i < $meta[$row][$col]['colspan']; $i++) {
                     $target += $colmax[$col + $i];
                 }
 
                 // copy colspans to rowspans below if any
-                if($meta[$row][$col]['colspan'] > 1){
-                    for($i = 1; $i < $meta[$row][$col]['rowspan']; $i++) {
+                if ($meta[$row][$col]['colspan'] > 1){
+                    for ($i = 1; $i < $meta[$row][$col]['rowspan']; $i++) {
                         $meta[$row + $i][$col]['colspan'] = $meta[$row][$col]['colspan'];
                     }
                 }
@@ -205,7 +205,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
                 $addpad = $target - $length;
 
                 // decide which side needs padding
-                if($meta[$row][$col]['align'] == 'right') {
+                if ($meta[$row][$col]['align'] == 'right') {
                     $lpad += $addpad;
                 } else {
                     $rpad += $addpad;
@@ -213,7 +213,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
 
                 // add the padding
                 $cdata = $data[$row][$col];
-                if(!$meta[$row][$col]['hide'] || $cdata) {
+                if (!$meta[$row][$col]['hide'] || $cdata) {
                     $cdata = str_pad('', $lpad).$cdata.str_pad('', $rpad);
                 }
 

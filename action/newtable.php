@@ -5,18 +5,16 @@
  * @author     Adrian Lang <lang@cosmocode.de>
  */
 
-if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
-
 /**
  * Handles the inserting of a new table in a running edit session
  */
-class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
-
+class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin
+{
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    function register(Doku_Event_Handler $controller) {
+    function register(Doku_Event_Handler $controller)
+    {
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
 
         //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
@@ -28,7 +26,8 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
      *
      * @param Doku_Event $event
      */
-    function toolbar($event) {
+    public function toolbar(Doku_Event $event)
+    {
         $event->data[] = array(
             'title' => $this->getLang('add_table'),
             'type'  => 'NewTable',
@@ -42,11 +41,12 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
      *
      * @param Doku_Event $event
      */
-    function handle_newtable($event) {
+    public function handle_newtable(Doku_Event $event)
+    {
         global $INPUT;
         global $TEXT;
 
-        if(!$INPUT->post->has('edittable__new')) return;
+        if (!$INPUT->post->has('edittable__new')) return;
 
         /*
          * $fields['pre']  has all data before the selection when the "Insert table" button was clicked
@@ -64,7 +64,7 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
 
 
         $event->data = act_clean($event->data);
-        switch($event->data){
+        switch ($event->data) {
             case 'preview':
                 // preview view of a table edit
                 $INPUT->post->set('target', 'table');
@@ -73,7 +73,7 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin {
                 // edit view of a table (first edit)
                 $INPUT->post->set('target', 'table');
                 $TEXT = "^  ^  ^\n";
-                foreach(explode("\n", $fields['text']) as $line) {
+                foreach (explode("\n", $fields['text']) as $line) {
                     $TEXT .= "| $line |  |\n";
                 }
                 break;
