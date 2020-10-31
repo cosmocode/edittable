@@ -122,14 +122,14 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
      *
      * @author Andreas Gohr <gohr@cosmocode,de>
      */
-    public function handle_table_post($event) {
+    public function handle_table_post(Doku_Event $event)
+    {
         global $TEXT;
         global $INPUT;
-        if(!$INPUT->post->has('edittable_data')) return;
+        if (!$INPUT->post->has('edittable_data')) return;
 
-        $json = new JSON(JSON_LOOSE_TYPE);
-        $data = $json->decode($INPUT->post->str('edittable_data'));
-        $meta = $json->decode($INPUT->post->str('edittable_meta'));
+        $data = json_decode($INPUT->post->str('edittable_data'), true);
+        $meta = json_decode($INPUT->post->str('edittable_meta'), true);
 
         $TEXT = $this->build_table($data, $meta);
     }

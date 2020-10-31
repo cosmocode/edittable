@@ -52,10 +52,9 @@ EOF;
         );
 
         $renderer = $this->render($input);
-        $json = new JSON(JSON_LOOSE_TYPE);
 
-        $this->assertEquals($data, $json->decode($renderer->getDataJSON()));
-        $this->assertEquals($meta, $json->decode($renderer->getMetaJSON()));
+        $this->assertEquals($data, json_decode($renderer->getDataJSON(), true));
+        $this->assertEquals($meta, json_decode($renderer->getMetaJSON(), true));
     }
 
 
