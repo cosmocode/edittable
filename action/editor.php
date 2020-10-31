@@ -153,7 +153,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin {
         // find maximum column widths
         for($row = 0; $row < $rows; $row++) {
             for($col = 0; $col < $cols; $col++) {
-                $len = utf8_strlen($data[$row][$col]);
+                $len = dokuwiki\Utf8\PhpString::strlen($data[$row][$col]);
 
                 // alignment adds padding
                 if($meta[$row][$col]['align'] == 'center') {
