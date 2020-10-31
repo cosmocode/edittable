@@ -6,8 +6,8 @@
  * @author Andreas Gohr <gohr@cosmocode.de>
  */
 
-if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
+use dokuwiki\Form\Form;
+use dokuwiki\Utf8;
 
 /**
  * handles all the editor related things
@@ -83,7 +83,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         /** @var Doku_Form $form */
         $form =& $event->data['form'];
 
-        if (is_a($form, dokuwiki\Form\Form::class)) { // $event->name is EDIT_FORM_ADDTEXTAREA
+        if (is_a($form, Form::class)) { // $event->name is EDIT_FORM_ADDTEXTAREA
             // data for handsontable
             $form->setHiddenField('edittable_data', $Renderer->getDataJSON());
             $form->setHiddenField('edittable_meta', $Renderer->getMetaJSON());
@@ -143,7 +143,8 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
      * @param array $meta meta data for each cell
      * @return string
      */
-    public function build_table($data, $meta) {
+    public function build_table($data, $meta)
+    {
         $table = '';
         $rows  = count($data);
         $cols  = $rows ? count($data[0]) : 0;
@@ -153,7 +154,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         // find maximum column widths
         for ($row = 0; $row < $rows; $row++) {
             for ($col = 0; $col < $cols; $col++) {
-                $len = dokuwiki\Utf8\PhpString::strlen($data[$row][$col]);
+                $len = Utf8\PhpString::strlen($data[$row][$col]);
 
                 // alignment adds padding
                 if ($meta[$row][$col]['align'] == 'center') {
