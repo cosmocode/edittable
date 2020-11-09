@@ -35,8 +35,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
      * @return array
      */
     public function getDataJSON() {
-        $json = new JSON();
-        return $json->encode($this->tdata);
+        return json_encode($this->tdata);
     }
 
     /**
@@ -45,8 +44,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
      * @return array
      */
     public function getMetaJSON() {
-        $json = new JSON();
-        return $json->encode($this->tmeta);
+        return json_encode($this->tmeta);
     }
 
     // renderer functions below
