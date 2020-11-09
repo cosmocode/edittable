@@ -154,7 +154,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         // find maximum column widths
         for ($row = 0; $row < $rows; $row++) {
             for ($col = 0; $col < $cols; $col++) {
-                $len = Utf8\PhpString::strlen($data[$row][$col]);
+                $len = $this->strWidth($data[$row][$col]);
 
                 // alignment adds padding
                 if ($meta[$row][$col]['align'] == 'center') {
@@ -195,7 +195,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
                 }
 
                 // copy colspans to rowspans below if any
-                if ($meta[$row][$col]['colspan'] > 1){
+                if ($meta[$row][$col]['colspan'] > 1) {
                     for ($i = 1; $i < $meta[$row][$col]['rowspan']; $i++) {
                         $meta[$row + $i][$col]['colspan'] = $meta[$row][$col]['colspan'];
                     }
@@ -230,6 +230,33 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         $table = rtrim($table, "\n");
 
         return $table;
+    }
+
+    /**
+     * Return width of string
+     *
+     * @param string $str
+     * @return int
+     */
+    public function strWidth($str)
+    {
+        static $callable;
+
+        if (isset($callable)) {
+            return $callable($str);
+        } else {
+            if (UTF8_MBSTRING) {
+                // count fullwidth characters as 2, halfwidth characters as 1
+                $callable = 'mb_strwidth';
+            } elseif (method_exists(Utf8\PhpString::class, 'strlen')) {
+                // count any characters as 1
+                $callable = [Utf8\PhpString::class, 'strlen'];
+            } else {
+                // fallback deprecated utf8_strlen since 2019-06-09
+                $callable = 'utf8_strlen';
+            }
+            return $this->strWidth($str);
+        }
     }
 
 }
