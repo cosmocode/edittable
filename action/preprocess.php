@@ -5,6 +5,8 @@
  * @author Andreas Gohr <gohr@cosmocode.de>
  */
 
+use dokuwiki\Extension\Event;
+
 /**
  * just intercepts ACTION_ACT_PREPROCESS and emits two new events
  *
@@ -30,7 +32,7 @@ class action_plugin_edittable_preprocess extends DokuWiki_Action_Plugin
      */
     public function handle_preprocess(Doku_Event $event)
     {
-        trigger_event('PLUGIN_EDITTABLE_PREPROCESS_EDITOR', $event->data);
-        trigger_event('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', $event->data);
+        Event::createAndTrigger('PLUGIN_EDITTABLE_PREPROCESS_EDITOR', $event->data);
+        Event::createAndTrigger('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', $event->data);
     }
 }
