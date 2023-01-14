@@ -157,7 +157,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
                 $len = $this->strWidth($data[$row][$col]);
 
                 // alignment adds padding
-                if ($meta[$row][$col]['align'] == 'center') {
+                if (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'center') {
                     $len += 4;
                 } else {
                     $len += 3;
@@ -175,10 +175,10 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
             for ($col = 0; $col < $cols; $col++) {
 
                 // minimum padding according to alignment
-                if ($meta[$row][$col]['align'] == 'center') {
+                if (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'center') {
                     $lpad = 2;
                     $rpad = 2;
-                } elseif ($meta[$row][$col]['align'] == 'right') {
+                } elseif (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'right') {
                     $lpad = 2;
                     $rpad = 1;
                 } else {
@@ -206,7 +206,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
                 $addpad = $target - $length;
 
                 // decide which side needs padding
-                if ($meta[$row][$col]['align'] == 'right') {
+                if (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'right') {
                     $lpad += $addpad;
                 } else {
                     $rpad += $addpad;
@@ -214,12 +214,12 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
 
                 // add the padding
                 $cdata = $data[$row][$col];
-                if (!$meta[$row][$col]['hide'] || $cdata) {
+                if (!(isset($meta[$row][$col]['hide']) && $meta[$row][$col]['hide']) || $cdata) {
                     $cdata = str_pad('', $lpad).$cdata.str_pad('', $rpad);
                 }
 
                 // finally add the cell
-                $last   =  ($meta[$row][$col]['tag'] == 'th') ? '^' : '|';
+                $last   =  (isset($meta[$row][$col]['tag']) && $meta[$row][$col]['tag'] == 'th') ? '^' : '|';
                 $table .= $last;
                 $table .= $cdata;
             }
