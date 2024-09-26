@@ -127,6 +127,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
 
             for($c = 1; $c < $colspan; $c++) {
                 // hide colspanned cell in same row
+                $this->tmeta[$row][$col + $c]['tag'] = $this->tmeta[$row][$col]['tag'];
                 $this->tmeta[$row][$col + $c]['hide'] = true;
                 $this->tmeta[$row][$col + $c]['rowspan'] = 1;
                 $this->tmeta[$row][$col + $c]['colspan'] = 1;
