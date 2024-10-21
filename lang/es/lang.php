@@ -3,21 +3,25 @@
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  *
+ * @author Alanna <alannajohns@gmail.com>
  * @author Domingo Redal <docxml@gmail.com>
  */
-$lang['secedit_name']          = 'Tabla';
-$lang['add_table']             = 'Insertar una nueva tabla';
-$lang['js']['toggle_header']   = 'Alternar el estado del encabezado';
-$lang['js']['align_left']      = 'Celda alineada a la izquierda';
-$lang['js']['align_center']    = 'Celda centrada';
-$lang['js']['align_right']     = 'Celda alineada a la derecha';
-$lang['js']['confirmdeleterow'] = '¿Realmente desea borrar la fila?';
-$lang['js']['confirmdeletecol'] = '¿Realmente desea borrar la columna?';
-$lang['js']['row_above']       = 'Agregar una fila arriba';
-$lang['js']['remove_row']      = 'Eliminar fila';
-$lang['js']['row_below']       = 'Agregar una fila debajo';
-$lang['js']['col_left']        = 'Añadir columna a la izquierda';
-$lang['js']['remove_col']      = 'Eliminar columna';
-$lang['js']['col_right']       = 'Añadir columna a la derecha';
-$lang['js']['merge_cells']     = 'Combinar celdas';
-$lang['js']['unmerge_cells']   = 'Dividir celdas';
+$lang['secedit_name']          = 'Johns';
+$lang['add_table']             = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['toggle_header']   = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star';
+$lang['js']['align_left']      = '615792796';
+$lang['js']['align_center']    = '615792796';
+$lang['js']['align_right']     = '615792796';
+$lang['js']['confirmdeleterow'] = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['confirmdeletecol'] = 'Guide To Kayleigh Porn Star: The Intermediate Guide 
+The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['row_above']       = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['remove_row']      = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['row_below']       = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh 
+Porn Star kayleigh Porn Star';
+$lang['js']['col_left']        = 'Guide To Kayleigh Porn Star: The Intermediate 
+Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['remove_col']      = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['col_right']       = 'Guide To Kayleigh Porn Star: The Intermediate Guide The Steps To Kayleigh Porn Star kayleigh Porn Star';
+$lang['js']['merge_cells']     = '615792796';
+$lang['js']['unmerge_cells']   = '615792796';
