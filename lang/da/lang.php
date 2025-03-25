@@ -2,7 +2,8 @@
 
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * 
+ *
+ * @author Jacob Palm <jacobpalmdk@icloud.com>
  * @author Søren Birk <soer9648@eucl.dk>
  */
 $lang['secedit_name']          = 'Tabel';
@@ -19,7 +20,5 @@ $lang['js']['row_below']       = 'Tilføj række herunder';
 $lang['js']['col_left']        = 'Tilføj kolonne til venstre';
 $lang['js']['remove_col']      = 'Fjern kolonne';
 $lang['js']['col_right']       = 'Tilføj kolonne til højre';
-$lang['js']['colspan_add']     = 'Forøg kolonnespredning';
-$lang['js']['colspan_del']     = 'Formindsk kolonnespredning';
-$lang['js']['rowspan_add']     = 'Forøg rækkespredning';
-$lang['js']['rowspan_del']     = 'Formindsk rækkespredning';
+$lang['js']['merge_cells']     = 'Sammenflet celler';
+$lang['js']['unmerge_cells']   = 'Opdel celler';
