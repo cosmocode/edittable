@@ -1,4 +1,10 @@
 <?php
+
+use dokuwiki\Parsing\ParserMode\Externallink;
+use dokuwiki\Parsing\ModeRegistry;
+
+use function dokuwiki\Utf8\PhpString::strlen;
+
 /**
  * Renderer for WikiText output
  *
@@ -6,11 +12,12 @@
  */
 
 // must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
+if (!defined('DOKU_INC')) die();
 
-require_once DOKU_INC.'inc/parser/renderer.php';
+require_once DOKU_INC . 'inc/parser/renderer.php';
 
-class renderer_plugin_edittable_inverse extends Doku_Renderer {
+class renderer_plugin_edittable_inverse extends Doku_Renderer
+{
     /** @var string will contain the whole document */
     public $doc = '';
 
@@ -21,47 +28,54 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
     private $_ownspan = 0;
     private $previous_block = false;
     private $_row = 0;
-    private $_rowspans = array();
-    private $_table = array();
-    private $_liststack = array();
+    private $_rowspans = [];
+    private $_table = [];
+    private $_liststack = [];
     private $quotelvl = 0;
-    private $extlinkparser = null;
+    private $extlinkparser;
     protected $extlinkPatterns = [];
 
-    function getFormat() {
+    public function getFormat()
+    {
         return 'wiki';
     }
 
-    function document_start() {
+    public function document_start()
+    {
     }
 
-    function document_end() {
+    public function document_end()
+    {
         $this->block();
         $this->doc = rtrim($this->doc);
     }
 
-    function header($text, $level, $pos) {
+    public function header($text, $level, $pos)
+    {
         $this->block();
-        if(!$text) return; //skip empty headlines
+        if (!$text) return; //skip empty headlines
 
         // write the header
         $markup = str_repeat('=', 7 - $level);
-        $this->doc .= "$markup $text $markup".DOKU_LF;
+        $this->doc .= "$markup $text $markup" . DOKU_LF;
     }
 
-    function section_open($level) {
+    public function section_open($level)
+    {
         $this->block();
 #        $this->doc .= DOKU_LF;
     }
 
-    function section_close() {
+    public function section_close()
+    {
         $this->block();
         $this->doc .= DOKU_LF;
     }
 
     // FIXME this did something compllicated with surrounding whitespaces. Why?
-    function cdata($text) {
-        if(strlen($text) === 0) {
+    public function cdata($text)
+    {
+        if ((string) $text === '') {
             $this->not_block();
             return;
         }
@@ -79,320 +93,371 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->doc .= $text;
     }
 
-    function p_close() {
+    public function p_close()
+    {
         $this->block();
-        if($this->quotelvl === 0) {
-            $this->doc = rtrim($this->doc, DOKU_LF).DOKU_LF.DOKU_LF;
+        if ($this->quotelvl === 0) {
+            $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
         }
     }
 
-    function p_open() {
+    public function p_open()
+    {
         $this->block();
-        if(strlen($this->doc) > 0 && substr($this->doc, 1, -1) !== DOKU_LF) {
-            $this->doc .= DOKU_LF.DOKU_LF;
+        if ((string) $this->doc !== '' && substr($this->doc, 1, -1) !== DOKU_LF) {
+            $this->doc .= DOKU_LF . DOKU_LF;
         }
         $this->doc .= str_repeat('>', $this->quotelvl);
     }
 
-    function linebreak() {
+    public function linebreak()
+    {
         $this->not_block();
         $this->doc .= '\\\\ ';
     }
 
-    function hr() {
+    public function hr()
+    {
         $this->block();
         $this->doc .= '----';
     }
 
-    function block() {
-        if(isset($this->prepend_not_block)) {
+    public function block()
+    {
+        if (isset($this->prepend_not_block)) {
             unset($this->prepend_not_block);
         }
         $this->previous_block = true;
     }
 
-    function not_block() {
-        if(isset($this->prepend_not_block)) {
+    public function not_block()
+    {
+        if (isset($this->prepend_not_block)) {
             $this->doc .= $this->prepend_not_block;
             unset($this->prepend_not_block);
         }
         $this->previous_block = false;
     }
 
-    function strong_open() {
+    public function strong_open()
+    {
         $this->not_block();
         $this->doc .= '**';
     }
 
-    function strong_close() {
+    public function strong_close()
+    {
         $this->not_block();
         $this->doc .= '**';
     }
 
-    function emphasis_open() {
+    public function emphasis_open()
+    {
         $this->not_block();
         $this->doc .= '//';
     }
 
-    function emphasis_close() {
+    public function emphasis_close()
+    {
         $this->not_block();
         $this->doc .= '//';
     }
 
-    function underline_open() {
+    public function underline_open()
+    {
         $this->not_block();
         $this->doc .= '__';
     }
 
-    function underline_close() {
+    public function underline_close()
+    {
         $this->not_block();
         $this->doc .= '__';
     }
 
-    function monospace_open() {
+    public function monospace_open()
+    {
         $this->not_block();
         $this->doc .= "''";
     }
 
-    function monospace_close() {
+    public function monospace_close()
+    {
         $this->not_block();
         $this->doc .= "''";
     }
 
-    function subscript_open() {
+    public function subscript_open()
+    {
         $this->not_block();
         $this->doc .= '<sub>';
     }
 
-    function subscript_close() {
+    public function subscript_close()
+    {
         $this->not_block();
         $this->doc .= '</sub>';
     }
 
-    function superscript_open() {
+    public function superscript_open()
+    {
         $this->not_block();
         $this->doc .= '<sup>';
     }
 
-    function superscript_close() {
+    public function superscript_close()
+    {
         $this->not_block();
         $this->doc .= '</sup>';
     }
 
-    function deleted_open() {
+    public function deleted_open()
+    {
         $this->not_block();
         $this->doc .= '<del>';
     }
 
-    function deleted_close() {
+    public function deleted_close()
+    {
         $this->not_block();
         $this->doc .= '</del>';
     }
 
-    function footnote_open() {
+    public function footnote_open()
+    {
         $this->not_block();
         $this->doc .= '((';
     }
 
-    function footnote_close() {
+    public function footnote_close()
+    {
         $this->not_block();
         $this->doc .= '))';
     }
 
-    function listu_open() {
+    public function listu_open()
+    {
         $this->block();
-        if(!isset($this->_liststack)) {
-            $this->_liststack = array();
+        if (!isset($this->_liststack)) {
+            $this->_liststack = [];
         }
-        if(count($this->_liststack) === 0) {
+        if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
         $this->_liststack[] = '*';
     }
 
-    function listu_close() {
+    public function listu_close()
+    {
         $this->block();
         array_pop($this->_liststack);
-        if(count($this->_liststack) === 0) {
+        if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
 
-    function listo_open() {
+    public function listo_open()
+    {
         $this->block();
-        if(!isset($this->_liststack)) {
-            $this->_liststack = array();
+        if (!isset($this->_liststack)) {
+            $this->_liststack = [];
         }
-        if(count($this->_liststack) === 0) {
+        if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
         $this->_liststack[] = '-';
     }
 
-    function listo_close() {
+    public function listo_close()
+    {
         $this->block();
         array_pop($this->_liststack);
-        if(count($this->_liststack) === 0) {
+        if (count($this->_liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
 
-    function listitem_open($level, $node = false) {
+    public function listitem_open($level, $node = false)
+    {
         $this->block();
-        $this->doc .= str_repeat(' ', $level * 2).end($this->_liststack).' ';
+        $this->doc .= str_repeat(' ', $level * 2) . end($this->_liststack) . ' ';
     }
 
-    function listcontent_close() {
+    public function listcontent_close()
+    {
         $this->block();
         $this->doc .= DOKU_LF;
     }
 
-    function unformatted($text) {
+    public function unformatted($text)
+    {
         $this->not_block();
-        if(strpos($text, '%%') !== false) {
+        if (str_contains($text, '%%')) {
             $this->doc .= "<nowiki>$text</nowiki>";
-        } elseif($text[0] == "\n") {
+        } elseif ($text[0] == "\n") {
             $this->doc .= "<nowiki>$text</nowiki>";
         } else {
             $this->doc .= "%%$text%%";
         }
     }
 
-    function php($text, $wrapper = 'code') {
+    public function php($text, $wrapper = 'code')
+    {
         $this->not_block();
         $this->doc .= "<php>$text</php>";
     }
 
-    function phpblock($text) {
+    public function phpblock($text)
+    {
         $this->block();
         $this->doc .= "<PHP>$text</PHP>";
     }
 
-    function html($text, $wrapper = 'code') {
+    public function html($text, $wrapper = 'code')
+    {
         $this->not_block();
         $this->doc .= "<html>$text</html>";
     }
 
-    function htmlblock($text) {
+    public function htmlblock($text)
+    {
         $this->block();
         $this->doc .= "<HTML>$text</HTML>";
     }
 
-    function quote_open() {
+    public function quote_open()
+    {
         $this->block();
-        if(substr($this->doc, -(++$this->quotelvl)) === DOKU_LF.str_repeat('>', $this->quotelvl - 1)) {
+        if (substr($this->doc, -(++$this->quotelvl)) === DOKU_LF . str_repeat('>', $this->quotelvl - 1)) {
             $this->doc .= '>';
         } else {
-            $this->doc .= DOKU_LF.str_repeat('>', $this->quotelvl);
+            $this->doc .= DOKU_LF . str_repeat('>', $this->quotelvl);
         }
         $this->prepend_not_block = ' ';
     }
 
-    function quote_close() {
+    public function quote_close()
+    {
         $this->block();
         $this->quotelvl--;
-        if(strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
+        if (strrpos($this->doc, DOKU_LF) === strlen($this->doc) - 1) {
             return;
         }
-        $this->doc .= DOKU_LF.DOKU_LF;
+        $this->doc .= DOKU_LF . DOKU_LF;
     }
 
-    function preformatted($text) {
+    public function preformatted($text)
+    {
         $this->block();
-        $this->doc .= preg_replace('/^/m', '  ', $text).DOKU_LF;
+        $this->doc .= preg_replace('/^/m', '  ', $text) . DOKU_LF;
     }
 
-    function file($text, $language = null, $filename = null) {
+    public function file($text, $language = null, $filename = null)
+    {
         $this->_highlight('file', $text, $language, $filename);
     }
 
-    function code($text, $language = null, $filename = null) {
+    public function code($text, $language = null, $filename = null)
+    {
         $this->_highlight('code', $text, $language, $filename);
     }
 
-    function _highlight($type, $text, $language = null, $filename = null) {
-        if( $this->previous_block ) $this->doc .= "\n";
+    public function _highlight($type, $text, $language = null, $filename = null)
+    {
+        if ($this->previous_block) $this->doc .= "\n";
 
         $this->block();
         $this->doc .= "<$type";
-        if($language != null) {
+        if ($language != null) {
             $this->doc .= " $language";
         }
-        if($filename != null) {
+        if ($filename != null) {
             $this->doc .= " $filename";
         }
         $this->doc .= ">";
         $this->doc .= $text;
-        if($text[0] == "\n") $this->doc .= "\n";
+        if ($text[0] == "\n") $this->doc .= "\n";
         $this->doc .= "</$type>";
     }
 
-    function acronym($acronym) {
+    public function acronym($acronym)
+    {
         $this->not_block();
         $this->doc .= $acronym;
     }
 
-    function smiley($smiley) {
+    public function smiley($smiley)
+    {
         $this->not_block();
         $this->doc .= $smiley;
     }
 
-    function entity($entity) {
+    public function entity($entity)
+    {
         $this->not_block();
         $this->doc .= $entity;
     }
 
-    function multiplyentity($x, $y) {
+    public function multiplyentity($x, $y)
+    {
         $this->not_block();
         $this->doc .= "{$x}x{$y}";
     }
 
-    function singlequoteopening() {
+    public function singlequoteopening()
+    {
         $this->not_block();
         $this->doc .= "'";
     }
 
-    function singlequoteclosing() {
+    public function singlequoteclosing()
+    {
         $this->not_block();
         $this->doc .= "'";
     }
 
-    function apostrophe() {
+    public function apostrophe()
+    {
         $this->not_block();
         $this->doc .= "'";
     }
 
-    function doublequoteopening() {
+    public function doublequoteopening()
+    {
         $this->not_block();
         $this->doc .= '"';
     }
 
-    function doublequoteclosing() {
+    public function doublequoteclosing()
+    {
         $this->not_block();
         $this->doc .= '"';
     }
 
     /**
      */
-    function camelcaselink($link) {
+    public function camelcaselink($link)
+    {
         $this->not_block();
         $this->doc .= $link;
     }
 
-    function locallink($hash, $name = null) {
+    public function locallink($hash, $name = null)
+    {
         $this->not_block();
         $this->doc .= "[[#$hash";
-        if($name !== null) {
+        if ($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
 
-    function internallink($id, $name = null, $search = null, $returnonly = false, $linktype = 'content') {
+    public function internallink($id, $name = null, $search = null, $returnonly = false, $linktype = 'content')
+    {
         $this->not_block();
         $this->doc .= "[[$id";
-        if($name !== null) {
+        if ($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
@@ -404,9 +469,9 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
      *
      * @author Andreas Gohr <andi@splitbrain.org>
      * @param      $url
-     * @param null $name
      */
-    function externallink($url, $name = null) {
+    public function externallink($url, $name = null)
+    {
         $this->not_block();
 
         /*
@@ -417,20 +482,20 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
          * a single tick >>'<< which seems to work. Since the patterns contain wordboundaries they are matched
          * against the URL surrounded by spaces.
          */
-        if($name === null) {
+        if ($name === null) {
             // get the patterns from the parser if available, otherwise use a duplicate
-            if(is_null($this->extlinkparser)) {
+            if (is_null($this->extlinkparser)) {
                 if (
                     class_exists('\dokuwiki\Parsing\ParserMode\Externallink') &&
                     method_exists('\dokuwiki\Parsing\ParserMode\Externallink', 'getPatterns')
                 ) {
                     global $conf;
-                    $this->extlinkparser = new \dokuwiki\Parsing\ParserMode\Externallink();
+                    $this->extlinkparser = new Externallink();
                     // The Externallink mode reads its ModeRegistry in preConnect().
                     // Provide one when the setter is available.
-                    if(method_exists($this->extlinkparser, 'setModeRegistry')) {
+                    if (method_exists($this->extlinkparser, 'setModeRegistry')) {
                         $this->extlinkparser->setModeRegistry(
-                            new \dokuwiki\Parsing\ModeRegistry($conf['syntax'] ?? 'dw')
+                            new ModeRegistry($conf['syntax'] ?? 'dw')
                         );
                     }
                     $this->extlinkparser->preConnect();
@@ -444,17 +509,17 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 
                     $schemes = getSchemes();
                     foreach ($schemes as $scheme) {
-                        $this->extlinkPatterns[] = '\b(?i)'.$scheme.'(?-i)://['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                        $this->extlinkPatterns[] = '\b(?i)' . $scheme . '(?-i)://[' . $any . ']+?(?=[' . $punc . ']*[^' . $any . '])';
                     }
 
-                    $this->extlinkPatterns[] = '(?<=\s)(?i)www?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
-                    $this->extlinkPatterns[] = '(?<=\s)(?i)ftp?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                    $this->extlinkPatterns[] = '(?<=\s)(?i)www?(?-i)\.[' . $host . ']+?\.[' . $host . ']+?[' . $any . ']+?(?=[' . $punc . ']*[^' . $any . '])';
+                    $this->extlinkPatterns[] = '(?<=\s)(?i)ftp?(?-i)\.[' . $host . ']+?\.[' . $host . ']+?[' . $any . ']+?(?=[' . $punc . ']*[^' . $any . '])';
                 }
             }
 
             // check if URL matches pattern
-            foreach($this->extlinkPatterns as $pattern) {
-                if(preg_match("'$pattern'", " $url ")) {
+            foreach ($this->extlinkPatterns as $pattern) {
+                if (preg_match("'$pattern'", " $url ")) {
                     $this->doc .= $url; // gotcha!
                     return;
                 }
@@ -462,13 +527,13 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
 
         // still here?
-        if(is_string($name) && ($url === "http://$name" || $url === "ftp://$name")) {
+        if (is_string($name) && ($url === "http://$name" || $url === "ftp://$name")) {
             // special case - www.* or ftp.* matching
             $this->doc .= $name;
         } else {
             // link syntax! definitively link syntax
             $this->doc .= "[[$url";
-            if(!is_null($name)) {
+            if (!is_null($name)) {
                 // we do have a name!
                 $this->doc .= '|';
                 $this->_echoLinkTitle($name);
@@ -477,29 +542,32 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
     }
 
-    function interwikilink($match, $name = null, $wikiName, $wikiUri) {
+    public function interwikilink($match, $name = null, $wikiName = null, $wikiUri = null)
+    {
         $this->not_block();
         $this->doc .= "[[$wikiName>$wikiUri";
-        if($name !== null) {
+        if ($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
 
-    function windowssharelink($url, $name = null) {
+    public function windowssharelink($url, $name = null)
+    {
         $this->not_block();
         $this->doc .= "[[$url";
-        if($name !== null) {
+        if ($name !== null) {
             $this->doc .= '|';
             $this->_echoLinkTitle($name);
         }
         $this->doc .= "]]";
     }
 
-    function emaillink($address, $name = null) {
+    public function emaillink($address, $name = null)
+    {
         $this->not_block();
-        if($name === null) {
+        if ($name === null) {
             $this->doc .= "<$address>";
         } else {
             $this->doc .= "[[$address|";
@@ -508,44 +576,58 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
     }
 
-    function internalmedia($src, $title = null, $align = null, $width = null,
-                           $height = null, $cache = null, $linking = null) {
+    public function internalmedia(
+        $src,
+        $title = null,
+        $align = null,
+        $width = null,
+        $height = null,
+        $cache = null,
+        $linking = null
+    ) {
         $this->not_block();
         $this->doc .= '{{';
-        if($align === 'center' || $align === 'right') {
+        if ($align === 'center' || $align === 'right') {
             $this->doc .= ' ';
         }
         $this->doc .= $src;
 
-        $params = array();
-        if($width !== null) {
+        $params = [];
+        if ($width !== null) {
             $params[0] = $width;
-            if($height !== null) {
+            if ($height !== null) {
                 $params[0] .= "x$height";
             }
         }
-        if($cache !== 'cache') {
+        if ($cache !== 'cache') {
             $params[] = $cache;
         }
-        if($linking !== 'details') {
+        if ($linking !== 'details') {
             $params[] = $linking;
         }
-        if(count($params) > 0) {
+        if (count($params) > 0) {
             $this->doc .= '?';
         }
-        $this->doc .= join('&', $params);
+        $this->doc .= implode('&', $params);
 
-        if($align === 'center' || $align === 'left') {
+        if ($align === 'center' || $align === 'left') {
             $this->doc .= ' ';
         }
-        if($title != null) {
+        if ($title != null) {
             $this->doc .= "|$title";
         }
         $this->doc .= '}}';
     }
 
-    function externalmedia($src, $title = null, $align = null, $width = null,
-                           $height = null, $cache = null, $linking = null) {
+    public function externalmedia(
+        $src,
+        $title = null,
+        $align = null,
+        $width = null,
+        $height = null,
+        $cache = null,
+        $linking = null
+    ) {
         $this->internalmedia($src, $title, $align, $width, $height, $cache, $linking);
     }
 
@@ -554,96 +636,105 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
      *
      * @author Andreas Gohr <andi@splitbrain.org>
      */
-    function rss($url, $params) {
+    public function rss($url, $params)
+    {
         $this->block();
-        $this->doc .= '{{rss>'.$url;
-        $vals = array();
-        if($params['max'] !== 8) {
+        $this->doc .= '{{rss>' . $url;
+        $vals = [];
+        if ($params['max'] !== 8) {
             $vals[] = $params['max'];
         }
-        if($params['reverse']) {
+        if ($params['reverse']) {
             $vals[] = 'reverse';
         }
-        if($params['author']) {
+        if ($params['author']) {
             $vals[] = 'author';
         }
-        if($params['date']) {
+        if ($params['date']) {
             $vals[] = 'date';
         }
-        if($params['details']) {
+        if ($params['details']) {
             $vals[] = 'desc';
         }
-        if($params['refresh'] !== 14400) {
+        if ($params['refresh'] !== 14400) {
             $val = '10m';
-            foreach(array('d' => 86400, 'h' => 3600, 'm' => 60) as $p => $div) {
+            foreach (['d' => 86400, 'h' => 3600, 'm' => 60] as $p => $div) {
                 $res = $params['refresh'] / $div;
-                if($res === intval($res)) {
+                if ($res === intval($res)) {
                     $val = "$res$p";
                     break;
                 }
             }
             $vals[] = $val;
         }
-        if(count($vals) > 0) {
-            $this->doc .= ' '.join(' ', $vals);
+        if (count($vals) > 0) {
+            $this->doc .= ' ' . implode(' ', $vals);
         }
         $this->doc .= '}}';
     }
 
-    function table_open($maxcols = null, $numrows = null, $pos = null) {
+    public function table_open($maxcols = null, $numrows = null, $pos = null)
+    {
         $this->block();
-        $this->_table    = array();
+        $this->_table    = [];
         $this->_row      = 0;
-        $this->_rowspans = array();
+        $this->_rowspans = [];
     }
 
-    function table_close($pos = null) {
+    public function table_close($pos = null)
+    {
         $this->doc .= $this->_table_to_wikitext($this->_table);
     }
 
-    function tablerow_open() {
+    public function tablerow_open()
+    {
         $this->block();
-        $this->_table[++$this->_row] = array();
+        $this->_table[++$this->_row] = [];
         $this->_key                  = 1;
-        while(isset($this->_rowspans[$this->_key])) {
+        while (isset($this->_rowspans[$this->_key])) {
             --$this->_rowspans[$this->_key];
-            if($this->_rowspans[$this->_key] === 1) {
+            if ($this->_rowspans[$this->_key] === 1) {
                 unset($this->_rowspans[$this->_key]);
             }
             ++$this->_key;
         }
     }
 
-    function tablerow_close() {
+    public function tablerow_close()
+    {
         $this->block();
     }
 
-    function tableheader_open($colspan = 1, $align = null, $rowspan = 1) {
+    public function tableheader_open($colspan = 1, $align = null, $rowspan = 1)
+    {
         $this->_cellopen('th', $colspan, $align, $rowspan);
     }
 
-    function _cellopen($tag, $colspan, $align, $rowspan) {
+    public function _cellopen($tag, $colspan, $align, $rowspan)
+    {
         $this->block();
-        $this->_table[$this->_row][$this->_key] = compact('tag', 'colspan', 'align', 'rowspan');
-        if($rowspan > 1) {
+        $this->_table[$this->_row][$this->_key] = ['tag' => $tag, 'colspan' => $colspan, 'align' => $align, 'rowspan' => $rowspan];
+        if ($rowspan > 1) {
             $this->_rowspans[$this->_key] = $rowspan;
             $this->_ownspan               = true;
         }
         $this->_pos = strlen($this->doc);
     }
 
-    function tableheader_close() {
+    public function tableheader_close()
+    {
         $this->_cellclose();
     }
 
-    function _cellclose() {
+    public function _cellclose()
+    {
         $this->block();
         $this->_table[$this->_row][$this->_key]['text'] = trim(substr($this->doc, $this->_pos));
         $this->doc                                      = substr($this->doc, 0, $this->_pos);
         $this->_key += $this->_table[$this->_row][$this->_key]['colspan'];
-        while(isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
+        while (isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
             --$this->_rowspans[$this->_key];
-            if($this->_rowspans[$this->_key] === 1) {
+            if ($this->_rowspans[$this->_key] === 1) {
                 unset($this->_rowspans[$this->_key]);
             }
             ++$this->_key;
@@ -651,15 +742,18 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->_ownspan = false;
     }
 
-    function tablecell_open($colspan = 1, $align = null, $rowspan = 1) {
+    public function tablecell_open($colspan = 1, $align = null, $rowspan = 1)
+    {
         $this->_cellopen('td', $colspan, $align, $rowspan);
     }
 
-    function tablecell_close() {
+    public function tablecell_close()
+    {
         $this->_cellclose();
     }
 
-    function plugin($name, $args, $state = '', $match = '') {
+    public function plugin($name, $args, $state = '', $match = '')
+    {
         $this->not_block();
         // This will break for plugins which provide a catch-all render method
         // like the do or pagenavi plugins
@@ -669,8 +763,9 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
 #        }
     }
 
-    function _echoLinkTitle($title) {
-        if(is_array($title)) {
+    public function _echoLinkTitle($title)
+    {
+        if (is_array($title)) {
             $this->internalmedia(
                 $title['src'],
                 $title['title'],
@@ -692,25 +787,26 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
      * @param array $_table
      * @return string
      */
-    private function _table_to_wikitext($_table) {
+    private function _table_to_wikitext($_table)
+    {
         // Preprocess table for rowspan, make table 0-based.
-        $table = array();
+        $table = [];
         $keys  = array_keys($_table);
         $start = array_pop($keys);
-        foreach($_table as $i => $row) {
+        foreach ($_table as $i => $row) {
             $inorm = $i - $start;
-            if(!isset($table[$inorm])) $table[$inorm] = array();
+            if (!isset($table[$inorm])) $table[$inorm] = [];
             $nextkey = 0;
-            foreach($row as $cell) {
-                while(isset($table[$inorm][$nextkey])) {
+            foreach ($row as $cell) {
+                while (isset($table[$inorm][$nextkey])) {
                     $nextkey++;
                 }
                 $nextkey += $cell['colspan'] - 1;
                 $table[$inorm][$nextkey] = $cell;
                 $rowspan                 = $cell['rowspan'];
                 $i2                      = $inorm + 1;
-                while($rowspan-- > 1) {
-                    if(!isset($table[$i2])) $table[$i2] = array();
+                while ($rowspan-- > 1) {
+                    if (!isset($table[$i2])) $table[$i2] = [];
                     $nu_cell                = $cell;
                     $nu_cell['text']        = ':::';
                     $nu_cell['rowspan']     = 1;
@@ -721,47 +817,47 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         }
 
         // Get the max width for every column to do table prettyprinting.
-        $m_width = array();
-        foreach($table as $row) {
-            foreach($row as $n => $cell) {
+        $m_width = [];
+        foreach ($table as $row) {
+            foreach ($row as $n => $cell) {
                 // Calculate cell width.
-                $diff = (utf8_strlen($cell['text']) + $cell['colspan'] +
+                $diff = (PhpString::strlen($cell['text']) + $cell['colspan'] +
                     ($cell['align'] === 'center' ? 3 : 2));
 
                 // Calculate current max width.
                 $span = $cell['colspan'];
-                while(--$span >= 0) {
-                    if(isset($m_width[$n - $span])) {
+                while (--$span >= 0) {
+                    if (isset($m_width[$n - $span])) {
                         $diff -= $m_width[$n - $span];
                     }
                 }
 
-                if($diff > 0) {
+                if ($diff > 0) {
                     // Just add the difference to all cols.
-                    while(++$span < $cell['colspan']) {
-                        $m_width[$n - $span] = (isset($m_width[$n - $span]) ? $m_width[$n - $span] : 0) + ceil($diff / $cell['colspan']);
+                    while (++$span < $cell['colspan']) {
+                        $m_width[$n - $span] = ($m_width[$n - $span] ?? 0) + ceil($diff / $cell['colspan']);
                     }
                 }
             }
         }
 
         // Write the table.
-        $types = array('th' => '^', 'td' => '|');
+        $types = ['th' => '^', 'td' => '|'];
         $str   = '';
-        foreach($table as $row) {
+        foreach ($table as $row) {
             $pos = 0;
-            foreach($row as $n => $cell) {
-                $pos += utf8_strlen($cell['text']) + 1;
+            foreach ($row as $n => $cell) {
+                $pos += PhpString::strlen($cell['text']) + 1;
                 $span   = $cell['colspan'];
                 $target = 0;
-                while(--$span >= 0) {
-                    if(isset($m_width[$n - $span])) {
+                while (--$span >= 0) {
+                    if (isset($m_width[$n - $span])) {
                         $target += $m_width[$n - $span];
                     }
                 }
-                $pad = $target - utf8_strlen($cell['text']);
+                $pad = $target - PhpString::strlen($cell['text']);
                 $pos += $pad + ($cell['colspan'] - 1);
-                switch($cell['align']) {
+                switch ($cell['align']) {
                     case 'right':
                         $lpad = $pad - 1;
                         break;
@@ -773,11 +869,11 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
                         $lpad = floor($pad / 2);
                         break;
                 }
-                $str .= $types[$cell['tag']].str_repeat(' ', $lpad).
-                    $cell['text'].str_repeat(' ', $pad - $lpad).
+                $str .= $types[$cell['tag']] . str_repeat(' ', $lpad) .
+                    $cell['text'] . str_repeat(' ', $pad - $lpad) .
                     str_repeat($types[$cell['tag']], $cell['colspan'] - 1);
             }
-            $str .= $types[$cell['tag']].DOKU_LF;
+            $str .= $types[$cell['tag']] . DOKU_LF;
         }
         return $str;
     }

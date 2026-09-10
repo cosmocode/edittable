@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Table editor
  *
@@ -6,6 +7,10 @@
  * @author Andreas Gohr <gohr@cosmocode.de>
  */
 
+use dokuwiki\Extension\ActionPlugin;
+use dokuwiki\Extension\EventHandler;
+use dokuwiki\Extension\Event;
+use dokuwiki\Utf8\PhpString;
 use dokuwiki\Form\Form;
 use dokuwiki\Utf8;
 
@@ -14,12 +19,12 @@ use dokuwiki\Utf8;
  *
  * like displaying the editor and adding custom edit buttons
  */
-class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
+class action_plugin_edittable_editor extends ActionPlugin
 {
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    public function register(Doku_Event_Handler $controller)
+    public function register(EventHandler $controller)
     {
         // register custom edit buttons
         $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'secedit_button');
@@ -38,9 +43,9 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
      *
      * The target 'table' is provided by DokuWiki's XHTML core renderer in the table_close() method
      *
-     * @param Doku_Event $event
+     * @param Event $event
      */
-    public function secedit_button(Doku_Event $event)
+    public function secedit_button(Event $event)
     {
         if ($event->data['target'] !== 'table') return;
 
@@ -50,16 +55,16 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
     /**
      * Creates the actual Table Editor form
      *
-     * @param Doku_Event $event
+     * @param Event $event
      */
-    public function editform(Doku_Event $event)
+    public function editform(Event $event)
     {
         global $TEXT;
         global $RANGE;
         global $INPUT;
 
         if ($event->data['target'] !== 'table') return;
-        if (!$RANGE){
+        if (!$RANGE) {
             // section editing failed, use default editor instead
             $event->data['target'] = 'section';
             return;
@@ -75,7 +80,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         // Loop through the instructions
         foreach ($instructions as $instruction) {
             // Execute the callback against the Renderer
-            call_user_func_array(array(&$Renderer, $instruction[0]), $instruction[1]);
+            call_user_func_array([&$Renderer, $instruction[0]], $instruction[1]);
         }
 
         // output data and editor field
@@ -83,7 +88,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         /** @var Doku_Form $form */
         $form =& $event->data['form'];
 
-        if (is_a($form, Form::class)) { // $event->name is EDIT_FORM_ADDTEXTAREA
+        if ($form instanceof Form) { // $event->name is EDIT_FORM_ADDTEXTAREA
             // data for handsontable
             $form->setHiddenField('edittable_data', $Renderer->getDataJSON());
             $form->setHiddenField('edittable_meta', $Renderer->getMetaJSON());
@@ -97,7 +102,6 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
             // set target and range to keep track during previews
             $form->setHiddenField('target', 'table');
             $form->setHiddenField('range', $RANGE);
-
         } else { // $event->name is HTML_EDIT_FORMSELECTION
             // data for handsontable
             $form->addHidden('edittable_data', $Renderer->getDataJSON());
@@ -122,7 +126,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
      *
      * @author Andreas Gohr <gohr@cosmocode,de>
      */
-    public function handle_table_post(Doku_Event $event)
+    public function handle_table_post(Event $event)
     {
         global $TEXT;
         global $INPUT;
@@ -149,7 +153,7 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         $rows  = count($data);
         $cols  = $rows ? count($data[0]) : 0;
 
-        $colmax = $cols ? array_fill(0, $cols, 0) : array();
+        $colmax = $cols ? array_fill(0, $cols, 0) : [];
 
         // find maximum column widths
         for ($row = 0; $row < $rows; $row++) {
@@ -173,7 +177,6 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
         $last = '|'; // used to close the last cell
         for ($row = 0; $row < $rows; $row++) {
             for ($col = 0; $col < $cols; $col++) {
-
                 // hidden cells may carry no span info of their own
                 if (!isset($meta[$row][$col]['colspan'])) $meta[$row][$col]['colspan'] = 1;
                 if (!isset($meta[$row][$col]['rowspan'])) $meta[$row][$col]['rowspan'] = 1;
@@ -218,8 +221,8 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
 
                 // add the padding
                 $cdata = $data[$row][$col];
-                if (!(isset($meta[$row][$col]['hide']) && $meta[$row][$col]['hide']) || $cdata) {
-                    $cdata = str_pad('', $lpad).$cdata.str_pad('', $rpad);
+                if (!isset($meta[$row][$col]['hide']) || !$meta[$row][$col]['hide'] || $cdata) {
+                    $cdata = str_pad('', $lpad) . $cdata . str_pad('', $rpad);
                 }
 
                 // finally add the cell
@@ -248,19 +251,17 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
 
         if (isset($callable)) {
             return $callable($str);
-        } else {
-            if (UTF8_MBSTRING) {
-                // count fullwidth characters as 2, halfwidth characters as 1
-                $callable = 'mb_strwidth';
-            } elseif (method_exists(Utf8\PhpString::class, 'strlen')) {
-                // count any characters as 1
-                $callable = [Utf8\PhpString::class, 'strlen'];
-            } else {
-                // fallback deprecated utf8_strlen since 2019-06-09
-                $callable = 'utf8_strlen';
-            }
-            return $this->strWidth($str);
         }
+        if (UTF8_MBSTRING) {
+            // count fullwidth characters as 2, halfwidth characters as 1
+            $callable = 'mb_strwidth';
+        } elseif (method_exists(PhpString::class, 'strlen')) {
+            // count any characters as 1
+            $callable = PhpString::strlen(...);
+        } else {
+            // fallback deprecated utf8_strlen since 2019-06-09
+            $callable = 'utf8_strlen';
+        }
+        return $this->strWidth($str);
     }
-
 }
