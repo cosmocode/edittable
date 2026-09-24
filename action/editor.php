@@ -63,8 +63,8 @@ class action_plugin_edittable_editor extends ActionPlugin
         global $INPUT;
 
         if ($event->data['target'] !== 'table') return;
-        if (!$RANGE) {
-            // section editing failed, use default editor instead
+        if (!$RANGE || !$this->isTableOnly($TEXT)) {
+            // section editing failed or the section holds more than a table, use default editor instead
             $event->data['target'] = 'section';
             return;
         }
@@ -100,6 +100,28 @@ class action_plugin_edittable_editor extends ActionPlugin
         // set target and range to keep track during previews
         $form->setHiddenField('target', 'table');
         $form->setHiddenField('range', $RANGE);
+    }
+
+    /**
+     * Does the given wiki text consist of table rows only?
+     *
+     * The table editor replaces the whole edit section with the table it rebuilds, so anything in
+     * the section that is not part of a row is lost on save. Syntax whose markup spans several
+     * rows is such a case: the parser swallows it and the editor never sees it.
+     *
+     * @param string $text wiki text of the edit section
+     * @return bool true when every line is a table row
+     */
+    public function isTableOnly($text)
+    {
+        foreach (explode("\n", $text) as $line) {
+            // the section may be padded with empty lines
+            if (trim($line) === '') continue;
+
+            // a row starts and ends with a cell delimiter
+            if (!preg_match('/^[\t ]*[|^](?:.*[|^])?[\t ]*$/', $line)) return false;
+        }
+        return true;
     }
 
     /**

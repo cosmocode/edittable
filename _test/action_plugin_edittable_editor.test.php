@@ -56,4 +56,29 @@ EOF;
         $this->assertEquals($expect, $output);
     }
 
+    /**
+     * @return array [wiki text, is it a table only?]
+     */
+    function provideTableOnly() {
+        return array(
+            'rows' => array("| a | b |\n| c | d |", true),
+            'header' => array("^ a ^ b ^\n| c | d |", true),
+            'colspan' => array("| a ||\n| c | d |", true),
+            'alignment' => array("|  a  |    b |\n| c | d |", true),
+            'padded' => array("\n| a | b |\t\n", true),
+            'no cells' => array('|', true),
+            'row spanning markup' => array("| a | b |<pagemod 1>\n| @@x@@ | @@y@@ |</pagemod>", false),
+            'trailing text' => array("| a | b |\nsome text", false),
+            'multiline cell' => array("| a | %%x\ny%% |", false),
+        );
+    }
+
+    /**
+     * @dataProvider provideTableOnly
+     */
+    function test_isTableOnly($text, $expect) {
+        $action = new action_plugin_edittable_editor();
+        $this->assertEquals($expect, $action->isTableOnly($text));
+    }
+
 }
