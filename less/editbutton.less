@@ -33,4 +33,15 @@
         -moz-border-radius-bottomleft: 0.5em;
         -webkit-border-bottom-left-radius: 0.5em;
     }
+
+    // DokuWiki floats section edit buttons in right-to-left languages, ours stays below the table
+    [dir=rtl] & {
+        float: none;
+
+        form div.no button,
+        form div.no input.button {
+            margin-left: 0;
+            margin-right: 0.6em;
+        }
+    }
 }
