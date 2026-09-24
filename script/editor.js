@@ -14,6 +14,14 @@ window.edittable_plugins = window.edittable_plugins || {};
     const INTERVAL_FOR_ADDING_COLUMN = 200;
 
     /**
+     * Key codes Handsontable listens to for undo and redo
+     *
+     * @type {number}
+     */
+    const KEY_CODE_Z = 90;
+    const KEY_CODE_Y = 89;
+
+    /**
      * Move rows to a new position
      *
      * @param {Array} movingRowIndexes the indices of the rows to be moved
@@ -614,6 +622,21 @@ window.edittable_plugins = window.edittable_plugins || {};
             }
         }
 
+
+        // an open cell editor undoes the typing in its own text area, so the table must stay out of it
+        // Handsontable listens on the document, so the key has to be stopped on its way up there
+        $container[0].addEventListener('keydown', e => {
+            const undoKey = (e.ctrlKey || e.metaKey) && !e.altKey &&
+                (e.keyCode === KEY_CODE_Z || e.keyCode === KEY_CODE_Y);
+            if (!undoKey) {
+                return;
+            }
+
+            const editor = $container.handsontable('getInstance').getActiveEditor();
+            if (editor && editor.isOpened()) {
+                e.stopPropagation(); // not prevented, the text area still undoes the typing
+            }
+        });
 
         // the toolbar and its dialogs write into the cell editor, so it has to be open and stay open
         document.body.addEventListener('mousedown', e => {
