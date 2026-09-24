@@ -1,60 +1,54 @@
 /* exported addBtnActionNewTable */
 /**
- * Add button action for your toolbar button
+ * Make the toolbar button open the table editor for a new table at the cursor position
  *
  * @param  {jQuery}   $btn  Button element to add the action to
- * @param  {Array}    props Associative array of button properties
+ * @param  {object}   props the button properties
  * @param  {string}   edid  ID of the editor textarea
- * @return {string}   If button should be appended return the id for in aria-controls,
- *                    otherwise an empty string
+ * @return {string}   a non-empty string, so the toolbar adds the button
  */
 window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
     'use strict';
 
-    $btn.click(function () {
-        var editform = jQuery('#dw__editform')[0];
-        var ed = jQuery('#' + edid)[0];
+    $btn.on('click', () => {
+        const editform = jQuery('#dw__editform')[0];
+        const ed = jQuery(`#${edid}`)[0];
 
         /**
-         * Add new textarea to the form
+         * Add a hidden textarea with a part of the page text to the form
          *
-         * @param {string} name the name attribute of the new field
-         * @param {string} val the value attribute of the new field
+         * @param {string} name the key of the field in the edittable__new array
+         * @param {string} val the text to store
          *
          * @return {void}
          */
         function addField(name, val) {
-            var pos_field = document.createElement('textarea');
-            pos_field.name = 'edittable__new[' + name + ']';
+            const pos_field = document.createElement('textarea');
+            pos_field.name = `edittable__new[${name}]`;
             pos_field.value = val;
             pos_field.style.display = 'none';
             editform.appendChild(pos_field);
         }
 
-        var sel;
-        if (window.DWgetSelection) {
-            sel = window.DWgetSelection(ed);
-        } else {
-            sel = window.getSelection(ed);
-        }
-        addField('pre', ed.value.substr(0, sel.start));
-        addField('text', ed.value.substr(sel.start, sel.end - sel.start));
-        addField('suf', ed.value.substr(sel.end));
+        const sel = window.DWgetSelection(ed);
+        addField('pre', ed.value.substring(0, sel.start));
+        addField('text', ed.value.substring(sel.start, sel.end));
+        addField('suf', ed.value.substring(sel.end));
 
-        // adora belle requires a range, even though we handle ranging ourselve here
-        var range = document.createElement('input');
+        // the table editor needs a range to open, the fields above place the new table
+        const range = document.createElement('input');
         range.name = 'range';
         range.value = '0-0';
         range.type = 'hidden';
         editform.appendChild(range);
 
-        // Fake POST
-        var editbutton = document.createElement('input');
+        // submit the form as an edit request
+        const editbutton = document.createElement('input');
         editbutton.name = 'do[edit]';
         editbutton.type = 'submit';
         editbutton.style.display = 'none';
         editform.appendChild(editbutton);
-        // Prevent warning
+        // suppress the warning about unsaved changes
         window.textChanged = false;
         editbutton.click();
 

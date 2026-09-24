@@ -1,19 +1,19 @@
 /**
  * Adjust the top margin and make buttons visible
  */
-jQuery(function () {
+jQuery(() => {
     'use strict';
-    var $editbutton = jQuery('.dokuwiki div.editbutton_table');
+    const $editbutton = jQuery('.dokuwiki div.editbutton_table');
     if (!$editbutton.length) {
         return;
     }
 
-    // unhide the buttons - we have JavaScript
+    // the buttons stay hidden when JavaScript is not available
     $editbutton.show();
 
-    // determine the bottom margin of the table above and remove it from our button
-    var margin = 0;
-    var $tablediv = $editbutton.prev('div.table');
+    // pull the button up by the bottom margin of the table above it
+    let margin = 0;
+    const $tablediv = $editbutton.prev('div.table');
     if (!$tablediv.length) {
         return;
     }
