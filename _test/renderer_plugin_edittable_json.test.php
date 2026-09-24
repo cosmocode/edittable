@@ -34,7 +34,7 @@ EOF;
             array(
                 array('align' => 'left', 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
                 array('align' => 'left', 'colspan' => 2, 'rowspan' => 2, 'tag' => 'td'),
-                array('hide' => true, 'rowspan' => 1, 'colspan' => 1),
+                array('hide' => true, 'rowspan' => 1, 'colspan' => 1, 'tag' => 'td'),
                 array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
             ),
             array(
