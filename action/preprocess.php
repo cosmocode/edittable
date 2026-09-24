@@ -20,12 +20,32 @@ use dokuwiki\Extension\Event;
 class action_plugin_edittable_preprocess extends ActionPlugin
 {
     /**
+     * Sequence number of our ACTION_ACT_PREPROCESS handler
+     *
+     * The table editor posts its data instead of the usual wiki text, so the data has to be turned into
+     * wiki text before any other plugin looks at it. The negative value runs our handler first, even when
+     * another plugin stops the propagation of the event.
+     *
+     * @var int
+     */
+    protected const PREPROCESS_SEQUENCE = -100;
+
+    /**
      * Register its handlers with the DokuWiki's event controller
+     *
+     * @param EventHandler $controller the event controller to register with
      */
     public function register(EventHandler $controller)
     {
         // register preprocessing for accepting editor data
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handlePreprocess');
+        $controller->register_hook(
+            'ACTION_ACT_PREPROCESS',
+            'BEFORE',
+            $this,
+            'handlePreprocess',
+            null,
+            self::PREPROCESS_SEQUENCE
+        );
     }
 
     /**
