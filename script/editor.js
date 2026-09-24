@@ -615,10 +615,18 @@ window.edittable_plugins = window.edittable_plugins || {};
         }
 
 
-        // keep the cell editor open while the toolbar or one of its dialogs is used
+        // the toolbar and its dialogs write into the cell editor, so it has to be open and stay open
         document.body.addEventListener('mousedown', e => {
-            if (jQuery(e.target).closest('#link__wiz, #tool__bar, .picker').length) {
-                e.stopPropagation();
+            if (!jQuery(e.target).closest('#link__wiz, #tool__bar, .picker').length) {
+                return;
+            }
+            e.stopPropagation();
+
+            const hot = $container.handsontable('getInstance');
+            const editor = hot.getSelectedLast() ? hot.getActiveEditor() : null;
+            if (editor) {
+                editor.enableFullEditMode(); // keep the text that is already in the cell
+                editor.beginEditing(); // does nothing while the cell is already being edited
             }
         });
 
