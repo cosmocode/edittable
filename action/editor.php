@@ -148,6 +148,9 @@ class action_plugin_edittable_editor extends ActionPlugin
      *
      * converts the table array to plain wiki markup text. pads the table so the markup is easy to read
      *
+     * Padding can be switched off with the "pad markup" setting. Cells then carry the spaces their
+     * alignment needs and nothing more, so a cell without an alignment gets no alignment marker.
+     *
      * @param array $data table content for each cell
      * @param array $meta meta data for each cell
      * @return string
@@ -157,6 +160,7 @@ class action_plugin_edittable_editor extends ActionPlugin
         $table = '';
         $rows  = count($data);
         $cols  = $rows ? count($data[0]) : 0;
+        $padMarkup = (bool)$this->getConf('pad markup');
 
         $colmax = $cols ? array_fill(0, $cols, 0) : [];
 
@@ -187,15 +191,21 @@ class action_plugin_edittable_editor extends ActionPlugin
                 if (!isset($meta[$row][$col]['rowspan'])) $meta[$row][$col]['rowspan'] = 1;
 
                 // minimum padding according to alignment
-                if (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'center') {
+                $align = $meta[$row][$col]['align'] ?? null;
+                if ($align == 'center') {
                     $lpad = 2;
                     $rpad = 2;
-                } elseif (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'right') {
+                } elseif ($align == 'right') {
                     $lpad = 2;
                     $rpad = 1;
-                } else {
+                } elseif ($align == 'left' || $padMarkup) {
                     $lpad = 1;
                     $rpad = 2;
+                } else {
+                    // two spaces would mark the cell as left aligned, which it is not
+                    $lpad = 1;
+                    $rpad = 1;
+                    if ($data[$row][$col] === '') $rpad = 0;
                 }
 
                 // target width of this column
@@ -215,7 +225,7 @@ class action_plugin_edittable_editor extends ActionPlugin
 
                 // how much padding needs to be added?
                 $length = $meta[$row][$col]['length'];
-                $addpad = $target - $length;
+                $addpad = $padMarkup ? $target - $length : 0;
 
                 // decide which side needs padding
                 if (isset($meta[$row][$col]['align']) && $meta[$row][$col]['align'] == 'right') {

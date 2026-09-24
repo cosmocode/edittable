@@ -81,4 +81,51 @@ EOF;
         $this->assertEquals($expect, $action->isTableOnly($text));
     }
 
+
+    /**
+     * Without padding a cell carries only the spaces its alignment needs
+     */
+    function test_table_unpadded() {
+        global $conf;
+        $conf['plugin']['edittable']['pad markup'] = 0;
+
+        $data = array(
+            array('H 1', 'H 2', 'H 3'),
+            array('a much longer cell', '', 'x'),
+        );
+
+        $meta = array(
+            array(
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'th'),
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'th'),
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'th'),
+            ),
+            array(
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+                array('align' => 'center', 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+            ),
+        );
+
+        $expect = <<<EOF
+^ H 1 ^ H 2 ^ H 3 ^
+| a much longer cell | |  x  |
+EOF;
+
+        $action = new action_plugin_edittable_editor();
+        $output = $action->buildTable($data, $meta);
+        $this->assertEquals($expect, $output);
+
+        // the cells without an alignment must not gain one
+        $aligns = array();
+        foreach (p_get_instructions($output . "\n") as $instruction) {
+            if ($instruction[0] == 'tablecell_open' || $instruction[0] == 'tableheader_open') {
+                $aligns[] = $instruction[1][1];
+            }
+        }
+        $this->assertEquals(
+            array(null, null, null, null, null, 'center'),
+            $aligns
+        );
+    }
 }
