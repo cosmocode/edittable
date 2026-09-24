@@ -432,8 +432,11 @@ window.edittable_plugins = window.edittable_plugins || {};
              */
             afterCreateCol(index, amount) {
                 for (const metaRow of meta) {
+                    // new cells are header cells when all their neighbours are
+                    const neighbours = [metaRow[index - 1], metaRow[index]].filter(Boolean);
+                    const tag = neighbours.length && neighbours.every(cell => cell.tag === 'th') ? 'th' : 'td';
                     for (let i = 0; i < amount; i += 1) {
-                        metaRow.splice(index, 0, {rowspan: 1, colspan: 1});
+                        metaRow.splice(index, 0, {rowspan: 1, colspan: 1, tag});
                     }
                 }
             },
