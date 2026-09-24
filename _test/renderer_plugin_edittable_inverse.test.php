@@ -19,6 +19,12 @@ class renderer_plugin_edittable_inverse_test extends DokuWikiTest {
         $this->assertEquals($input, $output);
     }
 
+    function test_media_height_only() {
+        $input  = '{{wiki:dokuwiki-128.png?0x100}}';
+        $output = $this->render($input);
+        $this->assertEquals($input, $output);
+    }
+
     function test_fullsyntax() {
         $input = io_readFile(dirname(__FILE__).'/'.basename(__FILE__, '.php').'.txt');
         $this->assertTrue(strlen($input) > 1000); // make sure we got what we want

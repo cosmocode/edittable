@@ -499,8 +499,9 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         $this->doc .= $src;
 
         $params = array();
-        if($width !== null) {
-            $params[0] = $width;
+        if($width !== null || $height !== null) {
+            // a height without width is written as 0xHEIGHT
+            $params[0] = $width ?? 0;
             if($height !== null) {
                 $params[0] .= "x$height";
             }
