@@ -52,6 +52,20 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
     }
 
     function table_close($pos = null) {
+        // fill up empty and short rows, so every row has a cell in every column
+        $cols = 0;
+        foreach ($this->tmeta as $cells) {
+            $cols = max($cols, max(array_keys($cells)) + 1);
+        }
+        for ($row = 0; $row <= $this->current_row; $row++) {
+            for ($col = 0; $col < $cols; $col++) {
+                if (isset($this->tmeta[$row][$col])) continue;
+                $this->tmeta[$row][$col] = ['tag' => 'td', 'colspan' => 1, 'rowspan' => 1, 'align' => null];
+                $this->tdata[$row][$col] = '';
+            }
+            ksort($this->tdata[$row]);
+            ksort($this->tmeta[$row]);
+        }
     }
 
     function tablerow_open() {
@@ -61,9 +75,6 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
     }
 
     function tablerow_close() {
-        // resort just for better debug readability
-        ksort($this->tdata[$this->current_row]);
-        ksort($this->tmeta[$this->current_row]);
     }
 
     function tableheader_open($colspan = 1, $align = null, $rowspan = 1) {

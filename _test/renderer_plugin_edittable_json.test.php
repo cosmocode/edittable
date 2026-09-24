@@ -58,6 +58,30 @@ EOF;
     }
 
 
+    function test_empty_and_short_rows() {
+
+        $input = <<<EOF
+^ A ^ B ^ C ^
+| 1 |
+|||
+EOF;
+
+        $data = array(
+            array('A', 'B', 'C'),
+            array('1', '', ''),
+            array('', '', ''),
+        );
+
+        $renderer = $this->render($input);
+        $meta = json_decode($renderer->getMetaJSON(), true);
+
+        $this->assertEquals($data, json_decode($renderer->getDataJSON(), true));
+        $this->assertCount(3, $meta[1]);
+        $this->assertCount(3, $meta[2]);
+        $this->assertEquals('td', $meta[2][0]['tag']);
+    }
+
+
     /**
      * render the given text with the JSON table renderer
      *
