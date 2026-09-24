@@ -29,6 +29,11 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     private $extlinkparser;
     protected $extlinkPatterns = [];
 
+    /** @var string text written by the last cdata() call */
+    private $lastCdataText = '';
+    /** @var int length of $doc right after the last cdata() call */
+    private $lastCdataEnd = -1;
+
     public function getFormat()
     {
         return 'wiki';
@@ -85,6 +90,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 //        $this->doc .= trim($text);
 
         $this->doc .= $text;
+        $this->lastCdataText = $text;
+        $this->lastCdataEnd = strlen($this->doc);
     }
 
     public function p_close()
@@ -734,8 +741,27 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $this->cellClose();
     }
 
+    /**
+     * Append the raw markup a plugin matched
+     *
+     * Some plugins add a cdata call for text they do not handle themselves. The same text is also
+     * part of their match, so it must not be appended a second time.
+     *
+     * @param string $name name of the plugin
+     * @param mixed $args data returned by the plugin's handler
+     * @param string|int $state lexer state the match was found in
+     * @param string $match raw markup matched by the plugin
+     */
     public function plugin($name, $args, $state = '', $match = '')
     {
+        if (
+            $state === DOKU_LEXER_UNMATCHED &&
+            $this->lastCdataEnd === strlen($this->doc) &&
+            $this->lastCdataText === $match
+        ) {
+            return;
+        }
+
         $this->not_block();
         // This will break for plugins which provide a catch-all render method
         // like the do or pagenavi plugins

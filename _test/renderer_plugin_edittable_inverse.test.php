@@ -25,6 +25,31 @@ class renderer_plugin_edittable_inverse_test extends DokuWikiTest {
         $this->assertEquals($input, $output);
     }
 
+    /**
+     * Text a plugin adds as a cdata call of its own must end up in the wiki source only once
+     */
+    function test_plugin_with_own_cdata() {
+        $renderer = new renderer_plugin_edittable_inverse();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_ENTER, '<dummy>');
+        $renderer->cdata('content');
+        $renderer->plugin('dummy', array(), DOKU_LEXER_UNMATCHED, 'content');
+        $renderer->plugin('dummy', array(), DOKU_LEXER_EXIT, '</dummy>');
+
+        $this->assertEquals('<dummy>content</dummy>', $renderer->doc);
+    }
+
+    /**
+     * Plugins that leave unmatched text to the renderer still get it written out
+     */
+    function test_plugin_without_own_cdata() {
+        $renderer = new renderer_plugin_edittable_inverse();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_ENTER, '<dummy>');
+        $renderer->plugin('dummy', array(), DOKU_LEXER_UNMATCHED, 'content');
+        $renderer->plugin('dummy', array(), DOKU_LEXER_EXIT, '</dummy>');
+
+        $this->assertEquals('<dummy>content</dummy>', $renderer->doc);
+    }
+
     function test_fullsyntax() {
         $input = io_readFile(dirname(__FILE__).'/'.basename(__FILE__, '.php').'.txt');
         $this->assertTrue(strlen($input) > 1000); // make sure we got what we want
