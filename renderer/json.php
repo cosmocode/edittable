@@ -157,6 +157,35 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
 
         // empty $doc
         $this->doc = '';
+        $this->startCell();
+    }
+
+    /**
+     * The text of the current cell as the editor shows it
+     *
+     * A line break inside a verbatim construct comes from the source and keeps the cell open,
+     * so it stays. Any other line break would end the table row and becomes a space. A forced
+     * line break becomes a real one, so the editor shows a single kind of line break.
+     *
+     * @return string
+     */
+    private function cellText()
+    {
+        $text = trim($this->doc);
+        $lead = strlen($this->doc) - strlen(ltrim($this->doc));
+
+        return preg_replace_callback(
+            '/\n|\\\\\\\\\s/',
+            function ($match) use ($lead) {
+                [$found, $pos] = $match[0];
+                if ($this->isProtected($lead + $pos)) return $found;
+                return $found === "\n" ? ' ' : "\n";
+            },
+            $text,
+            -1,
+            $count,
+            PREG_OFFSET_CAPTURE
+        );
     }
 
     /**
@@ -164,11 +193,13 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
      */
     private function tablefieldClose()
     {
+        $this->inTableCell = false;
+
         // these have been set to the correct cell already
         $row = $this->current_row;
         $col = $this->current_col;
 
-        $this->tdata[$row][$col] = trim(str_replace("\n", ' ', $this->doc)); // no newlines in table cells!
+        $this->tdata[$row][$col] = $this->cellText();
         $this->tmeta[$row][$col] = $this->tmetacell; // as remembered in the open call
 
         // now fill up missing span cells

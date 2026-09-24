@@ -100,6 +100,117 @@ EOF;
 
 
     /**
+     * A cell keeps the line breaks that belong to a verbatim construct
+     */
+    function test_protected_linebreaks() {
+        $renderer = $this->render("| <code>\nline1\nline2\n</code> | plain |\n");
+
+        $this->assertEquals(
+            array(array("<code>\nline1\nline2\n</code>", 'plain')),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * Text that follows a block in a cell stays on the same line
+     */
+    function test_text_after_protected_block() {
+        $renderer = $this->render("| foo <code>\nx\n</code> bar |\n");
+
+        $this->assertEquals(
+            array(array("foo <code>\nx\n</code> bar")),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * Any other line break would end the table row and becomes a space
+     */
+    function test_unprotected_linebreaks() {
+        $renderer = new renderer_plugin_edittable_json();
+        $renderer->tablerow_open();
+        $renderer->tablecell_open();
+        $renderer->cdata("a\nb ");
+        $renderer->code("\nx\n");
+        $renderer->tablecell_close();
+        $renderer->tablerow_close();
+
+        $this->assertEquals(
+            array(array("a b <code>\nx\n</code>")),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * A forced line break reaches the editor as a real line break
+     */
+    function test_forced_linebreak() {
+        $renderer = $this->render("| a\\\\ b | c |\n");
+
+        $this->assertEquals(
+            array(array("a\nb", 'c')),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * The same markup inside a verbatim construct is text and stays as it is
+     */
+    function test_forced_linebreak_in_construct() {
+        $renderer = $this->render("| <code>\nx\\\\ y\n</code> |\n");
+
+        $this->assertEquals(
+            array(array("<code>\nx\\\\ y\n</code>")),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * A plugin block keeps the line breaks of the content between its enter and its exit
+     */
+    function test_plugin_block_linebreaks() {
+        $renderer = new renderer_plugin_edittable_json();
+        $renderer->tablerow_open();
+        $renderer->tablecell_open();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_ENTER, '<dummy>');
+        $renderer->listu_open();
+        $renderer->listitem_open(1);
+        $renderer->cdata(' item');
+        $renderer->listcontent_close();
+        $renderer->listu_close();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_EXIT, '</dummy>');
+        $renderer->tablecell_close();
+        $renderer->tablerow_close();
+
+        $this->assertEquals(
+            array(array("<dummy>\n  * item\n</dummy>")),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * A plugin block that is never closed protects nothing, so the row survives
+     */
+    function test_unclosed_plugin_block() {
+        $renderer = new renderer_plugin_edittable_json();
+        $renderer->tablerow_open();
+        $renderer->tablecell_open();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_ENTER, '<dummy>');
+        $renderer->listu_open();
+        $renderer->listitem_open(1);
+        $renderer->cdata(' item');
+        $renderer->listcontent_close();
+        $renderer->listu_close();
+        $renderer->tablecell_close();
+        $renderer->tablerow_close();
+
+        $this->assertEquals(
+            array(array('<dummy>   * item')),
+            json_decode($renderer->getDataJSON(), true)
+        );
+    }
+
+    /**
      * render the given text with the JSON table renderer
      *
      * @param $text

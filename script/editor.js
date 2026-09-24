@@ -355,16 +355,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                     }
                 }
 
-                // the form stores DokuWiki line breaks (\\), the editor shows real line breaks
-                const dataLBFixed = jQuery.extend(true, {}, data);
-                for (let row = 0; row < data.length; row += 1) {
-                    for (let col = 0; col < data[0].length; col += 1) {
-                        dataLBFixed[row][col] = data[row][col].replace(/(\r\n|\n|\r)/g, '\\\\ ');
-                        data[row][col] = data[row][col].replace(/\\\\\s/g, '\n');
-                    }
-                }
-
-                $datafield.val(JSON.stringify(dataLBFixed));
+                $datafield.val(JSON.stringify(data));
                 $metafield.val(JSON.stringify(meta));
             },
 

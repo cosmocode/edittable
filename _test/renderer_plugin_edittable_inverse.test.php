@@ -50,6 +50,61 @@ class renderer_plugin_edittable_inverse_test extends DokuWikiTest {
         $this->assertEquals('<dummy>content</dummy>', $renderer->doc);
     }
 
+    /**
+     * A code block keeps its own line breaks and gains none
+     */
+    function test_code_block_linebreaks() {
+        $input  = "<code>\nfoo\n</code>";
+        $output = $this->render($input);
+        $this->assertEquals($input, $output);
+    }
+
+    /**
+     * Text that follows a block inside a cell stays on the same line
+     *
+     * The parser reports such text as a paragraph of its own.
+     */
+    function test_text_after_block_in_cell() {
+        $renderer = new renderer_plugin_edittable_inverse();
+        $renderer->tablecell_open();
+        $renderer->cdata(' foo ');
+        $renderer->code("\nbar\n");
+        $renderer->p_open();
+        $renderer->cdata('tail ');
+        $renderer->p_close();
+
+        $this->assertEquals(" foo <code>\nbar\n</code> tail ", $renderer->doc);
+    }
+
+    /**
+     * Two blocks in one cell are not separated by a line break of the renderer
+     */
+    function test_two_blocks_in_cell() {
+        $renderer = new renderer_plugin_edittable_inverse();
+        $renderer->tablecell_open();
+        $renderer->code("\nx\n");
+        $renderer->code("\ny\n");
+
+        $this->assertEquals("<code>\nx\n</code><code>\ny\n</code>", $renderer->doc);
+    }
+
+    /**
+     * A list inside a cell ends without a blank line
+     */
+    function test_list_in_cell() {
+        $renderer = new renderer_plugin_edittable_inverse();
+        $renderer->tablecell_open();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_ENTER, '<dummy>');
+        $renderer->listu_open();
+        $renderer->listitem_open(1);
+        $renderer->cdata(' item'); // the parser keeps the space after the marker in the content
+        $renderer->listcontent_close();
+        $renderer->listu_close();
+        $renderer->plugin('dummy', array(), DOKU_LEXER_EXIT, '</dummy>');
+
+        $this->assertEquals("<dummy>\n  * item\n</dummy>", $renderer->doc);
+    }
+
     function test_fullsyntax() {
         $input = io_readFile(dirname(__FILE__).'/'.basename(__FILE__, '.php').'.txt');
         $this->assertTrue(strlen($input) > 1000); // make sure we got what we want

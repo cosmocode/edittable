@@ -34,6 +34,17 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     /** @var int length of $doc right after the last cdata() call */
     private $lastCdataEnd = -1;
 
+    /** @var bool whether the renderer currently writes the content of a table cell */
+    protected $inTableCell = false;
+
+    /** @var array start and end offset in $doc of every verbatim chunk of the current cell */
+    protected $protectedRanges = [];
+
+    /** @var int number of plugin blocks that are currently open */
+    private $pluginlvl = 0;
+    /** @var int offset in $doc where the outermost open plugin block starts */
+    private $pluginstart = 0;
+
     public function getFormat()
     {
         return 'wiki';
@@ -96,6 +107,11 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function p_close()
     {
+        if ($this->inTableCell) {
+            // a cell ends at the end of the line, so a paragraph in it writes no line break
+            $this->not_block();
+            return;
+        }
         $this->block();
         if ($this->quotelvl === 0) {
             $this->doc = rtrim($this->doc, DOKU_LF) . DOKU_LF . DOKU_LF;
@@ -104,6 +120,12 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function p_open()
     {
+        if ($this->inTableCell) {
+            // in a cell a paragraph only separates its text from the block before it
+            $this->not_block();
+            if ($this->doc !== '' && trim(substr($this->doc, -1)) !== '') $this->doc .= ' ';
+            return;
+        }
         $this->block();
         if ((string) $this->doc !== '' && substr($this->doc, 1, -1) !== DOKU_LF) {
             $this->doc .= DOKU_LF . DOKU_LF;
@@ -138,6 +160,46 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
             unset($this->prepend_not_block);
         }
         $this->previous_block = false;
+    }
+
+    /**
+     * Remember that the document holds verbatim source from the given offset to its end
+     *
+     * A line break in such a range comes from the source and keeps a table cell open. Every
+     * other line break in a cell was written by this renderer.
+     *
+     * @param int $start offset in the document where the verbatim text starts
+     */
+    protected function markProtected($start)
+    {
+        $this->protectedRanges[] = [$start, strlen($this->doc)];
+    }
+
+    /**
+     * Begin collecting the content of a table cell
+     *
+     * Drops the state that is only meaningful within a single cell. A plugin that forgot to
+     * close its block would otherwise leak into the cells that follow.
+     */
+    protected function startCell()
+    {
+        $this->inTableCell = true;
+        $this->protectedRanges = [];
+        $this->pluginlvl = 0;
+    }
+
+    /**
+     * Does the given offset lie inside a verbatim chunk?
+     *
+     * @param int $pos offset in the document
+     * @return bool
+     */
+    protected function isProtected($pos)
+    {
+        foreach ($this->protectedRanges as $range) {
+            if ($pos >= $range[0] && $pos < $range[1]) return true;
+        }
+        return false;
     }
 
     public function strong_open()
@@ -252,7 +314,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     {
         $this->block();
         array_pop($this->liststack);
-        if (count($this->liststack) === 0) {
+        if (count($this->liststack) === 0 && substr($this->doc, -1) !== DOKU_LF) {
             $this->doc .= DOKU_LF;
         }
     }
@@ -273,7 +335,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     {
         $this->block();
         array_pop($this->liststack);
-        if (count($this->liststack) === 0) {
+        if (count($this->liststack) === 0 && substr($this->doc, -1) !== DOKU_LF) {
             $this->doc .= DOKU_LF;
         }
     }
@@ -281,7 +343,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function listitem_open($level, $node = false)
     {
         $this->block();
-        $this->doc .= str_repeat(' ', $level * 2) . end($this->liststack) . ' ';
+        // the space after the marker is part of the content the parser reports
+        $this->doc .= str_repeat(' ', $level * 2) . end($this->liststack);
     }
 
     public function listcontent_close()
@@ -293,6 +356,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function unformatted($text)
     {
         $this->not_block();
+        $start = strlen($this->doc);
         if (strpos($text, '%%') !== false) {
             $this->doc .= "<nowiki>$text</nowiki>";
         } elseif ($text[0] == "\n") {
@@ -300,12 +364,15 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         } else {
             $this->doc .= "%%$text%%";
         }
+        $this->markProtected($start);
     }
 
     public function php($text, $wrapper = 'code')
     {
         $this->not_block();
+        $start = strlen($this->doc);
         $this->doc .= "<php>$text</php>";
+        $this->markProtected($start);
     }
 
     public function phpblock($text)
@@ -317,7 +384,9 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function html($text, $wrapper = 'code')
     {
         $this->not_block();
+        $start = strlen($this->doc);
         $this->doc .= "<html>$text</html>";
+        $this->markProtected($start);
     }
 
     public function htmlblock($text)
@@ -365,9 +434,13 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function highlight($type, $text, $language = null, $filename = null)
     {
-        if ($this->previous_block) $this->doc .= "\n";
+        // a cell ends at the end of the line, so a block in it starts where it stands
+        if ($this->previous_block && !$this->inTableCell) {
+            $this->doc .= DOKU_LF;
+        }
 
         $this->block();
+        $start = strlen($this->doc);
         $this->doc .= "<$type";
         if ($language != null) {
             $this->doc .= " $language";
@@ -377,8 +450,8 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         }
         $this->doc .= ">";
         $this->doc .= $text;
-        if ($text[0] == "\n") $this->doc .= "\n";
         $this->doc .= "</$type>";
+        $this->markProtected($start);
     }
 
     public function acronym($acronym)
@@ -708,6 +781,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
             $this->ownspan               = true;
         }
         $this->pos = strlen($this->doc);
+        $this->startCell();
     }
 
     public function tableheader_close()
@@ -717,6 +791,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function cellClose()
     {
+        $this->inTableCell = false;
         $this->block();
         $this->table[$this->row][$this->key]['text'] = trim(substr($this->doc, $this->pos));
         $this->doc                                      = substr($this->doc, 0, $this->pos);
@@ -747,6 +822,10 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
      * Some plugins add a cdata call for text they do not handle themselves. The same text is also
      * part of their match, so it must not be appended a second time.
      *
+     * A plugin that opens a block has the content between its enter and its exit parsed as
+     * ordinary wiki syntax. Everything in between belongs to the plugin's markup, so the whole
+     * block counts as one verbatim chunk.
+     *
      * @param string $name name of the plugin
      * @param mixed $args data returned by the plugin's handler
      * @param string|int $state lexer state the match was found in
@@ -767,8 +846,23 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         // like the do or pagenavi plugins
 #        $plugin =& plugin_load('syntax',$name);
 #        if($plugin === null || !$plugin->render($this->getFormat(),$this,$args)) {
+        $start = strlen($this->doc);
         $this->doc .= $match;
 #        }
+
+        if ($state === DOKU_LEXER_ENTER) {
+            if ($this->pluginlvl === 0) $this->pluginstart = $start;
+            $this->pluginlvl++;
+            return;
+        }
+        if ($state === DOKU_LEXER_EXIT) {
+            if ($this->pluginlvl > 0) $this->pluginlvl--;
+            if ($this->pluginlvl === 0) $this->markProtected($this->pluginstart);
+            return;
+        }
+
+        // a match inside an open block is covered by that block already
+        if ($this->pluginlvl === 0) $this->markProtected($start);
     }
 
     public function echoLinkTitle($title)
@@ -828,6 +922,9 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $m_width = [];
         foreach ($table as $row) {
             foreach ($row as $n => $cell) {
+                // A cell that spans several lines has no single width.
+                if (strpos($cell['text'], DOKU_LF) !== false) continue;
+
                 // Calculate cell width.
                 $diff = (PhpString::strlen($cell['text']) + $cell['colspan'] +
                     ($cell['align'] === 'center' ? 3 : 2));
@@ -864,6 +961,12 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
                     }
                 }
                 $pad = $target - PhpString::strlen($cell['text']);
+
+                // A cell that spans several lines gets no more padding than its alignment needs.
+                if (strpos($cell['text'], DOKU_LF) !== false) {
+                    $pad = $cell['colspan'] + ($cell['align'] === 'center' ? 3 : 2);
+                }
+
                 $pos += $pad + ($cell['colspan'] - 1);
                 switch ($cell['align']) {
                     case 'right':

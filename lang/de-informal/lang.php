@@ -7,6 +7,7 @@
  */
 $lang['secedit_name']          = 'Tabelle';
 $lang['add_table']             = 'Neue Tabelle einfügen';
+$lang['mixedmarkup']           = 'In diese Tabelle ist anderes Markup eingebettet. Der Tabellen-Editor würde es entfernen, daher wurde die Tabelle als Text geöffnet.';
 $lang['js']['toggle_header']   = 'Kopfzeile an/aus';
 $lang['js']['align_left']      = 'Links ausrichten';
 $lang['js']['align_center']    = 'Mittig ausrichten';

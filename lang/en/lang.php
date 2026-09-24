@@ -1,6 +1,7 @@
 <?php
 $lang['secedit_name']           = 'Table';
 $lang['add_table']              = 'Insert a new table';
+$lang['mixedmarkup']            = 'Other markup is mixed into this table. The table editor would drop it, so the table opened as text.';
 
 $lang['js']['toggle_header']    = 'Toggle header state';
 $lang['js']['align_left']       = 'Left-align cell';

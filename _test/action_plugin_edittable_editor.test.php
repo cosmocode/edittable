@@ -57,6 +57,75 @@ EOF;
     }
 
     /**
+     * A cell that spans several lines keeps its line breaks and does not widen its column
+     */
+    function test_table_multiline_cell() {
+        $data = array(
+            array("<code>\nline1\nline2\n</code>", 'plain'),
+            array('a', 'b'),
+        );
+
+        $meta = array(
+            array(
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+            ),
+            array(
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+                array('align' => null, 'colspan' => 1, 'rowspan' => 1, 'tag' => 'td'),
+            ),
+        );
+
+        $expect = "| <code>\nline1\nline2\n</code>  | plain  |\n| a  | b      |";
+
+        $action = new action_plugin_edittable_editor();
+        $this->assertEquals($expect, $action->buildTable($data, $meta));
+    }
+
+    /**
+     * A line break the user typed becomes a forced line break
+     */
+    function test_typed_linebreak() {
+        $action = new action_plugin_edittable_editor();
+
+        $this->assertEquals('a\\\\ b', $action->cellMarkup("a\nb"));
+    }
+
+    /**
+     * A line break inside a verbatim construct stays a line break
+     */
+    function test_protected_linebreak() {
+        $action = new action_plugin_edittable_editor();
+
+        $this->assertEquals("<code>\nx\n</code>", $action->cellMarkup("<code>\nx\n</code>"));
+    }
+
+    /**
+     * Each line break of a cell is judged on its own
+     */
+    function test_mixed_linebreaks() {
+        $action = new action_plugin_edittable_editor();
+
+        $this->assertEquals(
+            "typed\\\\ newline <code>\nx\n</code> tail",
+            $action->cellMarkup("typed\nnewline <code>\nx\n</code> tail")
+        );
+    }
+
+    /**
+     * Two constructs with the same content are told apart by their position
+     */
+    function test_repeated_construct() {
+        $action = new action_plugin_edittable_editor();
+
+        $input = "<code>\nx\n</code>\nmid\n<code>\nx\n</code>";
+        $this->assertEquals(
+            "<code>\nx\n</code>\\\\ mid\\\\ <code>\nx\n</code>",
+            $action->cellMarkup($input)
+        );
+    }
+
+    /**
      * @return array [wiki text, is it a table only?]
      */
     function provideTableOnly() {
@@ -69,7 +138,9 @@ EOF;
             'no cells' => array('|', true),
             'row spanning markup' => array("| a | b |<pagemod 1>\n| @@x@@ | @@y@@ |</pagemod>", false),
             'trailing text' => array("| a | b |\nsome text", false),
-            'multiline cell' => array("| a | %%x\ny%% |", false),
+            'multiline cell' => array("| a | %%x\ny%% |", true),
+            'multiline code cell' => array("| a | <code>\nx\n</code> |", true),
+            'multiline cell in several rows' => array("| a | <code>\nx\n</code> |\n| b | c |", true),
         );
     }
 
@@ -81,6 +152,55 @@ EOF;
         $this->assertEquals($expect, $action->isTableOnly($text));
     }
 
+
+    /**
+     * @return array [wiki text of a table]
+     */
+    function provideRoundtrip() {
+        return array(
+            'code block' => array("| <code>\nline1\nline2\n</code> | b |\n"),
+            'text around a block' => array("| foo <code>\nx\n</code> bar | b |\n"),
+            'two blocks with the same content' => array("| <code>\nx\n</code> mid <code>\nx\n</code> | b |\n"),
+            'nowiki span' => array("| a %%x\ny%% b | c |\n"),
+            'forced line break and a block' => array("| a\\\\ b <code>\nx\n</code> | c |\n"),
+            'plain table' => array("^ A ^ B ^\n| a | b |\n"),
+        );
+    }
+
+    /**
+     * Opening a table in the editor and saving it again must not change its cells
+     *
+     * @dataProvider provideRoundtrip
+     */
+    function test_roundtrip($input) {
+        $action = new action_plugin_edittable_editor();
+        $this->assertTrue($action->isTableOnly(trim($input)));
+
+        $renderer = $this->renderJSON($input);
+        $data = json_decode($renderer->getDataJSON(), true);
+        $meta = json_decode($renderer->getMetaJSON(), true);
+
+        $output = $action->buildTable($data, $meta);
+
+        $this->assertEquals(
+            $data,
+            json_decode($this->renderJSON($output . "\n")->getDataJSON(), true)
+        );
+    }
+
+    /**
+     * collect the cells of the given wiki text
+     *
+     * @param string $text
+     * @return renderer_plugin_edittable_json
+     */
+    protected function renderJSON($text) {
+        $renderer = new renderer_plugin_edittable_json();
+        foreach (p_get_instructions($text) as $instruction) {
+            call_user_func_array(array(&$renderer, $instruction[0]), $instruction[1]);
+        }
+        return $renderer;
+    }
 
     /**
      * Without padding a cell carries only the spaces its alignment needs
