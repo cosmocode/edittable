@@ -53,10 +53,18 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
         // FIXME: is this needed somewhere? $this->_counter['table_begin_pos'] = strlen($this->doc);
     }
 
+    /**
+     * Normalize the collected table
+     *
+     * Fills up empty and short rows, so every row has a cell in every column, and sorts the cells
+     * of each row by their column.
+     *
+     * @param int|null $pos byte position of the table in the source
+     */
     public function table_close($pos = null)
     {
-        // fill up empty and short rows, so every row has a cell in every column
-        $cols = 0;
+        // a table always has at least one column, even when all of its rows are empty
+        $cols = 1;
         foreach ($this->tmeta as $cells) {
             $cols = max($cols, max(array_keys($cells)) + 1);
         }

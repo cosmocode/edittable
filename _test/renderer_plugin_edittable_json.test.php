@@ -82,6 +82,23 @@ EOF;
     }
 
 
+    function test_table_without_cells() {
+
+        $input = '|';
+
+        $data = array(
+            array(''),
+        );
+
+        $renderer = $this->render($input);
+        $meta = json_decode($renderer->getMetaJSON(), true);
+
+        $this->assertEquals($data, json_decode($renderer->getDataJSON(), true));
+        $this->assertCount(1, $meta[0]);
+        $this->assertEquals('td', $meta[0][0]['tag']);
+    }
+
+
     /**
      * render the given text with the JSON table renderer
      *
