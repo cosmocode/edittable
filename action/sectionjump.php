@@ -19,7 +19,7 @@ class action_plugin_edittable_sectionjump extends ActionPlugin
      */
     public function register(EventHandler $controller)
     {
-        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jump_to_section');
+        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jumpToSection');
     }
 
     /**
@@ -27,7 +27,7 @@ class action_plugin_edittable_sectionjump extends ActionPlugin
      *
      * @param Event $event
      */
-    public function jump_to_section($event)
+    public function jumpToSection($event)
     {
         global $INPUT;
         if (!$INPUT->has('edittable_data')) return;

@@ -16,10 +16,10 @@ class action_plugin_edittable_jsinfo extends ActionPlugin
     public function register(EventHandler $controller)
     {
         // register custom edit buttons
-        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, 'fill_jsinfo');
+        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, 'fillJsinfo');
     }
 
-    public function fill_jsinfo()
+    public function fillJsinfo()
     {
         global $JSINFO;
         $JSINFO['plugins']['edittable']['default columnwidth'] = $this->getConf('default colwidth');

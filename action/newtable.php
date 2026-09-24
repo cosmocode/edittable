@@ -21,8 +21,8 @@ class action_plugin_edittable_newtable extends ActionPlugin
     {
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
 
-        //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
-        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', 'BEFORE', $this, 'handle_newtable');
+        //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleNewtable');
+        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', 'BEFORE', $this, 'handleNewtable');
     }
 
     /**
@@ -45,7 +45,7 @@ class action_plugin_edittable_newtable extends ActionPlugin
      *
      * @param Event $event
      */
-    public function handle_newtable(Event $event)
+    public function handleNewtable(Event $event)
     {
         global $INPUT;
         global $TEXT;
@@ -56,7 +56,7 @@ class action_plugin_edittable_newtable extends ActionPlugin
          * $fields['pre']  has all data before the selection when the "Insert table" button was clicked
          * $fields['text'] has all data inside the selection when the "Insert table" button was clicked
          * $fields['suf']  has all data after the selection when the "Insert table" button was clicked
-         * $TEXT has the table created by the editor (from action_plugin_edittable_editor::handle_table_post())
+         * $TEXT has the table created by the editor (from action_plugin_edittable_editor::handleTablePost())
          */
         $fields = $INPUT->post->arr('edittable__new');
 

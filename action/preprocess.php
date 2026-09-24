@@ -25,7 +25,7 @@ class action_plugin_edittable_preprocess extends ActionPlugin
     public function register(EventHandler $controller)
     {
         // register preprocessing for accepting editor data
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_preprocess');
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handlePreprocess');
     }
 
     /**
@@ -33,7 +33,7 @@ class action_plugin_edittable_preprocess extends ActionPlugin
      *
      * @param Event $event
      */
-    public function handle_preprocess(Event $event)
+    public function handlePreprocess(Event $event)
     {
         Event::createAndTrigger('PLUGIN_EDITTABLE_PREPROCESS_EDITOR', $event->data);
         Event::createAndTrigger('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', $event->data);

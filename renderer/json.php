@@ -10,9 +10,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
 {
     /** @var array holds the data cells */
@@ -87,22 +84,22 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
 
     public function tableheader_open($colspan = 1, $align = null, $rowspan = 1)
     {
-        $this->_tablefield_open('th', $colspan, $align, $rowspan);
+        $this->tablefieldOpen('th', $colspan, $align, $rowspan);
     }
 
     public function tableheader_close()
     {
-        $this->_tablefield_close();
+        $this->tablefieldClose();
     }
 
     public function tablecell_open($colspan = 1, $align = null, $rowspan = 1)
     {
-        $this->_tablefield_open('td', $colspan, $align, $rowspan);
+        $this->tablefieldOpen('td', $colspan, $align, $rowspan);
     }
 
     public function tablecell_close()
     {
-        $this->_tablefield_close();
+        $this->tablefieldClose();
     }
 
     /**
@@ -113,7 +110,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
      * @param $align
      * @param $rowspan
      */
-    private function _tablefield_open($tag, $colspan, $align, $rowspan)
+    private function tablefieldOpen($tag, $colspan, $align, $rowspan)
     {
         // skip cells that already exist - those are previous (span) cells!
         while (isset($this->tmeta[$this->current_row][$this->current_col])) {
@@ -134,7 +131,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
     /**
      * Used for closing THs and TDs
      */
-    private function _tablefield_close()
+    private function tablefieldClose()
     {
         // these have been set to the correct cell already
         $row = $this->current_row;

@@ -1,17 +1,13 @@
 <?php
 
-use dokuwiki\Parsing\ParserMode\Externallink;
-use dokuwiki\Parsing\ModeRegistry;
-
 /**
  * Renderer for WikiText output
  *
  * @author Adrian Lang <lang@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
+use dokuwiki\Parsing\ModeRegistry;
+use dokuwiki\Parsing\ParserMode\Externallink;
 use dokuwiki\Utf8\PhpString;
 
 class renderer_plugin_edittable_inverse extends Doku_Renderer
@@ -21,14 +17,14 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     // bunch of internal state variables
     private $prepend_not_block = '';
-    private $_key = 0;
-    private $_pos = 0;
-    private $_ownspan = 0;
+    private $key = 0;
+    private $pos = 0;
+    private $ownspan = 0;
     private $previous_block = false;
-    private $_row = 0;
-    private $_rowspans = [];
-    private $_table = [];
-    private $_liststack = [];
+    private $row = 0;
+    private $rowspans = [];
+    private $table = [];
+    private $liststack = [];
     private $quotelvl = 0;
     private $extlinkparser;
     protected $extlinkPatterns = [];
@@ -236,20 +232,20 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function listu_open()
     {
         $this->block();
-        if (!isset($this->_liststack)) {
-            $this->_liststack = [];
+        if (!isset($this->liststack)) {
+            $this->liststack = [];
         }
-        if (count($this->_liststack) === 0) {
+        if (count($this->liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
-        $this->_liststack[] = '*';
+        $this->liststack[] = '*';
     }
 
     public function listu_close()
     {
         $this->block();
-        array_pop($this->_liststack);
-        if (count($this->_liststack) === 0) {
+        array_pop($this->liststack);
+        if (count($this->liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
@@ -257,20 +253,20 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function listo_open()
     {
         $this->block();
-        if (!isset($this->_liststack)) {
-            $this->_liststack = [];
+        if (!isset($this->liststack)) {
+            $this->liststack = [];
         }
-        if (count($this->_liststack) === 0) {
+        if (count($this->liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
-        $this->_liststack[] = '-';
+        $this->liststack[] = '-';
     }
 
     public function listo_close()
     {
         $this->block();
-        array_pop($this->_liststack);
-        if (count($this->_liststack) === 0) {
+        array_pop($this->liststack);
+        if (count($this->liststack) === 0) {
             $this->doc .= DOKU_LF;
         }
     }
@@ -278,7 +274,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function listitem_open($level, $node = false)
     {
         $this->block();
-        $this->doc .= str_repeat(' ', $level * 2) . end($this->_liststack) . ' ';
+        $this->doc .= str_repeat(' ', $level * 2) . end($this->liststack) . ' ';
     }
 
     public function listcontent_close()
@@ -352,15 +348,15 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function file($text, $language = null, $filename = null)
     {
-        $this->_highlight('file', $text, $language, $filename);
+        $this->highlight('file', $text, $language, $filename);
     }
 
     public function code($text, $language = null, $filename = null)
     {
-        $this->_highlight('code', $text, $language, $filename);
+        $this->highlight('code', $text, $language, $filename);
     }
 
-    public function _highlight($type, $text, $language = null, $filename = null)
+    public function highlight($type, $text, $language = null, $filename = null)
     {
         if ($this->previous_block) $this->doc .= "\n";
 
@@ -446,7 +442,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $this->doc .= "[[#$hash";
         if ($name !== null) {
             $this->doc .= '|';
-            $this->_echoLinkTitle($name);
+            $this->echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
@@ -457,7 +453,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $this->doc .= "[[$id";
         if ($name !== null) {
             $this->doc .= '|';
-            $this->_echoLinkTitle($name);
+            $this->echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
@@ -516,7 +512,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
             if (!is_null($name)) {
                 // we do have a name!
                 $this->doc .= '|';
-                $this->_echoLinkTitle($name);
+                $this->echoLinkTitle($name);
             }
             $this->doc .= ']]';
         }
@@ -528,7 +524,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $this->doc .= "[[$wikiName>$wikiUri";
         if ($name !== null) {
             $this->doc .= '|';
-            $this->_echoLinkTitle($name);
+            $this->echoLinkTitle($name);
         }
         $this->doc .= ']]';
     }
@@ -539,7 +535,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         $this->doc .= "[[$url";
         if ($name !== null) {
             $this->doc .= '|';
-            $this->_echoLinkTitle($name);
+            $this->echoLinkTitle($name);
         }
         $this->doc .= "]]";
     }
@@ -551,7 +547,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
             $this->doc .= "<$address>";
         } else {
             $this->doc .= "[[$address|";
-            $this->_echoLinkTitle($name);
+            $this->echoLinkTitle($name);
             $this->doc .= ']]';
         }
     }
@@ -657,27 +653,27 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function table_open($maxcols = null, $numrows = null, $pos = null)
     {
         $this->block();
-        $this->_table    = [];
-        $this->_row      = 0;
-        $this->_rowspans = [];
+        $this->table    = [];
+        $this->row      = 0;
+        $this->rowspans = [];
     }
 
     public function table_close($pos = null)
     {
-        $this->doc .= $this->_table_to_wikitext($this->_table);
+        $this->doc .= $this->tableToWikitext($this->table);
     }
 
     public function tablerow_open()
     {
         $this->block();
-        $this->_table[++$this->_row] = [];
-        $this->_key                  = 1;
-        while (isset($this->_rowspans[$this->_key])) {
-            --$this->_rowspans[$this->_key];
-            if ($this->_rowspans[$this->_key] === 1) {
-                unset($this->_rowspans[$this->_key]);
+        $this->table[++$this->row] = [];
+        $this->key                  = 1;
+        while (isset($this->rowspans[$this->key])) {
+            --$this->rowspans[$this->key];
+            if ($this->rowspans[$this->key] === 1) {
+                unset($this->rowspans[$this->key]);
             }
-            ++$this->_key;
+            ++$this->key;
         }
     }
 
@@ -688,49 +684,54 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 
     public function tableheader_open($colspan = 1, $align = null, $rowspan = 1)
     {
-        $this->_cellopen('th', $colspan, $align, $rowspan);
+        $this->cellOpen('th', $colspan, $align, $rowspan);
     }
 
-    public function _cellopen($tag, $colspan, $align, $rowspan)
+    public function cellOpen($tag, $colspan, $align, $rowspan)
     {
         $this->block();
-        $this->_table[$this->_row][$this->_key] = ['tag' => $tag, 'colspan' => $colspan, 'align' => $align, 'rowspan' => $rowspan];
+        $this->table[$this->row][$this->key] = [
+            'tag' => $tag,
+            'colspan' => $colspan,
+            'align' => $align,
+            'rowspan' => $rowspan
+        ];
         if ($rowspan > 1) {
-            $this->_rowspans[$this->_key] = $rowspan;
-            $this->_ownspan               = true;
+            $this->rowspans[$this->key] = $rowspan;
+            $this->ownspan               = true;
         }
-        $this->_pos = strlen($this->doc);
+        $this->pos = strlen($this->doc);
     }
 
     public function tableheader_close()
     {
-        $this->_cellclose();
+        $this->cellClose();
     }
 
-    public function _cellclose()
+    public function cellClose()
     {
         $this->block();
-        $this->_table[$this->_row][$this->_key]['text'] = trim(substr($this->doc, $this->_pos));
-        $this->doc                                      = substr($this->doc, 0, $this->_pos);
-        $this->_key += $this->_table[$this->_row][$this->_key]['colspan'];
-        while (isset($this->_rowspans[$this->_key]) && !$this->_ownspan) {
-            --$this->_rowspans[$this->_key];
-            if ($this->_rowspans[$this->_key] === 1) {
-                unset($this->_rowspans[$this->_key]);
+        $this->table[$this->row][$this->key]['text'] = trim(substr($this->doc, $this->pos));
+        $this->doc                                      = substr($this->doc, 0, $this->pos);
+        $this->key += $this->table[$this->row][$this->key]['colspan'];
+        while (isset($this->rowspans[$this->key]) && !$this->ownspan) {
+            --$this->rowspans[$this->key];
+            if ($this->rowspans[$this->key] === 1) {
+                unset($this->rowspans[$this->key]);
             }
-            ++$this->_key;
+            ++$this->key;
         }
-        $this->_ownspan = false;
+        $this->ownspan = false;
     }
 
     public function tablecell_open($colspan = 1, $align = null, $rowspan = 1)
     {
-        $this->_cellopen('td', $colspan, $align, $rowspan);
+        $this->cellOpen('td', $colspan, $align, $rowspan);
     }
 
     public function tablecell_close()
     {
-        $this->_cellclose();
+        $this->cellClose();
     }
 
     public function plugin($name, $args, $state = '', $match = '')
@@ -744,7 +745,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
 #        }
     }
 
-    public function _echoLinkTitle($title)
+    public function echoLinkTitle($title)
     {
         if (is_array($title)) {
             $this->internalmedia(
@@ -768,7 +769,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
      * @param array $_table
      * @return string
      */
-    private function _table_to_wikitext($_table)
+    private function tableToWikitext($_table)
     {
         // Preprocess table for rowspan, make table 0-based.
         $table = [];

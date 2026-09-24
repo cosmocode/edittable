@@ -27,14 +27,14 @@ class action_plugin_edittable_editor extends ActionPlugin
     public function register(EventHandler $controller)
     {
         // register custom edit buttons
-        $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'secedit_button');
+        $controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, 'seceditButton');
 
         // register our editor
         $controller->register_hook('EDIT_FORM_ADDTEXTAREA', 'BEFORE', $this, 'editform');
 
         // register preprocessing for accepting editor data
-        // $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
-        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_EDITOR', 'BEFORE', $this, 'handle_table_post');
+        // $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleTablePost');
+        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_EDITOR', 'BEFORE', $this, 'handleTablePost');
     }
 
     /**
@@ -44,7 +44,7 @@ class action_plugin_edittable_editor extends ActionPlugin
      *
      * @param Event $event
      */
-    public function secedit_button(Event $event)
+    public function seceditButton(Event $event)
     {
         if ($event->data['target'] !== 'table') return;
 
@@ -109,7 +109,7 @@ class action_plugin_edittable_editor extends ActionPlugin
      *
      * @author Andreas Gohr <gohr@cosmocode,de>
      */
-    public function handle_table_post(Event $event)
+    public function handleTablePost(Event $event)
     {
         global $TEXT;
         global $INPUT;
@@ -118,7 +118,7 @@ class action_plugin_edittable_editor extends ActionPlugin
         $data = json_decode($INPUT->post->str('edittable_data'), true);
         $meta = json_decode($INPUT->post->str('edittable_meta'), true);
 
-        $TEXT = $this->build_table($data, $meta);
+        $TEXT = $this->buildTable($data, $meta);
     }
 
     /**
@@ -130,7 +130,7 @@ class action_plugin_edittable_editor extends ActionPlugin
      * @param array $meta meta data for each cell
      * @return string
      */
-    public function build_table($data, $meta)
+    public function buildTable($data, $meta)
     {
         $table = '';
         $rows  = count($data);
