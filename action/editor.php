@@ -26,7 +26,6 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
 
         // register our editor
         $controller->register_hook('EDIT_FORM_ADDTEXTAREA', 'BEFORE', $this, 'editform');
-        $controller->register_hook('HTML_EDIT_FORMSELECTION', 'BEFORE', $this, 'editform');
 
         // register preprocessing for accepting editor data
         // $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_table_post');
@@ -80,39 +79,22 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
 
         // output data and editor field
 
-        /** @var Doku_Form $form */
-        $form =& $event->data['form'];
+        /** @var Form $form */
+        $form = $event->data['form'];
 
-        if (is_a($form, Form::class)) { // $event->name is EDIT_FORM_ADDTEXTAREA
-            // data for handsontable
-            $form->setHiddenField('edittable_data', $Renderer->getDataJSON());
-            $form->setHiddenField('edittable_meta', $Renderer->getMetaJSON());
-            $form->addHTML('<div id="edittable__editor"></div>');
+        // data for handsontable
+        $form->setHiddenField('edittable_data', $Renderer->getDataJSON());
+        $form->setHiddenField('edittable_meta', $Renderer->getMetaJSON());
+        $form->addHTML('<div id="edittable__editor"></div>');
 
-            // set data from action asigned to "New Table" button in the toolbar
-            foreach ($INPUT->post->arr('edittable__new', []) as $k => $v) {
-                $form->setHiddenField("edittable__new[$k]", $v);
-            }
-
-            // set target and range to keep track during previews
-            $form->setHiddenField('target', 'table');
-            $form->setHiddenField('range', $RANGE);
-
-        } else { // $event->name is HTML_EDIT_FORMSELECTION
-            // data for handsontable
-            $form->addHidden('edittable_data', $Renderer->getDataJSON());
-            $form->addHidden('edittable_meta', $Renderer->getMetaJSON());
-            $form->addElement('<div id="edittable__editor"></div>');
-
-            // set data from action asigned to "New Table" button in the toolbar
-            foreach ($INPUT->post->arr('edittable__new', []) as $k => $v) {
-                $form->addHidden("edittable__new[$k]", $v);
-            }
-
-            // set target and range to keep track during previews
-            $form->addHidden('target', 'table');
-            $form->addHidden('range', $RANGE);
+        // set data from action asigned to "New Table" button in the toolbar
+        foreach ($INPUT->post->arr('edittable__new', []) as $k => $v) {
+            $form->setHiddenField("edittable__new[$k]", $v);
         }
+
+        // set target and range to keep track during previews
+        $form->setHiddenField('target', 'table');
+        $form->setHiddenField('range', $RANGE);
     }
 
     /**
@@ -252,12 +234,9 @@ class action_plugin_edittable_editor extends DokuWiki_Action_Plugin
             if (UTF8_MBSTRING) {
                 // count fullwidth characters as 2, halfwidth characters as 1
                 $callable = 'mb_strwidth';
-            } elseif (method_exists(Utf8\PhpString::class, 'strlen')) {
+            } else {
                 // count any characters as 1
                 $callable = [Utf8\PhpString::class, 'strlen'];
-            } else {
-                // fallback deprecated utf8_strlen since 2019-06-09
-                $callable = 'utf8_strlen';
             }
             return $this->strWidth($str);
         }

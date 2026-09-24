@@ -12,8 +12,6 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-require_once DOKU_PLUGIN . "/edittable/renderer/inverse.php";
-
 class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
     /** @var array holds the data cells */
     private $tdata = array();

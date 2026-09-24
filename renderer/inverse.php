@@ -8,7 +8,7 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
 
-require_once DOKU_INC.'inc/parser/renderer.php';
+use dokuwiki\Utf8\PhpString;
 
 class renderer_plugin_edittable_inverse extends Doku_Renderer {
     /** @var string will contain the whole document */
@@ -418,38 +418,19 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
          * against the URL surrounded by spaces.
          */
         if($name === null) {
-            // get the patterns from the parser if available, otherwise use a duplicate
+            // get the patterns from the parser
             if(is_null($this->extlinkparser)) {
-                if (
-                    class_exists('\dokuwiki\Parsing\ParserMode\Externallink') &&
-                    method_exists('\dokuwiki\Parsing\ParserMode\Externallink', 'getPatterns')
-                ) {
-                    global $conf;
-                    $this->extlinkparser = new \dokuwiki\Parsing\ParserMode\Externallink();
-                    // The Externallink mode reads its ModeRegistry in preConnect().
-                    // Provide one when the setter is available.
-                    if(method_exists($this->extlinkparser, 'setModeRegistry')) {
-                        $this->extlinkparser->setModeRegistry(
-                            new \dokuwiki\Parsing\ModeRegistry($conf['syntax'] ?? 'dw')
-                        );
-                    }
-                    $this->extlinkparser->preConnect();
-                    $this->extlinkPatterns = $this->extlinkparser->getPatterns();
-                } else {
-                    $ltrs = '\w';
-                    $gunk = '/\#~:.?+=&%@!\-\[\]';
-                    $punc = '.:?\-;,';
-                    $host = $ltrs . $punc;
-                    $any  = $ltrs . $gunk . $punc;
-
-                    $schemes = getSchemes();
-                    foreach ($schemes as $scheme) {
-                        $this->extlinkPatterns[] = '\b(?i)'.$scheme.'(?-i)://['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
-                    }
-
-                    $this->extlinkPatterns[] = '(?<=\s)(?i)www?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
-                    $this->extlinkPatterns[] = '(?<=\s)(?i)ftp?(?-i)\.['.$host.']+?\.['.$host.']+?['.$any.']+?(?=['.$punc.']*[^'.$any.'])';
+                global $conf;
+                $this->extlinkparser = new \dokuwiki\Parsing\ParserMode\Externallink();
+                // The Externallink mode reads its ModeRegistry in preConnect().
+                // Provide one when the setter is available.
+                if(method_exists($this->extlinkparser, 'setModeRegistry')) {
+                    $this->extlinkparser->setModeRegistry(
+                        new \dokuwiki\Parsing\ModeRegistry($conf['syntax'] ?? 'dw')
+                    );
                 }
+                $this->extlinkparser->preConnect();
+                $this->extlinkPatterns = $this->extlinkparser->getPatterns();
             }
 
             // check if URL matches pattern
@@ -725,7 +706,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         foreach($table as $row) {
             foreach($row as $n => $cell) {
                 // Calculate cell width.
-                $diff = (utf8_strlen($cell['text']) + $cell['colspan'] +
+                $diff = (PhpString::strlen($cell['text']) + $cell['colspan'] +
                     ($cell['align'] === 'center' ? 3 : 2));
 
                 // Calculate current max width.
@@ -751,7 +732,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
         foreach($table as $row) {
             $pos = 0;
             foreach($row as $n => $cell) {
-                $pos += utf8_strlen($cell['text']) + 1;
+                $pos += PhpString::strlen($cell['text']) + 1;
                 $span   = $cell['colspan'];
                 $target = 0;
                 while(--$span >= 0) {
@@ -759,7 +740,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer {
                         $target += $m_width[$n - $span];
                     }
                 }
-                $pad = $target - utf8_strlen($cell['text']);
+                $pad = $target - PhpString::strlen($cell['text']);
                 $pos += $pad + ($cell['colspan'] - 1);
                 switch($cell['align']) {
                     case 'right':
