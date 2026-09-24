@@ -26,6 +26,9 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
     /** @var int current column */
     private $current_col = 0;
 
+    /** @var bool whether the cells being collected belong to the table head */
+    private $in_thead = false;
+
     /**
      * Returns the whole table data as two dimensional array
      *
@@ -79,6 +82,26 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
         }
     }
 
+    /**
+     * Start of the table head
+     *
+     * DokuWiki puts a row into the head when all its cells were written with a caret. Any normal
+     * cell in there was added by the parser to pad a short row, so remembering the section keeps
+     * such a row a head row when the table is written back.
+     */
+    public function tablethead_open()
+    {
+        $this->in_thead = true;
+    }
+
+    /**
+     * End of the table head
+     */
+    public function tablethead_close()
+    {
+        $this->in_thead = false;
+    }
+
     public function tablerow_open()
     {
         // move counters
@@ -127,7 +150,7 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
 
         // remember these, we use them when closing
         $this->tmetacell = [];
-        $this->tmetacell['tag'] = $tag;
+        $this->tmetacell['tag'] = $this->in_thead ? 'th' : $tag;
         $this->tmetacell['colspan'] = $colspan;
         $this->tmetacell['rowspan'] = $rowspan;
         $this->tmetacell['align'] = $align;

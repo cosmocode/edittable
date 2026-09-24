@@ -115,4 +115,21 @@ EOF;
         }
         return $Renderer;
     }
+
+    /**
+     * A short header row stays a header row when the table is written back
+     */
+    function test_short_header_row() {
+        $renderer = new renderer_plugin_edittable_json();
+        $instructions = p_get_instructions("^ A ^ B ^\n| 1 | 2 | 3 |\n");
+        foreach ($instructions as $instruction) {
+            call_user_func_array(array(&$renderer, $instruction[0]), $instruction[1]);
+        }
+
+        $meta = json_decode($renderer->getMetaJSON(), true);
+
+        // the parser padded the head row with a normal cell, it has to become a header cell again
+        $this->assertEquals('th', $meta[0][2]['tag']);
+        $this->assertEquals('td', $meta[1][2]['tag']);
+    }
 }
