@@ -106,6 +106,29 @@ window.edittable_plugins = window.edittable_plugins || {};
         });
     };
 
+    /**
+     * Check if the moving cols/rows would tear a merge apart
+     *
+     * This is the case when some, but not all, of the cols/rows spanned by a merge are moved.
+     *
+     * @param {Array} merges an array of the cells that are part of a merge
+     * @param {Array} movingIndexes the indices of the cols/rows to be moved
+     * @param {string} direction whether we're trying to move a col or row
+     *
+     * @return {bool} whether a merge is only partly moved
+     */
+    edittable.isMovingPartOfMerge = function isMovingPartOfMerge(merges, movingIndexes, direction) {
+        return merges.some(function (merge) {
+            var moved = 0;
+            for (var i = merge[direction]; i < merge[direction] + merge[direction + 'span']; i += 1) {
+                if (movingIndexes.indexOf(i) !== -1) {
+                    moved += 1;
+                }
+            }
+            return moved > 0 && moved < merge[direction + 'span'];
+        });
+    };
+
     edittable.loadEditor = function () {
         var $container = jQuery('#edittable__editor');
         if (!$container.length) {
@@ -151,6 +174,8 @@ window.edittable_plugins = window.edittable_plugins || {};
             manualColumnMove: true,
             manualRowMove: true,
             mergeCells: merges,
+            fillHandle: true,
+            selectionMode: 'range',
 
 
             /**
@@ -318,11 +343,12 @@ window.edittable_plugins = window.edittable_plugins || {};
                     }
                 }
 
-                for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; merge += 1) {
-                    row = this.mergeCells.mergedCellInfoCollection[merge].row;
-                    col = this.mergeCells.mergedCellInfoCollection[merge].col;
-                    var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
-                    var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
+                var mergedCells = this.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+                for (var merge = 0; merge < mergedCells.length; merge += 1) {
+                    row = mergedCells[merge].row;
+                    col = mergedCells[merge].col;
+                    var colspan = mergedCells[merge].colspan;
+                    var rowspan = mergedCells[merge].rowspan;
                     meta[row][col].colspan = colspan;
                     meta[row][col].rowspan = rowspan;
 
@@ -380,25 +406,49 @@ window.edittable_plugins = window.edittable_plugins || {};
                 }
             },
 
+            /**
+             * Move the columns in our data and meta arrays instead of letting Handsontable move them
+             *
+             * The data array is changed in place, so the table is only rendered after the merges are updated.
+             *
+             * @param {Array} movingCols the indices of the columns to be moved
+             * @param {int} target the column where the columns will be inserted
+             *
+             * @return {false} always prevent Handsontable's own move
+             */
             beforeColumnMove: function (movingCols, target) {
-                var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'col');
+                var merges = this.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+                var disallowMove = edittable.isTargetInMerge(merges, target, 'col') ||
+                    edittable.isMovingPartOfMerge(merges, movingCols, 'col');
                 if (disallowMove) {
                     return false;
                 }
                 meta = edittable.moveCol(movingCols, target, meta);
-                data = edittable.moveCol(movingCols, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
+                data.splice.apply(data, [0, data.length].concat(edittable.moveCol(movingCols, target, data)));
+                this.updateSettings({ mergeCells: edittable.getMerges(meta) });
                 return false;
             },
 
+            /**
+             * Move the rows in our data and meta arrays instead of letting Handsontable move them
+             *
+             * The data array is changed in place, so the table is only rendered after the merges are updated.
+             *
+             * @param {Array} movingRows the indices of the rows to be moved
+             * @param {int} target the row where the rows will be inserted
+             *
+             * @return {false} always prevent Handsontable's own move
+             */
             beforeRowMove: function (movingRows, target) {
-                var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'row');
+                var merges = this.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+                var disallowMove = edittable.isTargetInMerge(merges, target, 'row') ||
+                    edittable.isMovingPartOfMerge(merges, movingRows, 'row');
                 if (disallowMove) {
                     return false;
                 }
                 meta = edittable.moveRow(movingRows, target, meta);
-                data = edittable.moveRow(movingRows, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
+                data.splice.apply(data, [0, data.length].concat(edittable.moveRow(movingRows, target, data)));
+                this.updateSettings({ mergeCells: edittable.getMerges(meta) });
                 return false;
             },
 
@@ -538,6 +588,49 @@ window.edittable_plugins = window.edittable_plugins || {};
             },
 
             /**
+             * Join the content of all cells into the first cell before they are merged by the user
+             *
+             * @param {CellRange} cellRange the range of cells to be merged
+             * @param {bool} auto true if the merge was not triggered by the user
+             *
+             * @return {void}
+             */
+            beforeMergeCells: function (cellRange, auto) {
+                if (auto) {
+                    return;
+                }
+                var topLeft = cellRange.getTopLeftCorner();
+                var bottomRight = cellRange.getBottomRightCorner();
+                for (var r = topLeft.row; r <= bottomRight.row; r += 1) {
+                    for (var c = topLeft.col; c <= bottomRight.col; c += 1) {
+                        if (r === topLeft.row && c === topLeft.col) {
+                            continue;
+                        }
+                        if (data[r][c] && data[r][c] !== ':::') {
+                            data[topLeft.row][topLeft.col] += ' ' + data[r][c];
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Add a new column when the fill handle is dragged into the last column
+             *
+             * @return {void}
+             */
+            afterOnCellMouseOver: function () {
+                var fill = this.selection.highlight.getFill();
+                if (fill.isEmpty()) {
+                    return;
+                }
+                var lastCol = this.countCols() - 1;
+                var selection = this.getSelectedLast();
+                if (Math.max(selection[1], selection[3]) < lastCol && fill.getCorners()[3] === lastCol) {
+                    this.alter('insert_col', undefined, 1, 'Autofill.fill');
+                }
+            },
+
+            /**
              *
              * @param {Array} pasteData An array of arrays which contains data to paste.
              * @param {Array} coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
@@ -575,6 +668,13 @@ window.edittable_plugins = window.edittable_plugins || {};
             }
         }
 
+
+        // keep the cell editor open while the toolbar or one of its dialogs is used
+        document.body.addEventListener('mousedown', function (e) {
+            if (jQuery(e.target).closest('#link__wiz, #tool__bar, .picker').length) {
+                e.stopPropagation();
+            }
+        });
 
         $container.handsontable(handsontable_config);
 

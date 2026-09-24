@@ -22,6 +22,19 @@ window.edittable = window.edittable || {};
     };
 
     /**
+     * Wrap the label of a context menu item in an element with the item's key as CSS class
+     *
+     * The class is used to show the item's icon.
+     *
+     * @param {string} key the key of the menu item
+     * @param {string} label the label of the menu item
+     * @returns {string} the HTML to be used as the item's name
+     */
+    function itemName(key, label) {
+        return '<div class="' + key + '">' + label + '</div>';
+    }
+
+    /**
      * Defines our own contextMenu with custom callbacks
      *
      * @param {function} getData get the current data array
@@ -32,10 +45,10 @@ window.edittable = window.edittable || {};
         return {
             items: {
                 toggle_header: {
-                    name: LANG.plugins.edittable.toggle_header,
+                    name: itemName('toggle_header', LANG.plugins.edittable.toggle_header),
                     callback: function (key, selection) {
                         var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
+                        jQuery.each(edittable.cellArray(selection[0]), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
 
@@ -49,10 +62,10 @@ window.edittable = window.edittable || {};
                     }
                 },
                 align_left: {
-                    name: LANG.plugins.edittable.align_left,
+                    name: itemName('align_left', LANG.plugins.edittable.align_left),
                     callback: function (key, selection) {
                         var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
+                        jQuery.each(edittable.cellArray(selection[0]), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
                             meta[row][col].align = 'left';
@@ -61,17 +74,17 @@ window.edittable = window.edittable || {};
                     },
                     disabled: function () {
                         var meta = getMeta();
-                        var selection = this.getSelected();
+                        var selection = this.getSelectedLast();
                         var row = selection[0];
                         var col = selection[1];
                         return (!meta[row][col].align || meta[row][col].align === 'left');
                     }
                 },
                 align_center: {
-                    name: LANG.plugins.edittable.align_center,
+                    name: itemName('align_center', LANG.plugins.edittable.align_center),
                     callback: function (key, selection) {
                         var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
+                        jQuery.each(edittable.cellArray(selection[0]), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
                             meta[row][col].align = 'center';
@@ -80,17 +93,17 @@ window.edittable = window.edittable || {};
                     },
                     disabled: function () {
                         var meta = getMeta();
-                        var selection = this.getSelected();
+                        var selection = this.getSelectedLast();
                         var row = selection[0];
                         var col = selection[1];
                         return (meta[row][col].align && meta[row][col].align === 'center');
                     }
                 },
                 align_right: {
-                    name: LANG.plugins.edittable.align_right,
+                    name: itemName('align_right', LANG.plugins.edittable.align_right),
                     callback: function (key, selection) {
                         var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
+                        jQuery.each(edittable.cellArray(selection[0]), function (index, cell) {
                             var col = cell.col;
                             var row = cell.row;
                             meta[row][col].align = 'right';
@@ -99,7 +112,7 @@ window.edittable = window.edittable || {};
                     },
                     disabled: function () {
                         var meta = getMeta();
-                        var selection = this.getSelected();
+                        var selection = this.getSelectedLast();
                         var row = selection[0];
                         var col = selection[1];
                         return (meta[row][col].align && meta[row][col].align === 'right');
@@ -107,22 +120,23 @@ window.edittable = window.edittable || {};
                 },
                 hsep1: '---------',
                 row_above: {
-                    name: LANG.plugins.edittable.row_above
+                    name: itemName('row_above', LANG.plugins.edittable.row_above)
                 },
                 remove_row: {
-                    name: LANG.plugins.edittable.remove_row,
+                    name: itemName('remove_row', LANG.plugins.edittable.remove_row),
                     /**
                      * The same as the default action, but with confirmation
                      *
                      * @param {string} key key of the menu item
-                     * @param {object} selection the selection object
+                     * @param {Array} selection the selected ranges
                      *
                      * @return {void}
                      */
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
-                            var amount = selection.end.row - selection.start.row + 1;
-                            this.alter('remove_row', selection.start.row, amount);
+                            var range = selection[0];
+                            var amount = range.end.row - range.start.row + 1;
+                            this.alter('remove_row', range.start.row, amount);
                         }
                     },
                     /**
@@ -132,33 +146,34 @@ window.edittable = window.edittable || {};
                      */
                     disabled: function () {
                         var rowsInTable = this.countRows();
-                        var firstSelectedRow = this.getSelected()[0];
-                        var lastSelectedRow = this.getSelected()[2]; // fix magic number with destructuring once we drop IE11
+                        var firstSelectedRow = this.getSelectedLast()[0];
+                        var lastSelectedRow = this.getSelectedLast()[2]; // fix magic number with destructuring once we drop IE11
                         var allRowsSelected = firstSelectedRow === 0 && lastSelectedRow === rowsInTable - 1;
                         return (rowsInTable <= 1 || allRowsSelected);
                     }
                 },
                 row_below: {
-                    name: LANG.plugins.edittable.row_below
+                    name: itemName('row_below', LANG.plugins.edittable.row_below)
                 },
                 hsep2: '---------',
                 col_left: {
-                    name: LANG.plugins.edittable.col_left
+                    name: itemName('col_left', LANG.plugins.edittable.col_left)
                 },
                 remove_col: {
-                    name: LANG.plugins.edittable.remove_col,
+                    name: itemName('remove_col', LANG.plugins.edittable.remove_col),
                     /**
                      * The same as the default action, but with confirmation
                      *
                      * @param {string} key key of the menu item
-                     * @param {object} selection the selection object
+                     * @param {Array} selection the selected ranges
                      *
                      * @return {void}
                      */
                     callback: function (key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
-                            var amount = selection.end.col - selection.start.col + 1;
-                            this.alter('remove_col', selection.start.col, amount);
+                            var range = selection[0];
+                            var amount = range.end.col - range.start.col + 1;
+                            this.alter('remove_col', range.start.col, amount);
                         }
                     },
                     /**
@@ -168,25 +183,25 @@ window.edittable = window.edittable || {};
                      */
                     disabled: function () {
                         var colsInTable = this.countCols();
-                        var firstSelectedColumn = this.getSelected()[1];
-                        var lastSelectedColumn = this.getSelected()[3]; // fix magic number with destructuring once we drop IE11
+                        var firstSelectedColumn = this.getSelectedLast()[1];
+                        var lastSelectedColumn = this.getSelectedLast()[3]; // fix magic number with destructuring once we drop IE11
                         var allColsSelected = firstSelectedColumn === 0 && lastSelectedColumn === colsInTable - 1;
                         return (colsInTable <= 1 || allColsSelected);
                     }
                 },
                 col_right: {
-                    name: LANG.plugins.edittable.col_right
+                    name: itemName('col_right', LANG.plugins.edittable.col_right)
                 },
                 hsep3: '---------',
                 mergeCells: {
                     name: function () {
-                        var sel = this.getSelected();
-                        var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
-                        if (info) {
-                            return '<div class="unmerge">' + LANG.plugins.edittable.unmerge_cells + '</div>';
-                        } else {
-                            return '<div class="merge">' + LANG.plugins.edittable.merge_cells + '</div>';
+                        var sel = this.getSelectedLast();
+                        var info = this.getPlugin('mergeCells').mergedCellsCollection.get(sel[0], sel[1]);
+                        if (info && info.row === sel[0] && info.col === sel[1] &&
+                            info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
+                            return itemName('unmerge', LANG.plugins.edittable.unmerge_cells);
                         }
+                        return itemName('merge', LANG.plugins.edittable.merge_cells);
                     },
 
                     /**
@@ -195,7 +210,7 @@ window.edittable = window.edittable || {};
                      * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
                     disabled: function () {
-                        var selection = this.getSelected();
+                        var selection = this.getSelectedLast();
                         var startRow = selection[0];
                         var startCol = selection[1];
                         var endRow = selection[2];
