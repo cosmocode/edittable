@@ -1,4 +1,4 @@
-/* global initToolbar, Handsontable */
+/* global initToolbar, Handsontable, LANG */
 
 window.edittable = window.edittable || {};
 window.edittable_plugins = window.edittable_plugins || {};
@@ -168,6 +168,24 @@ window.edittable_plugins = window.edittable_plugins || {};
          */
         function getData() {return data;}
 
+        /**
+         * Open the context menu below the toolbar button
+         *
+         * @param {Handsontable} hot the table instance
+         *
+         * @return {void}
+         */
+        function openMenu(hot) {
+            if (!hot.getSelectedLast()) {
+                return;
+            }
+            const rect = jQuery('#tool__bar .edittable__menu')[0].getBoundingClientRect();
+            hot.getPlugin('contextMenu').open({
+                pageX: rect.left + window.scrollX,
+                pageY: rect.bottom + window.scrollY
+            });
+        }
+
         const lastselect = {row: 0, col: 0};
         let addingColumn = false;
 
@@ -294,7 +312,23 @@ window.edittable_plugins = window.edittable_plugins || {};
 
                 // initToolbar() finds the textarea by its ID
                 jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
-                initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
+                /**
+                 * Make the toolbar button open the context menu
+                 *
+                 * @param {jQuery} $btn the button element
+                 * @return {string} the ID of the cell editor, so the toolbar adds the button without a picker
+                 */
+                window.addBtnActionEditTableMenu = $btn => {
+                    $btn.on('click', () => openMenu(this));
+                    return 'handsontable__input';
+                };
+                const menuButton = {
+                    title: LANG.plugins.edittable.table_menu,
+                    type: 'EditTableMenu',
+                    icon: '../../plugins/edittable/images/add_table.png',
+                    class: 'edittable__menu'
+                };
+                initToolbar('tool__bar', 'handsontable__input', [...window.toolbar, menuButton], false);
 
                 // add columns while the fill handle is dragged past the right edge of the table
                 document.documentElement.addEventListener('mousemove', e => {
@@ -362,6 +396,8 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Disable key handling while the link wizard or any other dialog is visible
              *
+             * Shift+F10 opens the context menu.
+             *
              * @param {Event} e the keydown event object
              *
              * @return {void}
@@ -370,6 +406,12 @@ window.edittable_plugins = window.edittable_plugins || {};
                 if (jQuery('.ui-dialog:visible').length) {
                     e.stopImmediatePropagation();
                     e.preventDefault();
+                    return;
+                }
+                if (e.shiftKey && e.key === 'F10') {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                    openMenu(this);
                 }
             },
 
@@ -631,7 +673,8 @@ window.edittable_plugins = window.edittable_plugins || {};
 
         // the toolbar and its dialogs write into the cell editor, so it has to be open and stay open
         document.body.addEventListener('mousedown', e => {
-            if (!jQuery(e.target).closest('#link__wiz, #tool__bar, .picker').length) {
+            const $target = jQuery(e.target);
+            if (!$target.closest('#link__wiz, #tool__bar, .picker').length || $target.closest('.edittable__menu').length) {
                 return;
             }
             e.stopPropagation();
