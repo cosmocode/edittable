@@ -7,6 +7,13 @@ window.edittable_plugins = window.edittable_plugins || {};
     'use strict';
 
     /**
+     * Milliseconds to wait before the fill handle adds another column, the same as Handsontable uses for rows
+     *
+     * @type {number}
+     */
+    const INTERVAL_FOR_ADDING_COLUMN = 200;
+
+    /**
      * Move rows to a new position
      *
      * @param {Array} movingRowIndexes the indices of the rows to be moved
@@ -154,6 +161,25 @@ window.edittable_plugins = window.edittable_plugins || {};
         function getData() {return data;}
 
         const lastselect = {row: 0, col: 0};
+        let addingColumn = false;
+
+        /**
+         * Add a column at the end of the table after a short delay, unless one is already being added
+         *
+         * @param {Handsontable} hot the table instance
+         *
+         * @return {void}
+         */
+        function addColumnDelayed(hot) {
+            if (addingColumn) {
+                return;
+            }
+            addingColumn = true;
+            setTimeout(() => {
+                hot.alter('insert_col', undefined, 1, 'Autofill.fill');
+                addingColumn = false;
+            }, INTERVAL_FOR_ADDING_COLUMN);
+        }
 
         const handsontable_config = {
             data,
@@ -251,7 +277,7 @@ window.edittable_plugins = window.edittable_plugins || {};
             },
 
             /**
-             * Select the first cell and connect the DokuWiki toolbar to the cell editor
+             * Select the first cell, connect the DokuWiki toolbar to the cell editor and watch the fill handle
              *
              * @return {void}
              */
@@ -261,6 +287,17 @@ window.edittable_plugins = window.edittable_plugins || {};
                 // initToolbar() finds the textarea by its ID
                 jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
                 initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
+
+                // add columns while the fill handle is dragged past the right edge of the table
+                document.documentElement.addEventListener('mousemove', e => {
+                    if (!this.getPlugin('autofill').handleDraggedCells) {
+                        return;
+                    }
+                    const rect = this.table.getBoundingClientRect();
+                    if (e.clientX > rect.right && e.clientY <= rect.bottom) {
+                        addColumnDelayed(this);
+                    }
+                });
             },
 
             /**
@@ -540,7 +577,7 @@ window.edittable_plugins = window.edittable_plugins || {};
                 const lastCol = this.countCols() - 1;
                 const [, startCol, , endCol] = this.getSelectedLast();
                 if (Math.max(startCol, endCol) < lastCol && fill.getCorners()[3] === lastCol) {
-                    this.alter('insert_col', undefined, 1, 'Autofill.fill');
+                    addColumnDelayed(this);
                 }
             },
 
