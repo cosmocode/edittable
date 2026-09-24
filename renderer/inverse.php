@@ -286,7 +286,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     public function unformatted($text)
     {
         $this->not_block();
-        if (strpos($text, '%%') !== false) {
+        if (str_contains($text, '%%')) {
             $this->doc .= "<nowiki>$text</nowiki>";
         } elseif ($text[0] == "\n") {
             $this->doc .= "<nowiki>$text</nowiki>";

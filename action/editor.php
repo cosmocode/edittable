@@ -240,7 +240,7 @@ class action_plugin_edittable_editor extends ActionPlugin
             $callable = 'mb_strwidth';
         } else {
             // count any characters as 1
-            $callable = [PhpString::class, 'strlen'];
+            $callable = PhpString::strlen(...);
         }
         return $this->strWidth($str);
     }
