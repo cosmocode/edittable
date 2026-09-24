@@ -5,7 +5,7 @@
  * @param  {jQuery}   $btn  Button element to add the action to
  * @param  {object}   props the button properties
  * @param  {string}   edid  ID of the editor textarea
- * @return {string}   a non-empty string, so the toolbar adds the button
+ * @return {string}   the ID of the editor textarea, so the toolbar adds the button without a picker
  */
 window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
     'use strict';
@@ -53,5 +53,5 @@ window.addBtnActionNewTable = function addBtnActionNewTable($btn, props, edid) {
         editbutton.click();
 
     });
-    return 'click';
+    return edid;
 };
