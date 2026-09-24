@@ -1,4 +1,4 @@
-/* global initToolbar */
+/* global initToolbar, Handsontable */
 
 window.edittable = window.edittable || {};
 window.edittable_plugins = window.edittable_plugins || {};
@@ -7,7 +7,14 @@ window.edittable_plugins = window.edittable_plugins || {};
     'use strict';
 
     /**
+     * Milliseconds to wait before the fill handle adds another column, the same as Handsontable uses for rows
      *
+     * @type {number}
+     */
+    const INTERVAL_FOR_ADDING_COLUMN = 200;
+
+    /**
+     * Move rows to a new position
      *
      * @param {Array} movingRowIndexes the indices of the rows to be moved
      * @param {int} target the row where the rows will be inserted
@@ -16,37 +23,34 @@ window.edittable_plugins = window.edittable_plugins || {};
      * @return {Array} the new data or meta array
      */
     edittable.moveRow = function moveRow(movingRowIndexes, target, dmarray) {
-        var startIndex = movingRowIndexes[0];
-        var endIndex = movingRowIndexes[movingRowIndexes.length - 1];
-        var moveForward = target < startIndex;
+        const startIndex = movingRowIndexes[0];
+        const endIndex = movingRowIndexes[movingRowIndexes.length - 1];
+        const moveForward = target < startIndex;
 
-        var first = dmarray.slice(0, Math.min(startIndex, target));
-        var moving = dmarray.slice(startIndex, endIndex + 1);
-        var between;
+        const first = dmarray.slice(0, Math.min(startIndex, target));
+        const moving = dmarray.slice(startIndex, endIndex + 1);
+        const between = moveForward ? dmarray.slice(target, startIndex) : dmarray.slice(endIndex + 1, target);
+        const last = dmarray.slice(Math.max(endIndex + 1, target));
         if (moveForward) {
-            between = dmarray.slice(target, startIndex);
-        } else {
-            between = dmarray.slice(endIndex + 1, target);
+            return [...first, ...moving, ...between, ...last];
         }
-        var last = dmarray.slice(Math.max(endIndex + 1, target));
-        if (moveForward) {
-            return [].concat(first, moving, between, last);
-        }
-        return [].concat(first, between, moving, last);
+        return [...first, ...between, ...moving, ...last];
     };
 
+    /**
+     * Insert rows with default cell properties into the meta array
+     *
+     * @param {int} index the index where the new rows are inserted
+     * @param {int} amount the number of rows to insert
+     * @param {Array} metaArray the meta array
+     *
+     * @return {Array} the changed meta array
+     */
     edittable.addRowToMeta = function (index, amount, metaArray) {
-        var i;
-        var cols = 1; // minimal number of cells
-        if (metaArray[0]) {
-            cols = metaArray[0].length;
-        }
+        const cols = metaArray[0]?.length ?? 1; // an empty table gets one cell per row
 
-        // insert into meta array
-        for (i = 0; i < amount; i += 1) {
-            var newrow = Array.apply(null, new Array(cols)).map(function initializeRowMeta() {
-                return { rowspan: 1, colspan: 1 };
-            });
+        for (let i = 0; i < amount; i += 1) {
+            const newrow = Array.from({length: cols}, () => ({rowspan: 1, colspan: 1}));
             metaArray.splice(index, 0, newrow);
         }
 
@@ -55,6 +59,7 @@ window.edittable_plugins = window.edittable_plugins || {};
 
 
     /**
+     * Move columns to a new position
      *
      * @param {Array} movingColIndexes the indices of the columns to be moved
      * @param {int} target the column where the columns will be inserted
@@ -63,28 +68,22 @@ window.edittable_plugins = window.edittable_plugins || {};
      * @return {Array} the new data or meta array
      */
     edittable.moveCol = function moveCol(movingColIndexes, target, dmarray) {
-        return dmarray.map(function (row) {
-            return edittable.moveRow(movingColIndexes, target, row);
-        });
+        return dmarray.map(row => edittable.moveRow(movingColIndexes, target, row));
     };
 
     /**
+     * Collect all merged cells from the meta array
      *
      * @param {Array} meta the meta array
      * @returns {Array} an array of the cells with a rowspan or colspan larger than 1
      */
     edittable.getMerges = function (meta) {
-        var merges = [];
-        for (var row = 0; row < meta.length; row += 1) {
-            for (var col = 0; col < meta[0].length; col += 1) {
-                if (meta[row][col].hasOwnProperty('rowspan') && meta[row][col].rowspan > 1 ||
-                    meta[row][col].hasOwnProperty('colspan') && meta[row][col].colspan > 1) {
-                    var merge = {};
-                    merge.row = row;
-                    merge.col = col;
-                    merge.rowspan = meta[row][col].rowspan;
-                    merge.colspan = meta[row][col].colspan;
-                    merges.push(merge);
+        const merges = [];
+        for (let row = 0; row < meta.length; row += 1) {
+            for (let col = 0; col < meta[0].length; col += 1) {
+                const {rowspan, colspan} = meta[row][col];
+                if (rowspan > 1 || colspan > 1) {
+                    merges.push({row, col, rowspan, colspan});
                 }
             }
         }
@@ -93,54 +92,97 @@ window.edittable_plugins = window.edittable_plugins || {};
 
 
     /**
+     * Check if the target of a move lies inside a merge
      *
-     * @param {Array} merges an array of the cells that are part of a merge
+     * @param {Array} merges the merged cells
      * @param {int} target the target column or row
-     * @param {string} direction whether we're trying to move a col or row
+     * @param {string} direction 'col' or 'row'
      *
-     * @return {bool} wether the target col/row is part of a merge
+     * @return {boolean} whether the target col/row is part of a merge
      */
     edittable.isTargetInMerge = function isTargetInMerge(merges, target, direction) {
-        return merges.some(function (merge) {
-            return (merge[direction] < target && target < merge[direction] + merge[direction + 'span']);
+        return merges.some(merge => merge[direction] < target && target < merge[direction] + merge[`${direction}span`]);
+    };
+
+    /**
+     * Check if the moving cols/rows would tear a merge apart
+     *
+     * This is the case when some, but not all, of the cols/rows spanned by a merge are moved.
+     *
+     * @param {Array} merges the merged cells
+     * @param {Array} movingIndexes the indices of the cols/rows to be moved
+     * @param {string} direction 'col' or 'row'
+     *
+     * @return {boolean} whether a merge is only partly moved
+     */
+    edittable.isMovingPartOfMerge = function isMovingPartOfMerge(merges, movingIndexes, direction) {
+        return merges.some(merge => {
+            const span = merge[`${direction}span`];
+            let moved = 0;
+            for (let i = merge[direction]; i < merge[direction] + span; i += 1) {
+                if (movingIndexes.includes(i)) {
+                    moved += 1;
+                }
+            }
+            return moved > 0 && moved < span;
         });
     };
 
+    /**
+     * Initialize the table editor if the page contains one
+     *
+     * @return {void}
+     */
     edittable.loadEditor = function () {
-        var $container = jQuery('#edittable__editor');
+        const $container = jQuery('#edittable__editor');
         if (!$container.length) {
             return;
         }
 
-        var $form = jQuery('#dw__editform');
-        var $datafield = $form.find('input[name=edittable_data]');
-        var $metafield = $form.find('input[name=edittable_meta]');
+        const $form = jQuery('#dw__editform');
+        const $datafield = $form.find('input[name=edittable_data]');
+        const $metafield = $form.find('input[name=edittable_meta]');
 
-        var data = JSON.parse($datafield.val());
-        var meta = JSON.parse($metafield.val());
+        const data = JSON.parse($datafield.val());
+        let meta = JSON.parse($metafield.val());
 
         /**
          * Get the current meta array
          *
-         * @return {array} the current meta array as array of rows with arrays of columns with objects
+         * @return {Array} the current meta array as array of rows with arrays of columns with objects
          */
         function getMeta() {return meta;}
 
         /**
          * Get the current data array
          *
-         * @return {array} the current data array as array of rows with arrays of columns with strings
+         * @return {Array} the current data array as array of rows with arrays of columns with strings
          */
         function getData() {return data;}
 
-        var merges = edittable.getMerges(meta);
-        if (merges === []) {
-            merges = true;
-        }
-        var lastselect = { row: 0, col: 0 };
+        const lastselect = {row: 0, col: 0};
+        let addingColumn = false;
 
-        var handsontable_config = {
-            data: data,
+        /**
+         * Add a column at the end of the table after a short delay, unless one is already being added
+         *
+         * @param {Handsontable} hot the table instance
+         *
+         * @return {void}
+         */
+        function addColumnDelayed(hot) {
+            if (addingColumn) {
+                return;
+            }
+            addingColumn = true;
+            setTimeout(() => {
+                hot.alter('insert_col', undefined, 1, 'Autofill.fill');
+                addingColumn = false;
+            }, INTERVAL_FOR_ADDING_COLUMN);
+        }
+
+        const handsontable_config = {
+            data,
             startRows: 5,
             startCols: 5,
             colHeaders: true,
@@ -150,59 +192,51 @@ window.edittable_plugins = window.edittable_plugins || {};
             contextMenu: edittable.getEditTableContextMenu(getData, getMeta),
             manualColumnMove: true,
             manualRowMove: true,
-            mergeCells: merges,
+            mergeCells: edittable.getMerges(meta),
+            fillHandle: true,
+            selectionMode: 'range',
 
 
             /**
-             * Attach pointers to our raw data structures in the instance
+             * Attach the raw data structures to the instance
              *
              * @return {void}
              */
-            afterLoadData: function () {
-                var i;
+            afterLoadData() {
                 this.raw = {
-                    data: data,
-                    meta: meta,
-                    colinfo: [],
-                    rowinfo: []
+                    data,
+                    meta,
+                    colinfo: data[0].map(() => ({})),
+                    rowinfo: data.map(() => ({}))
                 };
-                for (i = 0; i < data.length; i += 1) {
-                    this.raw.rowinfo[i] = {};
-                }
-                for (i = 0; i < data[0].length; i += 1) {
-                    this.raw.colinfo[i] = {};
-                }
             },
 
             /**
-             * initialize cell properties
+             * Provide the cell properties from the meta array
              *
-             * properties are stored in extra array
-             *
-             * @param {int} row the row of the desired column
-             * @param {int} col the col of the desired column
-             * @returns {Array} the respective cell from the meta array
+             * @param {int} row the row of the cell
+             * @param {int} col the column of the cell
+             * @returns {object} the properties of the cell
              */
-            cells: function (row, col) {
+            cells(row, col) {
                 return meta[row][col];
             },
 
             /**
-             * Custom cell renderer
-             *
-             * It handles all our custom meta attributes like alignments and rowspans
+             * Render a cell with the spans, visibility, alignment and header state from the meta array
              *
              * @param {object} instance the handsontable instance
              * @param {HTMLTableCellElement} td the dom node of the cell
              * @param {int} row the row of the cell to be rendered
              * @param {int} col the column of the cell to be rendered
+             * @param {...*} rest the remaining renderer arguments
              *
              * @return {void}
              */
-            renderer: function (instance, td, row, col) {
-                // for some reason, neither cellProperties nor instance.getCellMeta() give the right data
-                var cellMeta = meta[row][col];
-                var $td = jQuery(td);
+            renderer(instance, td, row, col, ...rest) {
+                // cellProperties and instance.getCellMeta() do not give the right data here
+                const cellMeta = meta[row][col];
+                const $td = jQuery(td);
 
                 if (cellMeta.colspan) {
                     $td.attr('colspan', cellMeta.colspan);
@@ -239,75 +273,49 @@ window.edittable_plugins = window.edittable_plugins || {};
                     $td.removeClass('header');
                 }
 
-                /* globals Handsontable */
-                Handsontable.renderers.TextRenderer.apply(this, arguments);
+                Handsontable.renderers.TextRenderer.call(this, instance, td, row, col, ...rest);
             },
 
             /**
-             * Initialization after the Editor loaded
+             * Select the first cell, connect the DokuWiki toolbar to the cell editor and watch the fill handle
              *
              * @return {void}
              */
-            afterInit: function () {
-                // select first cell
+            afterInit() {
                 this.selectCell(0, 0);
 
-                // we need an ID on the input field
+                // initToolbar() finds the textarea by its ID
                 jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
-
-                // we're ready to intialize the toolbar now
                 initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
 
-                // we wrap DokuWiki's pasteText() here to get notified when the toolbar inserted something into our editor
-                var original_pasteText = window.pasteText;
-                window.pasteText = function (selection, text, opts) {
-                    original_pasteText(selection, text, opts); // do what pasteText does
-                    // trigger resize
-                    jQuery('#handsontable__input').data('AutoResizer').check();
-                };
-                window.pasteText = original_pasteText;
-
-                /*
-             This is a workaround to rerender the table. It serves two functions:
-             1: On wide tables with linebreaks in columns with no pre-defined table widths (via the tablelayout plugin)
-                reset the width of the table columns to what is needed by its no narrower content
-             2: On table with some rows fixed at the top, ensure that the content of these rows stays at the top as well,
-                not only the lefthand rownumbers
-             Attaching this to the event 'afterRenderer' did not have the desired results, as it seemed not to work for
-             usecase 1 at all and for usecase 2 only with a delay.
-            */
-                var _this = this;
-                this.addHookOnce('afterOnCellMouseOver', function () {
-                    _this.updateSettings({});
+                // add columns while the fill handle is dragged past the right edge of the table
+                document.documentElement.addEventListener('mousemove', e => {
+                    if (!this.getPlugin('autofill').handleDraggedCells) {
+                        return;
+                    }
+                    const rect = this.table.getBoundingClientRect();
+                    if (e.clientX > rect.right && e.clientY <= rect.bottom) {
+                        addColumnDelayed(this);
+                    }
                 });
             },
 
             /**
-             * This recalculates the col and row spans and makes sure all correct cells are hidden
+             * Recalculate the spans and hidden cells from the merges and store the table in the form
              *
              * @return {void}
              */
-            beforeRender: function () {
-                var row, r, c, col, i;
+            beforeRender() {
+                this.raw.rowinfo = data.map(() => ({}));
+                this.raw.colinfo = data[0].map(() => ({}));
 
-                // reset row and column infos - we store spanning info there
-                this.raw.rowinfo = [];
-                this.raw.colinfo = [];
-                for (i = 0; i < data.length; i += 1) {
-                    this.raw.rowinfo[i] = {};
-                }
-                for (i = 0; i < data[0].length; i += 1) {
-                    this.raw.colinfo[i] = {};
-                }
-
-                // unhide all cells
-                for (row = 0; row < data.length; row += 1) {
-                    for (col = 0; col < data[0].length; col += 1) {
+                // reset all cells to unmerged and visible
+                for (let row = 0; row < data.length; row += 1) {
+                    for (let col = 0; col < data[0].length; col += 1) {
                         if (meta[row][col].hide) {
                             meta[row][col].hide = false;
                             data[row][col] = '';
                         }
-                        // unset all row/colspans
                         meta[row][col].colspan = 1;
                         meta[row][col].rowspan = 1;
 
@@ -318,18 +326,13 @@ window.edittable_plugins = window.edittable_plugins || {};
                     }
                 }
 
-                for (var merge = 0; merge < this.mergeCells.mergedCellInfoCollection.length; merge += 1) {
-                    row = this.mergeCells.mergedCellInfoCollection[merge].row;
-                    col = this.mergeCells.mergedCellInfoCollection[merge].col;
-                    var colspan = this.mergeCells.mergedCellInfoCollection[merge].colspan;
-                    var rowspan = this.mergeCells.mergedCellInfoCollection[merge].rowspan;
+                for (const {row, col, rowspan, colspan} of this.getPlugin('mergeCells').mergedCellsCollection.mergedCells) {
                     meta[row][col].colspan = colspan;
                     meta[row][col].rowspan = rowspan;
 
-                    // hide the cells hidden by the row/colspan
-
-                    for (r = row; r < row + rowspan; r += 1) {
-                        for (c = col; c < col + colspan; c += 1) {
+                    // hide the covered cells, move their text into the merged cell and mark lower rows with :::
+                    for (let r = row; r < row + rowspan; r += 1) {
+                        for (let c = col; c < col + colspan; c += 1) {
                             if (r === row && c === col) {
                                 continue;
                             }
@@ -337,31 +340,22 @@ window.edittable_plugins = window.edittable_plugins || {};
                             meta[r][c].rowspan = 1;
                             meta[r][c].colspan = 1;
                             if (data[r][c] && data[r][c] !== ':::') {
-                                data[row][col] += ' ' + data[r][c];
+                                data[row][col] += ` ${data[r][c]}`;
                             }
-                            if (r === row) {
-                                data[r][c] = '';
-                            } else {
-                                data[r][c] = ':::';
-                            }
+                            data[r][c] = r === row ? '' : ':::';
                         }
                     }
                 }
 
-                // Clone data object
-                // Since we can't use real line breaks (\n) inside table cells, this object is used to store all cell values with DokuWiki's line breaks (\\) instead of actual ones.
-                var dataLBFixed = jQuery.extend(true, {}, data);
-
-                // In dataLBFixed, replace all actual line breaks with DokuWiki line breaks
-                // In data, replace all DokuWiki line breaks with actual ones so the editor displays line breaks properly
-                for (row = 0; row < data.length; row += 1) {
-                    for (col = 0; col < data[0].length; col += 1) {
+                // the form stores DokuWiki line breaks (\\), the editor shows real line breaks
+                const dataLBFixed = jQuery.extend(true, {}, data);
+                for (let row = 0; row < data.length; row += 1) {
+                    for (let col = 0; col < data[0].length; col += 1) {
                         dataLBFixed[row][col] = data[row][col].replace(/(\r\n|\n|\r)/g, '\\\\ ');
                         data[row][col] = data[row][col].replace(/\\\\\s/g, '\n');
                     }
                 }
 
-                // Store dataFixed and meta back in the form
                 $datafield.val(JSON.stringify(dataLBFixed));
                 $metafield.val(JSON.stringify(meta));
             },
@@ -369,36 +363,60 @@ window.edittable_plugins = window.edittable_plugins || {};
             /**
              * Disable key handling while the link wizard or any other dialog is visible
              *
-             * @param {event} e the keydown event object
+             * @param {Event} e the keydown event object
              *
              * @return {void}
              */
-            beforeKeyDown: function (e) {
+            beforeKeyDown(e) {
                 if (jQuery('.ui-dialog:visible').length) {
                     e.stopImmediatePropagation();
                     e.preventDefault();
                 }
             },
 
-            beforeColumnMove: function (movingCols, target) {
-                var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'col');
+            /**
+             * Move the columns in our data and meta arrays instead of letting Handsontable move them
+             *
+             * The data array is changed in place, so the table is only rendered after the merges are updated.
+             *
+             * @param {Array} movingCols the indices of the columns to be moved
+             * @param {int} target the column where the columns will be inserted
+             *
+             * @return {false} always prevent Handsontable's own move
+             */
+            beforeColumnMove(movingCols, target) {
+                const merges = this.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+                const disallowMove = edittable.isTargetInMerge(merges, target, 'col') ||
+                    edittable.isMovingPartOfMerge(merges, movingCols, 'col');
                 if (disallowMove) {
                     return false;
                 }
                 meta = edittable.moveCol(movingCols, target, meta);
-                data = edittable.moveCol(movingCols, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
+                data.splice(0, data.length, ...edittable.moveCol(movingCols, target, data));
+                this.updateSettings({mergeCells: edittable.getMerges(meta)});
                 return false;
             },
 
-            beforeRowMove: function (movingRows, target) {
-                var disallowMove = edittable.isTargetInMerge(this.mergeCells.mergedCellInfoCollection, target, 'row');
+            /**
+             * Move the rows in our data and meta arrays instead of letting Handsontable move them
+             *
+             * The data array is changed in place, so the table is only rendered after the merges are updated.
+             *
+             * @param {Array} movingRows the indices of the rows to be moved
+             * @param {int} target the row where the rows will be inserted
+             *
+             * @return {false} always prevent Handsontable's own move
+             */
+            beforeRowMove(movingRows, target) {
+                const merges = this.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+                const disallowMove = edittable.isTargetInMerge(merges, target, 'row') ||
+                    edittable.isMovingPartOfMerge(merges, movingRows, 'row');
                 if (disallowMove) {
                     return false;
                 }
                 meta = edittable.moveRow(movingRows, target, meta);
-                data = edittable.moveRow(movingRows, target, data);
-                this.updateSettings({ mergeCells: edittable.getMerges(meta), data: data });
+                data.splice(0, data.length, ...edittable.moveRow(movingRows, target, data));
+                this.updateSettings({mergeCells: edittable.getMerges(meta)});
                 return false;
             },
 
@@ -410,20 +428,19 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * @return {void}
              */
-            afterCreateRow: function (index, amount) {
+            afterCreateRow(index, amount) {
                 meta = edittable.addRowToMeta(index, amount, meta);
             },
 
             /**
-             * Set id for toolbar to current handsontable input textarea
+             * Give the current cell editor textarea the ID the toolbar uses
              *
-             * For some reason (bug?), handsontable creates a new div.handsontableInputHolder with a new textarea and
-             * ignores the old one. For the toolbar to keep working we need make sure the currently used textarea has
-             * also the id `handsontable__input`.
+             * Handsontable can create a second textarea and ignore the first one.
+             * The older textareas get removed, so the ID stays unique.
              *
              * @return {void}
              */
-            afterBeginEditing: function () {
+            afterBeginEditing() {
                 if (jQuery('textarea.handsontableInput').length > 1) {
                     jQuery('textarea.handsontableInput:not(:last)').remove();
                     jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
@@ -438,7 +455,7 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * @return {void}
              */
-            afterRemoveRow: function (index, amount) {
+            afterRemoveRow(index, amount) {
                 meta.splice(index, amount);
             },
 
@@ -450,10 +467,13 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * @return {void}
              */
-            afterCreateCol: function (index, amount) {
-                for (var row = 0; row < data.length; row += 1) {
-                    for (var i = 0; i < amount; i += 1) {
-                        meta[row].splice(index, 0, { rowspan: 1, colspan: 1 });
+            afterCreateCol(index, amount) {
+                for (const metaRow of meta) {
+                    // new cells are header cells when all their neighbours are
+                    const neighbours = [metaRow[index - 1], metaRow[index]].filter(Boolean);
+                    const tag = neighbours.length && neighbours.every(cell => cell.tag === 'th') ? 'th' : 'td';
+                    for (let i = 0; i < amount; i += 1) {
+                        metaRow.splice(index, 0, {rowspan: 1, colspan: 1, tag});
                     }
                 }
             },
@@ -466,9 +486,9 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * @return {void}
              */
-            afterRemoveCol: function (index, amount) {
-                for (var row = 0; row < data.length; row += 1) {
-                    meta[row].splice(index, amount);
+            afterRemoveCol(index, amount) {
+                for (const metaRow of meta) {
+                    metaRow.splice(index, amount);
                 }
             },
 
@@ -480,78 +500,99 @@ window.edittable_plugins = window.edittable_plugins || {};
              *
              * @return {void}
              */
-            afterSelection: function (r, c) {
-                if (meta[r][c].hide) {
-                    // user navigated into a hidden cell! we need to find the next selectable cell
-                    var x = 0;
-
-                    var v = r - lastselect.row;
-                    if (v > 0) {
-                        v = 1;
-                    }
-                    if (v < 0) {
-                        v = -1;
-                    }
-
-                    var h = c - lastselect.col;
-                    if (h > 0) {
-                        h = 1;
-                    }
-                    if (h < 0) {
-                        h = -1;
-                    }
-
-                    if (v !== 0) {
-                        x = r;
-                        // user navigated vertically
-                        do {
-                            x += v;
-                            if (!meta[x][c].hide) {
-                                // cell is selectable, do it
-                                this.selectCell(x, c);
-                                return;
-                            }
-
-                        } while (x > 0 && x < data.length);
-                        // found no suitable cell
-                        this.deselectCell();
-                    } else if (h !== 0) {
-                        x = c;
-                        // user navigated horizontally
-                        do {
-                            x += h;
-                            if (!meta[r][x].hide) {
-                                // cell is selectable, do it
-                                this.selectCell(r, x);
-                                return;
-                            }
-
-                        } while (x > 0 && x < data[0].length);
-                        // found no suitable cell
-                        this.deselectCell();
-                    }
-                } else {
-                    // remember this selection
+            afterSelection(r, c) {
+                if (!meta[r][c].hide) {
                     lastselect.row = r;
                     lastselect.col = c;
+                    return;
+                }
+
+                // a hidden cell got selected, move on to the next visible cell in the same direction
+                const v = Math.sign(r - lastselect.row);
+                const h = Math.sign(c - lastselect.col);
+
+                if (v !== 0) {
+                    // user navigated vertically
+                    let x = r;
+                    do {
+                        x += v;
+                        if (!meta[x][c].hide) {
+                            this.selectCell(x, c);
+                            return;
+                        }
+                    } while (x > 0 && x < data.length);
+                    // found no suitable cell
+                    this.deselectCell();
+                } else if (h !== 0) {
+                    // user navigated horizontally
+                    let x = c;
+                    do {
+                        x += h;
+                        if (!meta[r][x].hide) {
+                            this.selectCell(r, x);
+                            return;
+                        }
+                    } while (x > 0 && x < data[0].length);
+                    // found no suitable cell
+                    this.deselectCell();
                 }
             },
 
             /**
+             * Join the content of all cells into the first cell before they are merged by the user
+             *
+             * @param {CellRange} cellRange the range of cells to be merged
+             * @param {boolean} auto true if the merge was not triggered by the user
+             *
+             * @return {void}
+             */
+            beforeMergeCells(cellRange, auto) {
+                if (auto) {
+                    return;
+                }
+                const topLeft = cellRange.getTopLeftCorner();
+                const bottomRight = cellRange.getBottomRightCorner();
+                for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
+                    for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
+                        if (r === topLeft.row && c === topLeft.col) {
+                            continue;
+                        }
+                        if (data[r][c] && data[r][c] !== ':::') {
+                            data[topLeft.row][topLeft.col] += ` ${data[r][c]}`;
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Add a new column when the fill handle is dragged into the last column
+             *
+             * @return {void}
+             */
+            afterOnCellMouseOver() {
+                const fill = this.selection.highlight.getFill();
+                if (fill.isEmpty()) {
+                    return;
+                }
+                const lastCol = this.countCols() - 1;
+                const [, startCol, , endCol] = this.getSelectedLast();
+                if (Math.max(startCol, endCol) < lastCol && fill.getCorners()[3] === lastCol) {
+                    addColumnDelayed(this);
+                }
+            },
+
+            /**
+             * Add rows and columns if the pasted data does not fit into the table
              *
              * @param {Array} pasteData An array of arrays which contains data to paste.
              * @param {Array} coords An array of objects with ranges of the visual indexes (startRow, startCol, endRow, endCol)
              *        that correspond to the previously selected area.
              * @return {true} always allowing the pasting
              */
-            beforePaste: function (pasteData, coords) {
-                var startRow = coords[0].startRow;
-                var startCol = coords[0].startCol;
-                var totalRows = this.countRows();
-                var totalCols = this.countCols();
-
-                var missingRows = (startRow + pasteData.length) - totalRows;
-                var missingCols = (startCol + pasteData[0].length) - totalCols;
+            beforePaste(pasteData, coords) {
+                const {startRow, startCol} = coords[0];
+                const missingRows = (startRow + pasteData.length) - this.countRows();
+                const missingCols = (startCol + pasteData[0].length) - this.countCols();
                 if (missingRows > 0) {
                     this.alter('insert_row', undefined, missingRows, 'paste');
                 }
@@ -567,19 +608,24 @@ window.edittable_plugins = window.edittable_plugins || {};
         }
 
 
-        for (var plugin in edittable_plugins) {
-            if (edittable_plugins.hasOwnProperty(plugin)) {
-                if (typeof edittable_plugins[plugin].modifyHandsontableConfig === 'function') {
-                    edittable_plugins[plugin].modifyHandsontableConfig(handsontable_config, $form);
-                }
+        for (const plugin of Object.values(edittable_plugins)) {
+            if (typeof plugin.modifyHandsontableConfig === 'function') {
+                plugin.modifyHandsontableConfig(handsontable_config, $form);
             }
         }
 
+
+        // keep the cell editor open while the toolbar or one of its dialogs is used
+        document.body.addEventListener('mousedown', e => {
+            if (jQuery(e.target).closest('#link__wiz, #tool__bar, .picker').length) {
+                e.stopPropagation();
+            }
+        });
 
         $container.handsontable(handsontable_config);
 
     };
 
-    jQuery(document).ready(edittable.loadEditor);
+    jQuery(edittable.loadEditor);
 
 }(window.edittable, window.edittable_plugins));

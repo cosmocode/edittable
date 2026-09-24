@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Table Renderer for Table Editor
  *
@@ -9,19 +10,15 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
-require_once DOKU_PLUGIN . "/edittable/renderer/inverse.php";
-
-class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
+class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse
+{
     /** @var array holds the data cells */
-    private $tdata = array();
+    private $tdata = [];
     /** @var array holds the cell meta data */
-    private $tmeta = array();
+    private $tmeta = [];
 
     /** @var array holds the meta data of the current cell */
-    private $tmetacell = array();
+    private $tmetacell = [];
 
     /** @var int current row */
     private $current_row = -1;
@@ -34,7 +31,8 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
      *
      * @return array
      */
-    public function getDataJSON() {
+    public function getDataJSON()
+    {
         return json_encode($this->tdata);
     }
 
@@ -43,45 +41,65 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
      *
      * @return array
      */
-    public function getMetaJSON() {
+    public function getMetaJSON()
+    {
         return json_encode($this->tmeta);
     }
 
     // renderer functions below
 
-    function table_open($maxcols = null, $numrows = null, $pos = null) {
+    public function table_open($maxcols = null, $numrows = null, $pos = null)
+    {
         // FIXME: is this needed somewhere? $this->_counter['table_begin_pos'] = strlen($this->doc);
     }
 
-    function table_close($pos = null) {
+    public function table_close($pos = null)
+    {
+        // fill up empty and short rows, so every row has a cell in every column
+        $cols = 0;
+        foreach ($this->tmeta as $cells) {
+            $cols = max($cols, max(array_keys($cells)) + 1);
+        }
+        for ($row = 0; $row <= $this->current_row; $row++) {
+            for ($col = 0; $col < $cols; $col++) {
+                if (isset($this->tmeta[$row][$col])) continue;
+                $this->tmeta[$row][$col] = ['tag' => 'td', 'colspan' => 1, 'rowspan' => 1, 'align' => null];
+                $this->tdata[$row][$col] = '';
+            }
+            ksort($this->tdata[$row]);
+            ksort($this->tmeta[$row]);
+        }
     }
 
-    function tablerow_open() {
+    public function tablerow_open()
+    {
         // move counters
         $this->current_row++;
         $this->current_col = 0;
     }
 
-    function tablerow_close() {
-        // resort just for better debug readability
-        ksort($this->tdata[$this->current_row]);
-        ksort($this->tmeta[$this->current_row]);
+    public function tablerow_close()
+    {
     }
 
-    function tableheader_open($colspan = 1, $align = null, $rowspan = 1) {
-        $this->_tablefield_open('th', $colspan, $align, $rowspan);
+    public function tableheader_open($colspan = 1, $align = null, $rowspan = 1)
+    {
+        $this->tablefieldOpen('th', $colspan, $align, $rowspan);
     }
 
-    function tableheader_close() {
-        $this->_tablefield_close();
+    public function tableheader_close()
+    {
+        $this->tablefieldClose();
     }
 
-    function tablecell_open($colspan = 1, $align = null, $rowspan = 1) {
-        $this->_tablefield_open('td', $colspan, $align, $rowspan);
+    public function tablecell_open($colspan = 1, $align = null, $rowspan = 1)
+    {
+        $this->tablefieldOpen('td', $colspan, $align, $rowspan);
     }
 
-    function tablecell_close() {
-        $this->_tablefield_close();
+    public function tablecell_close()
+    {
+        $this->tablefieldClose();
     }
 
     /**
@@ -92,14 +110,15 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
      * @param $align
      * @param $rowspan
      */
-    private function _tablefield_open($tag, $colspan, $align, $rowspan) {
+    private function tablefieldOpen($tag, $colspan, $align, $rowspan)
+    {
         // skip cells that already exist - those are previous (span) cells!
-        while(isset($this->tmeta[$this->current_row][$this->current_col])) {
+        while (isset($this->tmeta[$this->current_row][$this->current_col])) {
             $this->current_col++;
         }
 
         // remember these, we use them when closing
-        $this->tmetacell = array();
+        $this->tmetacell = [];
         $this->tmetacell['tag'] = $tag;
         $this->tmetacell['colspan'] = $colspan;
         $this->tmetacell['rowspan'] = $rowspan;
@@ -112,7 +131,8 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
     /**
      * Used for closing THs and TDs
      */
-    private function _tablefield_close() {
+    private function tablefieldClose()
+    {
         // these have been set to the correct cell already
         $row = $this->current_row;
         $col = $this->current_col;
@@ -125,29 +145,30 @@ class renderer_plugin_edittable_json extends renderer_plugin_edittable_inverse {
             $rowspan = $this->tmetacell['rowspan'];
             $colspan = $this->tmetacell['colspan'];
 
-            for($c = 1; $c < $colspan; $c++) {
-                // hide colspanned cell in same row
-                $this->tmeta[$row][$col + $c]['hide'] = true;
-                $this->tmeta[$row][$col + $c]['rowspan'] = 1;
-                $this->tmeta[$row][$col + $c]['colspan'] = 1;
-                $this->tdata[$row][$col + $c] = '';
+        for ($c = 1; $c < $colspan; $c++) {
+            // hide colspanned cell in same row
+            $this->tmeta[$row][$col + $c]['tag'] = $this->tmeta[$row][$col]['tag'];
+            $this->tmeta[$row][$col + $c]['hide'] = true;
+            $this->tmeta[$row][$col + $c]['rowspan'] = 1;
+            $this->tmeta[$row][$col + $c]['colspan'] = 1;
+            $this->tdata[$row][$col + $c] = '';
 
-                // hide colspanned rows below if rowspan is in effect as well
-                for($r = 1; $r < $rowspan; $r++) {
-                    $this->tmeta[$row + $r][$col + $c]['hide'] = true;
-                    $this->tmeta[$row + $r][$col + $c]['rowspan'] = 1;
-                    $this->tmeta[$row + $r][$col + $c]['colspan'] = 1;
-                    $this->tdata[$row + $r][$col + $c] = '';
-                }
+            // hide colspanned rows below if rowspan is in effect as well
+            for ($r = 1; $r < $rowspan; $r++) {
+                $this->tmeta[$row + $r][$col + $c]['hide'] = true;
+                $this->tmeta[$row + $r][$col + $c]['rowspan'] = 1;
+                $this->tmeta[$row + $r][$col + $c]['colspan'] = 1;
+                $this->tdata[$row + $r][$col + $c] = '';
             }
+        }
 
             // hide rowspanned columns
-            for($r = 1; $r < $rowspan; $r++) {
-                $this->tmeta[$row + $r][$col]['hide'] = true;
-                $this->tmeta[$row + $r][$col]['rowspan'] = 1;
-                $this->tmeta[$row + $r][$col]['colspan'] = 1;
-                $this->tdata[$row + $r][$col] = ':::';
-            }
+        for ($r = 1; $r < $rowspan; $r++) {
+            $this->tmeta[$row + $r][$col]['hide'] = true;
+            $this->tmeta[$row + $r][$col]['rowspan'] = 1;
+            $this->tmeta[$row + $r][$col]['colspan'] = 1;
+            $this->tdata[$row + $r][$col] = ':::';
+        }
         }
     }
 }

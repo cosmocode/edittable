@@ -1,13 +1,11 @@
-/* eslint-env qunit */
-
 window.edittable = window.edittable || {};
 
 (function (edittable) {
     'use strict';
 
     QUnit.module( 'Tests for edittable_getMerges' );
-    QUnit.test('merge 2x2', function(assert) {
-        var meta = [
+    QUnit.test('merge 2x2', assert => {
+        const meta = [
             [
                 {
                     'tag': 'th',
@@ -111,8 +109,8 @@ window.edittable = window.edittable || {};
             ]
         ];
 
-        var actual_merges = edittable.getMerges(meta);
-        var expected_merges = [{row:2, col:0, rowspan: 2, colspan: 2}];
+        const actual_merges = edittable.getMerges(meta);
+        const expected_merges = [{row:2, col:0, rowspan: 2, colspan: 2}];
         assert.deepEqual(actual_merges, expected_merges);
     });
 

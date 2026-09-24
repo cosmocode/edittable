@@ -22,3 +22,4 @@ inverse.php
 renderer_table_edit.php
 style.css
 Gruntfile.js
+lib/handsontable.full.js

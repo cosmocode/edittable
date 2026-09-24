@@ -51,7 +51,7 @@ class action_plugin_edittable_editor_test extends DokuWikiTest {
 EOF;
 
         $action = new action_plugin_edittable_editor();
-        $output = $action->build_table($data, $meta);
+        $output = $action->buildTable($data, $meta);
 
         $this->assertEquals($expect, $output);
     }

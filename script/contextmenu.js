@@ -5,188 +5,228 @@ window.edittable = window.edittable || {};
 (function (edittable) {
     'use strict';
     /**
-     * create an iterable array of selected cells from the selection object
+     * List all cells of a selection range
      *
-     * @param {object} selection the selection object
+     * @param {object} selection the selection range with start and end coordinates
      *
-     * @returns {Array} an array of the rows/columns of the cells in the selection
+     * @returns {Array} the row and column of each cell in the range
      */
     edittable.cellArray = function (selection) {
-        var selectionArray = [];
-        for (var currentRow = selection.start.row; currentRow <= selection.end.row; currentRow += 1) {
-            for (var currentCol = selection.start.col; currentCol <= selection.end.col; currentCol += 1) {
-                selectionArray.push({row: currentRow, col: currentCol});
+        const selectionArray = [];
+        for (let row = selection.start.row; row <= selection.end.row; row += 1) {
+            for (let col = selection.start.col; col <= selection.end.col; col += 1) {
+                selectionArray.push({row, col});
             }
         }
         return selectionArray;
     };
 
     /**
-     * Defines our own contextMenu with custom callbacks
+     * Wrap the label of a context menu item in an element with a CSS class that selects the item's icon
      *
-     * @param {function} getData get the current data array
-     * @param {function} getMeta get the current meta array
-     * @returns {object} the context menu object
+     * @param {string} key the CSS class
+     * @param {string} label the label of the menu item
+     * @returns {string} the HTML to be used as the item's name
+     */
+    function itemName(key, label) {
+        return `<div class="${key}">${label}</div>`;
+    }
+
+    /**
+     * Create the contextMenu setting with the items of the table editor
+     *
+     * @param {Function} getData get the current data array
+     * @param {Function} getMeta get the current meta array
+     * @returns {object} the contextMenu setting for Handsontable
      */
     edittable.getEditTableContextMenu = function (getData, getMeta) {
         return {
             items: {
                 toggle_header: {
-                    name: LANG.plugins.edittable.toggle_header,
-                    callback: function (key, selection) {
-                        var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
-                            var col = cell.col;
-                            var row = cell.row;
-
-                            if (meta[row][col].tag && meta[row][col].tag === 'th') {
-                                meta[row][col].tag = 'td';
-                            } else {
-                                meta[row][col].tag = 'th';
-                            }
-                        });
+                    name: itemName('toggle_header', LANG.plugins.edittable.toggle_header),
+                    /**
+                     * Toggle the selected cells between header and normal cells
+                     *
+                     * @param {string} key key of the menu item
+                     * @param {Array} selection the selected ranges
+                     *
+                     * @return {void}
+                     */
+                    callback(key, selection) {
+                        const meta = getMeta();
+                        for (const {row, col} of edittable.cellArray(selection[0])) {
+                            meta[row][col].tag = meta[row][col].tag === 'th' ? 'td' : 'th';
+                        }
                         this.render();
                     }
                 },
                 align_left: {
-                    name: LANG.plugins.edittable.align_left,
-                    callback: function (key, selection) {
-                        var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
-                            var col = cell.col;
-                            var row = cell.row;
+                    name: itemName('align_left', LANG.plugins.edittable.align_left),
+                    /**
+                     * Align the selected cells to the left
+                     *
+                     * @param {string} key key of the menu item
+                     * @param {Array} selection the selected ranges
+                     *
+                     * @return {void}
+                     */
+                    callback(key, selection) {
+                        const meta = getMeta();
+                        for (const {row, col} of edittable.cellArray(selection[0])) {
                             meta[row][col].align = 'left';
-                        });
+                        }
                         this.render();
                     },
-                    disabled: function () {
-                        var meta = getMeta();
-                        var selection = this.getSelected();
-                        var row = selection[0];
-                        var col = selection[1];
-                        return (!meta[row][col].align || meta[row][col].align === 'left');
+                    /**
+                     * disable if the selected cell is already aligned to the left
+                     *
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
+                     */
+                    disabled() {
+                        const [row, col] = this.getSelectedLast();
+                        const align = getMeta()[row][col].align;
+                        return !align || align === 'left';
                     }
                 },
                 align_center: {
-                    name: LANG.plugins.edittable.align_center,
-                    callback: function (key, selection) {
-                        var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
-                            var col = cell.col;
-                            var row = cell.row;
+                    name: itemName('align_center', LANG.plugins.edittable.align_center),
+                    /**
+                     * Center the selected cells
+                     *
+                     * @param {string} key key of the menu item
+                     * @param {Array} selection the selected ranges
+                     *
+                     * @return {void}
+                     */
+                    callback(key, selection) {
+                        const meta = getMeta();
+                        for (const {row, col} of edittable.cellArray(selection[0])) {
                             meta[row][col].align = 'center';
-                        });
+                        }
                         this.render();
                     },
-                    disabled: function () {
-                        var meta = getMeta();
-                        var selection = this.getSelected();
-                        var row = selection[0];
-                        var col = selection[1];
-                        return (meta[row][col].align && meta[row][col].align === 'center');
+                    /**
+                     * disable if the selected cell is already centered
+                     *
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
+                     */
+                    disabled() {
+                        const [row, col] = this.getSelectedLast();
+                        return getMeta()[row][col].align === 'center';
                     }
                 },
                 align_right: {
-                    name: LANG.plugins.edittable.align_right,
-                    callback: function (key, selection) {
-                        var meta = getMeta();
-                        jQuery.each(edittable.cellArray(selection), function (index, cell) {
-                            var col = cell.col;
-                            var row = cell.row;
+                    name: itemName('align_right', LANG.plugins.edittable.align_right),
+                    /**
+                     * Align the selected cells to the right
+                     *
+                     * @param {string} key key of the menu item
+                     * @param {Array} selection the selected ranges
+                     *
+                     * @return {void}
+                     */
+                    callback(key, selection) {
+                        const meta = getMeta();
+                        for (const {row, col} of edittable.cellArray(selection[0])) {
                             meta[row][col].align = 'right';
-                        });
+                        }
                         this.render();
                     },
-                    disabled: function () {
-                        var meta = getMeta();
-                        var selection = this.getSelected();
-                        var row = selection[0];
-                        var col = selection[1];
-                        return (meta[row][col].align && meta[row][col].align === 'right');
+                    /**
+                     * disable if the selected cell is already aligned to the right
+                     *
+                     * @return {boolean} true if the entry is to be disabled, false otherwise
+                     */
+                    disabled() {
+                        const [row, col] = this.getSelectedLast();
+                        return getMeta()[row][col].align === 'right';
                     }
                 },
                 hsep1: '---------',
                 row_above: {
-                    name: LANG.plugins.edittable.row_above
+                    name: itemName('row_above', LANG.plugins.edittable.row_above)
                 },
                 remove_row: {
-                    name: LANG.plugins.edittable.remove_row,
+                    name: itemName('remove_row', LANG.plugins.edittable.remove_row),
                     /**
-                     * The same as the default action, but with confirmation
+                     * Remove the selected rows after the user confirms
                      *
                      * @param {string} key key of the menu item
-                     * @param {object} selection the selection object
+                     * @param {Array} selection the selected ranges
                      *
                      * @return {void}
                      */
-                    callback: function (key, selection) {
+                    callback(key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeleterow)) {
-                            var amount = selection.end.row - selection.start.row + 1;
-                            this.alter('remove_row', selection.start.row, amount);
+                            const {start, end} = selection[0];
+                            this.alter('remove_row', start.row, end.row - start.row + 1);
                         }
                     },
                     /**
-                     * do not show when this is the last row
+                     * disable when the selection covers all rows
                      *
                      * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
-                    disabled: function () {
-                        var rowsInTable = this.countRows();
-                        var firstSelectedRow = this.getSelected()[0];
-                        var lastSelectedRow = this.getSelected()[2]; // fix magic number with destructuring once we drop IE11
-                        var allRowsSelected = firstSelectedRow === 0 && lastSelectedRow === rowsInTable - 1;
-                        return (rowsInTable <= 1 || allRowsSelected);
+                    disabled() {
+                        const rowsInTable = this.countRows();
+                        const [firstSelectedRow, , lastSelectedRow] = this.getSelectedLast();
+                        const allRowsSelected = firstSelectedRow === 0 && lastSelectedRow === rowsInTable - 1;
+                        return rowsInTable <= 1 || allRowsSelected;
                     }
                 },
                 row_below: {
-                    name: LANG.plugins.edittable.row_below
+                    name: itemName('row_below', LANG.plugins.edittable.row_below)
                 },
                 hsep2: '---------',
                 col_left: {
-                    name: LANG.plugins.edittable.col_left
+                    name: itemName('col_left', LANG.plugins.edittable.col_left)
                 },
                 remove_col: {
-                    name: LANG.plugins.edittable.remove_col,
+                    name: itemName('remove_col', LANG.plugins.edittable.remove_col),
                     /**
-                     * The same as the default action, but with confirmation
+                     * Remove the selected columns after the user confirms
                      *
                      * @param {string} key key of the menu item
-                     * @param {object} selection the selection object
+                     * @param {Array} selection the selected ranges
                      *
                      * @return {void}
                      */
-                    callback: function (key, selection) {
+                    callback(key, selection) {
                         if (window.confirm(LANG.plugins.edittable.confirmdeletecol)) {
-                            var amount = selection.end.col - selection.start.col + 1;
-                            this.alter('remove_col', selection.start.col, amount);
+                            const {start, end} = selection[0];
+                            this.alter('remove_col', start.col, end.col - start.col + 1);
                         }
                     },
                     /**
-                     * do not show when this is the last row
+                     * disable when the selection covers all columns
                      *
                      * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
-                    disabled: function () {
-                        var colsInTable = this.countCols();
-                        var firstSelectedColumn = this.getSelected()[1];
-                        var lastSelectedColumn = this.getSelected()[3]; // fix magic number with destructuring once we drop IE11
-                        var allColsSelected = firstSelectedColumn === 0 && lastSelectedColumn === colsInTable - 1;
-                        return (colsInTable <= 1 || allColsSelected);
+                    disabled() {
+                        const colsInTable = this.countCols();
+                        const [, firstSelectedColumn, , lastSelectedColumn] = this.getSelectedLast();
+                        const allColsSelected = firstSelectedColumn === 0 && lastSelectedColumn === colsInTable - 1;
+                        return colsInTable <= 1 || allColsSelected;
                     }
                 },
                 col_right: {
-                    name: LANG.plugins.edittable.col_right
+                    name: itemName('col_right', LANG.plugins.edittable.col_right)
                 },
                 hsep3: '---------',
                 mergeCells: {
-                    name: function () {
-                        var sel = this.getSelected();
-                        var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
-                        if (info) {
-                            return '<div class="unmerge">' + LANG.plugins.edittable.unmerge_cells + '</div>';
-                        } else {
-                            return '<div class="merge">' + LANG.plugins.edittable.merge_cells + '</div>';
+                    /**
+                     * Offer to split the selection if it is exactly one merged cell, to merge it otherwise
+                     *
+                     * @return {string} the HTML to be used as the item's name
+                     */
+                    name() {
+                        const [startRow, startCol, endRow, endCol] = this.getSelectedLast();
+                        const info = this.getPlugin('mergeCells').mergedCellsCollection.get(startRow, startCol);
+                        if (info && info.row === startRow && info.col === startCol &&
+                            info.row + info.rowspan - 1 === endRow && info.col + info.colspan - 1 === endCol) {
+                            return itemName('unmerge', LANG.plugins.edittable.unmerge_cells);
                         }
+                        return itemName('merge', LANG.plugins.edittable.merge_cells);
                     },
 
                     /**
@@ -194,12 +234,8 @@ window.edittable = window.edittable || {};
                      *
                      * @return {boolean} true if the entry is to be disabled, false otherwise
                      */
-                    disabled: function () {
-                        var selection = this.getSelected();
-                        var startRow = selection[0];
-                        var startCol = selection[1];
-                        var endRow = selection[2];
-                        var endCol = selection[3];
+                    disabled() {
+                        const [startRow, startCol, endRow, endCol] = this.getSelectedLast();
                         return startRow === endRow && startCol === endCol;
                     }
 

@@ -1,6 +1,11 @@
-The handsontable version used in this plugin is slightly modified and
-maintained at https://github.com/cosmocode/handsontable/tree/dokuwiki2017
+This plugin uses Handsontable 6.2.2. It is the last release under the MIT
+license. Later releases use a license that does not allow commercial use, so
+do not update to them.
 
-No modifications should be done on the handsontable.* files here! Changes
-need to be done in the source files in the above repository, be compiled there
-and copied over here.
+The files in lib/ are copied unchanged from the npm package handsontable@6.2.2:
+
+  dist/handsontable.min.js  ->  lib/handsontable.min.js
+  dist/handsontable.css     ->  lib/handsontable.less
+
+Do not change these files. Adjust the library's behavior in the plugin's own
+scripts and styles instead.

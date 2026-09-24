@@ -1,4 +1,4 @@
-/* DOKUWIKI:include_once lib/handsontable.full.js */
+/* DOKUWIKI:include_once lib/handsontable.min.js */
 
 /* DOKUWIKI:include script/contextmenu.js */
 /* DOKUWIKI:include script/editor.js */

@@ -1,47 +1,51 @@
 <?php
+
+use dokuwiki\Extension\ActionPlugin;
+use dokuwiki\Extension\EventHandler;
+use dokuwiki\Extension\Event;
+
 /**
  * Table editor
  *
  * @author     Adrian Lang <lang@cosmocode.de>
  */
-
 /**
  * Handles the inserting of a new table in a running edit session
  */
-class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin
+class action_plugin_edittable_newtable extends ActionPlugin
 {
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    function register(Doku_Event_Handler $controller)
+    public function register(EventHandler $controller)
     {
         $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'toolbar');
 
-        //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_newtable');
-        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', 'BEFORE', $this, 'handle_newtable');
+        //$controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleNewtable');
+        $controller->register_hook('PLUGIN_EDITTABLE_PREPROCESS_NEWTABLE', 'BEFORE', $this, 'handleNewtable');
     }
 
     /**
      * Add a button for inserting tables to the toolbar array
      *
-     * @param Doku_Event $event
+     * @param Event $event
      */
-    public function toolbar(Doku_Event $event)
+    public function toolbar(Event $event)
     {
-        $event->data[] = array(
+        $event->data[] = [
             'title' => $this->getLang('add_table'),
             'type'  => 'NewTable',
             'icon'  => '../../plugins/edittable/images/add_table.png',
             'block' => true
-        );
+        ];
     }
 
     /**
      * Handle the click on the new table button in the toolbar
      *
-     * @param Doku_Event $event
+     * @param Event $event
      */
-    public function handle_newtable(Doku_Event $event)
+    public function handleNewtable(Event $event)
     {
         global $INPUT;
         global $TEXT;
@@ -52,7 +56,7 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin
          * $fields['pre']  has all data before the selection when the "Insert table" button was clicked
          * $fields['text'] has all data inside the selection when the "Insert table" button was clicked
          * $fields['suf']  has all data after the selection when the "Insert table" button was clicked
-         * $TEXT has the table created by the editor (from action_plugin_edittable_editor::handle_table_post())
+         * $TEXT has the table created by the editor (from action_plugin_edittable_editor::handleTablePost())
          */
         $fields = $INPUT->post->arr('edittable__new');
 
@@ -80,13 +84,13 @@ class action_plugin_edittable_newtable extends DokuWiki_Action_Plugin
             case 'draftdel':
                 // not sure if/how this would happen, we restore all data and hand over to section edit
                 $INPUT->post->set('target', 'section');
-                $TEXT = $fields['pre'].$fields['text'].$fields['suf'];
+                $TEXT = $fields['pre'] . $fields['text'] . $fields['suf'];
                 $event->data = 'edit';
                 break;
             case 'save':
                 // return to edit page
                 $INPUT->post->set('target', 'section');
-                $TEXT = $fields['pre'].$TEXT.$fields['suf'];
+                $TEXT = $fields['pre'] . $TEXT . $fields['suf'];
                 $event->data = 'edit';
                 break;
         }

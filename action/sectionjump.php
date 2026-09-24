@@ -1,29 +1,33 @@
 <?php
+
+use dokuwiki\Extension\ActionPlugin;
+use dokuwiki\Extension\EventHandler;
+use dokuwiki\Extension\Event;
+
 /**
  * Table editor
  *
  * @author     Adrian Lang <lang@cosmocode.de>
  */
-
 /**
  * redirect to the section containg the table
  */
-class action_plugin_edittable_sectionjump extends DokuWiki_Action_Plugin
+class action_plugin_edittable_sectionjump extends ActionPlugin
 {
     /**
      * Register its handlers with the DokuWiki's event controller
      */
-    function register(Doku_Event_Handler $controller)
+    public function register(EventHandler $controller)
     {
-        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jump_to_section');
+        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'jumpToSection');
     }
 
     /**
      * Jump after save to the section containing this table
      *
-     * @param Doku_Event $event
+     * @param Event $event
      */
-    function jump_to_section($event)
+    public function jumpToSection($event)
     {
         global $INPUT;
         if (!$INPUT->has('edittable_data')) return;
