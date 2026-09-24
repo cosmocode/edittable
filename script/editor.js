@@ -261,12 +261,6 @@ window.edittable_plugins = window.edittable_plugins || {};
                 // initToolbar() finds the textarea by its ID
                 jQuery('textarea.handsontableInput').attr('id', 'handsontable__input');
                 initToolbar('tool__bar', 'handsontable__input', window.toolbar, false);
-
-                // render again on the first mouse over, to fit the column widths of tables with line breaks
-                // and to keep the content of fixed rows at the top
-                this.addHookOnce('afterOnCellMouseOver', () => {
-                    this.updateSettings({});
-                });
             },
 
             /**
