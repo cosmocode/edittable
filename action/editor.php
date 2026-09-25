@@ -196,7 +196,7 @@ class action_plugin_edittable_editor extends ActionPlugin
                 $meta[$row][$col]['length'] = $len;
 
                 // a cell that spans several lines has no single width
-                if (strpos($data[$row][$col], "\n") !== false) continue;
+                if (str_contains($data[$row][$col], "\n")) continue;
 
                 if ($len > $colmax[$col]) $colmax[$col] = $len;
             }
@@ -245,7 +245,7 @@ class action_plugin_edittable_editor extends ActionPlugin
                 // how much padding needs to be added? a multiline cell gets none
                 $length = $meta[$row][$col]['length'];
                 $addpad = 0;
-                if ($padMarkup && strpos($data[$row][$col], "\n") === false) {
+                if ($padMarkup && !str_contains($data[$row][$col], "\n")) {
                     $addpad = $target - $length;
                 }
 
@@ -289,7 +289,7 @@ class action_plugin_edittable_editor extends ActionPlugin
     public function cellMarkup($text)
     {
         $text = str_replace(["\r\n", "\r"], "\n", $text);
-        if (strpos($text, "\n") === false) return $text;
+        if (!str_contains($text, "\n")) return $text;
 
         $ranges = $this->protectedRanges($text);
 
@@ -360,7 +360,7 @@ class action_plugin_edittable_editor extends ActionPlugin
             }
 
             if ((string)$source === '') continue;
-            $pos = strpos($text, $source, $offset);
+            $pos = strpos($text, (string) $source, $offset);
             if ($pos === false) continue;
 
             $offset = $pos + strlen($source);
@@ -398,7 +398,7 @@ class action_plugin_edittable_editor extends ActionPlugin
             $callable = 'mb_strwidth';
         } else {
             // count any characters as 1
-            $callable = [PhpString::class, 'strlen'];
+            $callable = PhpString::strlen(...);
         }
         return $this->strWidth($str);
     }
