@@ -357,7 +357,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
     {
         $this->not_block();
         $start = strlen($this->doc);
-        if (strpos($text, '%%') !== false) {
+        if (str_contains($text, '%%')) {
             $this->doc .= "<nowiki>$text</nowiki>";
         } elseif ($text[0] == "\n") {
             $this->doc .= "<nowiki>$text</nowiki>";
@@ -923,7 +923,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
         foreach ($table as $row) {
             foreach ($row as $n => $cell) {
                 // A cell that spans several lines has no single width.
-                if (strpos($cell['text'], DOKU_LF) !== false) continue;
+                if (str_contains($cell['text'], DOKU_LF)) continue;
 
                 // Calculate cell width.
                 $diff = (PhpString::strlen($cell['text']) + $cell['colspan'] +
@@ -963,7 +963,7 @@ class renderer_plugin_edittable_inverse extends Doku_Renderer
                 $pad = $target - PhpString::strlen($cell['text']);
 
                 // A cell that spans several lines gets no more padding than its alignment needs.
-                if (strpos($cell['text'], DOKU_LF) !== false) {
+                if (str_contains($cell['text'], DOKU_LF)) {
                     $pad = $cell['colspan'] + ($cell['align'] === 'center' ? 3 : 2);
                 }
 
